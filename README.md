@@ -1,5 +1,5 @@
 # Clinical Data Conduit
-##A REDCap EM for self-service clinical data integration.
+## A REDCap EM for self-service clinical data integration.
 
 Welcome to Stanford REDCap's Clinical Data Conduit, a self-service tool to automatically import clinical data associated with research subjects in your study.
 
