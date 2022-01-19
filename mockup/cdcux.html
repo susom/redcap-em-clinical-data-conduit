@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/ico" href="data:image/ico;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAD///8A////AP///wD///8A////AP///wDa2vAkgYHMtWxsxJPw8PkM////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wCiotpaCgqd8z8/sv8AAJn/ICCl3szM6jH///8A////AP///wD///8A////AP///wD///8A////AP///wCGhs53AACZ/wAAmf8/P7L/AACZ/wAAmf8KCp31vLzkQf///wD///8A////AP///wD///8A////AP///wCiotpaISGm/S8vrP8vL6z/Pz+y/wAAmf8AAJn/Cwud/xsbo/DU1O4p////AP///wD///8A////AP///wDe3vIfDAyd83xwy/+kjtz/wrPn/z8/sv8AAJn/AACZ/1pavf9ISLb/MDCsz/r6/QP///8A////AP///wD///8AWFi8pk5MuP+biNj/jG/S/5uD2P8/P7L/AACZ/wAAmf9FRbT/mprW/wwMnf+YmNZl////AP///wD///8A4ODyHQQEmvxmZML/tKLi/7yr5f93dcj/Pz+y/wAAmf8QEJ//nZ3Y/3Z2yP8AAJn/Jiao2f///wD///8A////AIqK0HIAAJn/VFK7/2tTxf+Xidb/Jiao/z8/sv8AAJn/Jiao/6ys3v8wMKz/AACZ/wAAmf/Kyuoy////AP///wBiYr+1ICCl/yAgpf8gIKX/ICCl/yAgpf9XV7z/AACZ/wAAmf9KSrb/k5PU/ywsqv8AAJn/iIjPdf///wD///8AQkKz4jMzrf9SUrr/d3fJ/0lJtv8vL6z/Y2PA/wAAmf8AAJn/PDyx/2NjwP9nZ8L/AACZ/1xcvaH///8A////AAUFmv1kZMH/ysrp/9XV7v+2tuH/NDSu/z8/sv8AAJn/AACZ/29vxf+np9v/BASa/wAAmf9CQrO9////AP///wAGBpv/m5vX/4eHz//u7vj/Tk64/5eX1f8/P7L/AACZ/ywsqv+qqt3/QECy/wAAmf8AAJn/QECyv////wD///8AAgKZ/QAAmf9ra8T/3d3x/ykpqf8CApn/Pz+y/wcHm/+JidD/MDCs/1dXvP8AAJn/AACZ/0BAsr3///8A////ABgYouUAAJn/Wlq9/9/f8v8XF6L/AACZ/z8/sv8UFKH/kZHT/6el3P9iYsD/AACZ/wAAmf9YWLym////AP///wBCQrO9AACZ/yMjp/+vr9//BASa/wAAmf8/P7L/AACZ/wAAmf8ICJz/AACZ/wAAmf8AAJn/goLNff///wD///8Ajo7ScCAgpd4gIKXeS0u33iAgpd4gIKXeV1e73iAgpd4gIKXeICCl3iAgpd4gIKXeICCl3sbG6Dj///8A/n8AAPw/AAD4HwAA8A8AAOAHAADABwAAwAMAAMADAACAAwAAgAEAAIABAACAAQAAgAEAAIABAACAAwAAwAMAAA=="/>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <style>
+        .auto-width {width: auto;}
+    </style>
+    <title>Clinical Data Conduit</title>
+</head>
+<body>
+
+
+<div class="container">
+    <form>
+        <div class="row justify-content-start">
+            <div class="col-12"><h1>Clinical Data Conduit</h1></div>
+        </div>
+        <div id="page1" >
+            <div class="row justify-content-start">
+                <div class="row">
+                    <div class="col-8">
+                        <p>
+                            Welcome to Stanford REDCap's Clinical Data Conduit, a self-service tool to automatically import clinical data associated with research subjects in your study.
+                        </p>
+                        <p>
+                            Clinical data is always associated with (1) a patient, and (2) a date and time of day.
+                        </p>
+                        <p>
+                            In order to automatically import clinical data, you must first supply the patient identifier and date or date and time of the defining event for your study.
+                        </p>
+                        <p>
+                            The identifier is almost always the Stanford Medical Record Number (MRN) but may in some cases be another unique identifier such as a radiology accession number. At this time we only support Stanford MRN.
+                        </p>
+                        <p>
+                            The date is generally either the date of study enrollment or the date of the baseline study visit.
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4">
+                        <p>
+                            What is your identifier?
+                        </p>
+                    </div>
+
+                    <div class="col-4">
+                        <p>
+                            <select class="form-select" aria-label="Identifier">
+                                <option selected>Stanford MRN</option>
+                            </select>
+
+                            <!--                        <button type="submit" class="btn btn-primary">Submit</button>-->
+
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4">
+                        <p>
+                            What REDCap field captures this identifier?
+                        </p>
+                    </div>
+
+                    <div class="col-4">
+                        <p>
+                            <select class="form-select" aria-label="Identifier">
+
+                                <option selected value="stanford_mrn">Stanford MRN (mrn)</option>
+                                <option value="1">Some Text Field (other_text_1)</option>
+                                <option value="2">Another Random Text Field (other_text_2)</option>
+                            </select>
+
+                            <!--                        <button type="submit" class="btn btn-primary">Submit</button>-->
+
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4">
+                        <p>
+                            What REDCap field captures the defining event date?
+                        </p>
+                    </div>
+
+                    <div class="col-4">
+                        <p>
+                            <select class="form-select" aria-label="Default select example">
+
+                                <option selected value="date_enrolled">Date of Enrollment (date_enrolled)</option>
+                                <option value="date_ed_admit">Date of ED Admission (date_ed_admit)</option>
+                                <option value="date_ed_discharge">Date of ED Discharge (date_ed_discharge)</option>
+                                <option value="date_icu_admit">Date of ICU Admission (date_icu_admit)</option>
+                                <option value="date_icu_discharge">Date of ICU Discharge (date_icu_discharge)</option>
+                            </select>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div onclick="goToPage2()" class="btn btn-primary">Next ></div>
+
+        </div>
+
+        <!-- page 2 -->
+        <div id="page2" class="d-none">
+            <div class="row">
+                <div class="col-8">
+
+                    <p>Clinical data tends to recur at semi- to irregular intervals, so
+                        for each clinical variable of interest you will be prompted to specify
+                        the time frame and selection criterion relative to the designated event of interest.
+                    </p>
+                    <p>
+                        For dates of discharge you can also specify that you wish the discharge date associated with the previously selected date of admission.
+                    </p>
+                    <p>
+                        The current designated event of interest is <b>Enrollment Date (date_of_enrollment)</b>.  <span onclick="goToPage1()" class="btn btn-primary">Edit</span></p>
+
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <img src="step1.png" height="30px"> Discover your options by category <small><em>(click on any of the "Add New" buttons to get started)</em></small>
+
+                </div>
+                <p></p>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <p>
+                        <span class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#demogModal">Add Demographics</span>
+                        <span type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#dateModal" >Add Date</span>
+                        <span class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#labModal">Add Lab</span>
+                        <span class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#vitalsModal">Add Vitals</span>
+                        <span class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#flowModal">Add Flowsheet Measure</span>
+                        <span class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#scoreModal">Add Score</span>
+                    </p>
+                    <p><img src="step2.png" height="30px"> Review and Confirm your selections and map each to a REDCap field</p>
+                    <table class="table">
+                        <tbody>
+                        <tr>
+                            <td><span data-bs-toggle="modal" data-bs-target="#dateModal"><img src="pencil.png" height="20px"></span></td>
+                            <td>First ED Admission  after Date of Enrollment</td>
+                            <td><select class="form-select" aria-label="REDCap Field Selector" id="rc_1" >
+                                <option selected value="date_ed_admit">date_ed_admit</option>
+                                <option value="date_ed_discharge">date_ed_discharge</option>
+                            </select>
+                            </td>
+                            <td><img src="trash.png" height="20px"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+
+
+
+                </div>
+
+
+
+
+            </div>
+            <p></p>    <!--  adds a bit of white space between the rows -->
+
+
+
+            <div class="row">
+                <div class="col-6">
+                    <img src="step3.png" height="30px">
+                    <div onclick="goToPage3()" class="btn btn-primary">Save All ></div>
+
+                </div>
+
+            </div>
+
+
+
+        </div>
+
+        <!-- page 3 -->
+        <div id="page3" class="d-none">
+            <div class="row">
+                <div class="col-8">
+                    <h3> Current Selections</h3>
+                    <h4>Identifier and Event of Interest </h4>
+                    <p> Stanford MRN (mrn)  </p>
+                    <p>Date of Enrollment (date_enrolled)</p>
+                    <p><div onclick="goToPage1()" class="btn btn-primary">Edit</div></p>
+                    <h4>Clinical Data Mappings</h4>
+                    <p><b>Dates</b></p>
+                    <table class="table">
+                        <tbody>
+                        <tr>
+                            <td>date_ed_admit</td>
+                            <td>=</td>
+                            <td>First</td>
+                            <td>ED Admission</td>
+                            <td>12-24 hours after Date of Enrollment</td>
+                        </tr>
+                        <tr>
+                            <td>date_ed_discharge</td>
+                            <td>=</td>
+                            <td>Associated</td>
+                            <td>ED Discharge</td>
+                            <td></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p><b>Medications</b> none selected</p>
+                    <p><b>Labs</b> none selected</p>
+                    <p><b>Flowsheets</b> none selected</p>
+                </div>
+            </div>
+
+            <div onclick="goToPage2()" class="btn btn-primary"> Edit</div>
+        </div>
+
+        <!-- Demographics Edit Modal -->
+        <div class="modal fade" id="demogModal" tabindex="-1" aria-labelledby="demogModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="demogModalLabel">Configure Demographics and Identifiers</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h3>Demographics</h3>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="sex">
+                            <label class="form-check-label" for="sex">
+                                Sex Assigned at Birth
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="gender">
+                            <label class="form-check-label" for="gender">
+                                Gender Identity
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="birthyear">
+                            <label class="form-check-label" for="birthyear">
+                                Year of Birth
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="race">
+                            <label class="form-check-label" for="race">
+                                Primary Race
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="eth">
+                            <label class="form-check-label" for="eth">
+                                Ethnicity
+                            </label>
+                        </div>
+                        <p></p>
+                        <h3>Identifiers</h3>
+                        <small><i>Please bear in mind HIPAA Minimum Necessary when specifying identifying information</i></small>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="firstname">
+                            <label class="form-check-label" for="firstname">
+                                First Name
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="lastname">
+                            <label class="form-check-label" for="lastname">
+                                Last Name
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="birthdate">
+                            <label class="form-check-label" for="firstname">
+                                Date of Birth
+                            </label>
+                        </div>
+
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Date Edit Modal -->
+        <div class="modal fade" id="dateModal" tabindex="-1" aria-labelledby="dateModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="dateModalLabel">Configure Date</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Click on each dropdown to see available options.</p>
+                        <small><i><p>You can leave the timing (start and end) fields blank to indicate "any", e.g. when selecting "First"</p>
+                            <p>For dates of discharge you can also specify that you wish the discharge date associated with a previously configured date of admission.</p></i></small>
+                        <table><tr><td>
+                            <select class="form-select auto-width" aria-label="Temporal Selector"  >
+                                <option selected value="first">First</option>
+                                <option value="last">Last</option>
+                                <option value="associated">Associated</option>
+                            </select>
+                        </td><td>
+                            <select class="form-select auto-width" aria-label="Field Selector">
+                                <option value="date_op_appt">Outpatient Appointment</option>
+                                <option value="date_op_visit">Outpatient Visit</option>
+                                <option value="date_hosp_admission">Hospital Admission</option>
+                                <option value="date_hosp_discharge">Hospital Discharge</option>
+                                <option value="date_ed_admission">ED Admission</option>
+                                <option selected value="date_ed_discharge">ED Discharge</option>
+                                <option value="date_icu_admission">ICU Admission</option>
+                                <option value="date_icu_discharge">ICU Discharge</option>
+                            </select>
+                        </td></tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td>(</td>
+                                <td style='width:80px'><input class="form-control " placeholder="start" type="text"  id="date_timeframe_start"></td>
+                                <td>to
+                                </td>
+                                <td style='width:80px'>
+                                    <input class="form-control  " placeholder="end"  type="text"  id="date_timeframe_end">
+                                </td>
+                                <td><select class="form-select auto-width " aria-label="Interval Selector"  id="date_timeframe_units">
+                                    <option selected value="hours">Hours</option>
+                                    <option value="days">Days</option>
+                                    <option value="months">Months</option>
+                                    <option value="years">Years</option>
+                                </select></td>
+                                <td>)</td>
+                            </tr></table>
+                        <table><tr><td>
+
+                            <select class="form-select" aria-label="Interval Selector"  id="date_ab">
+                                <option selected value="after">After</option>
+                                <option value="before">Before</option>
+                            </select></td>
+                            <td>
+                                Date of Enrollment
+                            </td></tr></table>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lab Edit Modal -->
+        <div class="modal fade" id="labModal" tabindex="-1" aria-labelledby="labModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="labModalLabel">Configure Lab</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Click on each dropdown to see available options.</p>
+                        <small><i><p>You can leave the timing (start and end) fields blank to indicate "any", e.g. when selecting "First"</p></i></small>
+                        <table><tr><td>
+                            <select class="form-select auto-width" aria-label="Temporal Selector"  >
+                                <option selected value="first">First</option>
+                                <option value="last">Last</option>
+                                <option selected value="lowest">Lowest</option>
+                                <option value="highest">Highest</option>
+                            </select>
+                        </td><td>
+                            <select class="form-select auto-width" aria-label="Field Selector">
+                                <option value="wbc">WBC</option>
+                                <option value="rbc">RBC</option>
+                                <option value="na">Sodium</option>
+                                <option value="creat">Creatinine</option>
+                                <option value="k">Potassium</option>
+                                <option value="hem">Hematocrit</option>
+                                <option value="fio2">FiO2</option>
+                                <option value="pao2">PaO2</option>
+                            </select>
+                        </td></tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td>(</td>
+                                <td style='width:80px'><input class="form-control " placeholder="start" type="text"  id="lab_timeframe_start"></td>
+                                <td>to
+                                </td>
+                                <td style='width:80px'>
+                                    <input class="form-control  " placeholder="end"  type="text"   id="lab_timeframe_end">
+                                </td>
+                                <td><select class="form-select auto-width " aria-label="Interval Selector"  id="lab_timeframe_units">
+                                    <option selected value="hours">Hours</option>
+                                    <option value="days">Days</option>
+                                    <option value="months">Months</option>
+                                    <option value="years">Years</option>
+                                </select></td>
+                                <td>)</td>
+                            </tr></table>
+                        <table><tr><td>
+
+                            <select class="form-select" aria-label="Interval Selector"  id="lab_ab">
+                                <option selected value="after">After</option>
+                                <option value="before">Before</option>
+                                <option value="before">Before or After</option>
+                            </select></td>
+                            <td>
+                                <select class="form-select auto-width" aria-label="Field Selector">
+                                    <option selected value="date_enrolled">Enrollment Date</option>
+                                    <option value="date_op_appt">Outpatient Appointment</option>
+                                    <option value="date_op_visit">Outpatient Visit</option>
+                                    <option value="date_hosp_admission">Hospital Admission</option>
+                                    <option value="date_hosp_discharge">Hospital Discharge</option>
+                                    <option value="date_ed_admission">ED Admission</option>
+                                    <option value="date_ed_discharge">ED Discharge</option>
+                                    <option value="date_icu_admission">ICU Admission</option>
+                                    <option value="date_icu_discharge">ICU Discharge</option>
+                                </select>
+
+                            </td></tr></table>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vitals Edit Modal -->
+        <div class="modal fade" id="vitalsModal" tabindex="-1" aria-labelledby="vitalsModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="vitalsModalLabel">Configure Vital Sign</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Click on each dropdown to see available options.</p>
+                        <small><i><p>You can leave the timing (start and end) fields blank to indicate "any", e.g. when selecting "First"</p></i></small>
+                        <table><tr><td>
+                            <select class="form-select auto-width" aria-label="Temporal Selector"  >
+                                <option selected value="first">First</option>
+                                <option value="last">Last</option>
+                                <option selected value="lowest">Lowest</option>
+                                <option value="highest">Highest</option>
+                            </select>
+                        </td><td>
+                            <select class="form-select auto-width" aria-label="Field Selector">
+                                <option value="temp">Temperature</option>
+                                <option value="pulse">Heart Rate / Pulse</option>
+                                <option value="resp_rate">Resp. Rate</option>
+                            </select>
+                        </td></tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td>(</td>
+                                <td style='width:80px'><input class="form-control " placeholder="start" type="text"  id="vitals_timeframe_start"></td>
+                                <td>to
+                                </td>
+                                <td style='width:80px'>
+                                    <input class="form-control  " placeholder="end"  type="text"   id="vitals_timeframe_end">
+                                </td>
+                                <td><select class="form-select auto-width " aria-label="Interval Selector"  id="vitals_timeframe_units">
+                                    <option selected value="hours">Hours</option>
+                                    <option value="days">Days</option>
+                                    <option value="months">Months</option>
+                                    <option value="years">Years</option>
+                                </select></td>
+                                <td>)</td>
+                            </tr></table>
+                        <table><tr><td>
+
+                            <select class="form-select" aria-label="Interval Selector"  id="vitals_ab">
+                                <option selected value="after">After</option>
+                                <option value="before">Before</option>
+                                <option value="before">Before or After</option>
+                            </select></td>
+                            <td>
+                                <select class="form-select auto-width" aria-label="Field Selector">
+                                    <option selected value="date_enrolled">Enrollment Date</option>
+                                    <option value="date_op_appt">Outpatient Appointment</option>
+                                    <option value="date_op_visit">Outpatient Visit</option>
+                                    <option value="date_hosp_admission">Hospital Admission</option>
+                                    <option value="date_hosp_discharge">Hospital Discharge</option>
+                                    <option value="date_ed_admission">ED Admission</option>
+                                    <option value="date_ed_discharge">ED Discharge</option>
+                                    <option value="date_icu_admission">ICU Admission</option>
+                                    <option value="date_icu_discharge">ICU Discharge</option>
+                                </select>
+
+                            </td></tr></table>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flowsheet Edit Modal -->
+        <div class="modal fade" id="flowModal" tabindex="-1" aria-labelledby="flowModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="flowModalLabel">Configure Flowsheet Measure</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Click on each dropdown to see available options.</p>
+                        <small><i><p>You can leave the timing (start and end) fields blank to indicate "any", e.g. when selecting "First"</p></i></small>
+                        <table><tr><td>
+                            <select class="form-select auto-width" aria-label="Temporal Selector"  >
+                                <option selected value="first">First</option>
+                                <option value="last">Last</option>
+                                <option selected value="lowest">Lowest</option>
+                                <option value="highest">Highest</option>
+                            </select>
+                        </td><td>
+                            <select class="form-select auto-width" aria-label="Field Selector">
+                                <option value="temp">Vent Settings</option>
+                            </select>
+                        </td></tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td>(</td>
+                                <td style='width:80px'><input class="form-control " placeholder="start" type="text"  id="flow_timeframe_start"></td>
+                                <td>to
+                                </td>
+                                <td style='width:80px'>
+                                    <input class="form-control  " placeholder="end"  type="text"   id="flow_timeframe_end">
+                                </td>
+                                <td><select class="form-select auto-width " aria-label="Interval Selector"  id="flow_timeframe_units">
+                                    <option selected value="hours">Hours</option>
+                                    <option value="days">Days</option>
+                                    <option value="months">Months</option>
+                                    <option value="years">Years</option>
+                                </select></td>
+                                <td>)</td>
+                            </tr></table>
+                        <table><tr><td>
+
+                            <select class="form-select" aria-label="Interval Selector"  id="flow_ab">
+                                <option selected value="after">After</option>
+                                <option value="before">Before</option>
+                                <option value="before">Before or After</option>
+                            </select></td>
+                            <td>
+                                <select class="form-select auto-width" aria-label="Field Selector">
+                                    <option selected value="date_enrolled">Enrollment Date</option>
+                                    <option value="date_op_appt">Outpatient Appointment</option>
+                                    <option value="date_op_visit">Outpatient Visit</option>
+                                    <option value="date_hosp_admission">Hospital Admission</option>
+                                    <option value="date_hosp_discharge">Hospital Discharge</option>
+                                    <option value="date_ed_admission">ED Admission</option>
+                                    <option value="date_ed_discharge">ED Discharge</option>
+                                    <option value="date_icu_admission">ICU Admission</option>
+                                    <option value="date_icu_discharge">ICU Discharge</option>
+                                </select>
+
+                            </td></tr></table>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Edit Modal -->
+        <div class="modal fade" id="scoreModal" tabindex="-1" aria-labelledby="scoreModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="scoreModalLabel">Configure Score </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>First select the score you wish...</p>
+                        <p><select class="form-select auto-width" aria-label="Score Selector"  >
+                            <option selected value="apache2">Apache II</option>
+                            <option value="sofa">SOFA</option>
+                        </select></p>
+
+                        <p> ...then select the form you will be using. </p>
+                        <p><select class="form-select auto-width" aria-label="Form Selector">
+                            <option value="demographics">Demographics</option>
+                            <option value="labs1">Labs Week 1</option>
+                            <option value="labs2">Labs Week 2</option>
+                            <option value="labs3">Labs Week 3</option>
+                            <option value="apache">Apache II</option>
+                        </select></p>
+                        <p>The form will include field calculations, so we recommend you use our forms rather than your own.</p>
+                        <p>
+                            <a href="">Download the TDS-Research Apache II Score Data Dictionary</a> </p>
+                        <p>
+                            <a href="">Download the TDS-Research SOFA Score Data Dictionary</a> </p>
+
+<p>Training on how to work with Data Dictionaries <a href="https://redcap.stanford.edu/redcap_v12.0.4/Home/index.php?action=training">is available here </a> in the "Building a project" section.</p>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+<script>
+    function toggleFormFields(cb) {
+        // every element associated with a checkbox has the checkbox id as a class attribute
+        // the selector for class attributes is prefixed with a period
+        var myClassSelector = '.'+cb.id;
+        var x = document.querySelectorAll(myClassSelector);
+        // this would be more concise using jQuery
+        var i;
+        for (i = 0; i < x.length; i++) {
+            if(cb.checked == true) {
+                x[i].classList.remove("d-none");
+            } else {
+                x[i].classList.add("d-none");
+            }
+        }
+    }
+    function goToPage1() {
+        document.getElementById("page1").classList.remove("d-none");
+        document.getElementById("page2").classList.add("d-none");
+        document.getElementById("page3").classList.add("d-none");
+    }
+    function goToPage2() {
+        document.getElementById("page1").classList.add("d-none");
+        document.getElementById("page2").classList.remove("d-none");
+        document.getElementById("page3").classList.add("d-none");
+    }
+    function goToPage3() {
+        document.getElementById("page1").classList.add("d-none");
+        document.getElementById("page2").classList.add("d-none");
+        document.getElementById("page3").classList.remove("d-none");
+    }
+
+
+
+</script>
+<!-- Bootstrap Bundle with Popper -->
+
+
+</body>
+</html>
