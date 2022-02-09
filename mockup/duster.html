@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/ico" href="data:image/ico;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAD///8A////AP///wD///8A////AP///wDa2vAkgYHMtWxsxJPw8PkM////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wCiotpaCgqd8z8/sv8AAJn/ICCl3szM6jH///8A////AP///wD///8A////AP///wD///8A////AP///wCGhs53AACZ/wAAmf8/P7L/AACZ/wAAmf8KCp31vLzkQf///wD///8A////AP///wD///8A////AP///wCiotpaISGm/S8vrP8vL6z/Pz+y/wAAmf8AAJn/Cwud/xsbo/DU1O4p////AP///wD///8A////AP///wDe3vIfDAyd83xwy/+kjtz/wrPn/z8/sv8AAJn/AACZ/1pavf9ISLb/MDCsz/r6/QP///8A////AP///wD///8AWFi8pk5MuP+biNj/jG/S/5uD2P8/P7L/AACZ/wAAmf9FRbT/mprW/wwMnf+YmNZl////AP///wD///8A4ODyHQQEmvxmZML/tKLi/7yr5f93dcj/Pz+y/wAAmf8QEJ//nZ3Y/3Z2yP8AAJn/Jiao2f///wD///8A////AIqK0HIAAJn/VFK7/2tTxf+Xidb/Jiao/z8/sv8AAJn/Jiao/6ys3v8wMKz/AACZ/wAAmf/Kyuoy////AP///wBiYr+1ICCl/yAgpf8gIKX/ICCl/yAgpf9XV7z/AACZ/wAAmf9KSrb/k5PU/ywsqv8AAJn/iIjPdf///wD///8AQkKz4jMzrf9SUrr/d3fJ/0lJtv8vL6z/Y2PA/wAAmf8AAJn/PDyx/2NjwP9nZ8L/AACZ/1xcvaH///8A////AAUFmv1kZMH/ysrp/9XV7v+2tuH/NDSu/z8/sv8AAJn/AACZ/29vxf+np9v/BASa/wAAmf9CQrO9////AP///wAGBpv/m5vX/4eHz//u7vj/Tk64/5eX1f8/P7L/AACZ/ywsqv+qqt3/QECy/wAAmf8AAJn/QECyv////wD///8AAgKZ/QAAmf9ra8T/3d3x/ykpqf8CApn/Pz+y/wcHm/+JidD/MDCs/1dXvP8AAJn/AACZ/0BAsr3///8A////ABgYouUAAJn/Wlq9/9/f8v8XF6L/AACZ/z8/sv8UFKH/kZHT/6el3P9iYsD/AACZ/wAAmf9YWLym////AP///wBCQrO9AACZ/yMjp/+vr9//BASa/wAAmf8/P7L/AACZ/wAAmf8ICJz/AACZ/wAAmf8AAJn/goLNff///wD///8Ajo7ScCAgpd4gIKXeS0u33iAgpd4gIKXeV1e73iAgpd4gIKXeICCl3iAgpd4gIKXeICCl3sbG6Dj///8A/n8AAPw/AAD4HwAA8A8AAOAHAADABwAAwAMAAMADAACAAwAAgAEAAIABAACAAQAAgAEAAIABAACAAwAAwAMAAA=="/>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <style>
+        .auto-width {width: auto;}
+        h5 {color: rgba(49, 108, 244, 0.99);}
+        thead > tr > td {font-weight: bold;}
+    </style>
+    <title>DUSTER</title>
+</head>
+<body>
+
+
+<div class="container">
+    <form>
+        <div class="row justify-content-start">
+            <div class="col-12"><h1>DUSTER</h1><h4>Data Upload Service for Translational rEsearch on Redcap</h4></div>
+        </div>
+        <div id="page1" >
+            <div class="row justify-content-start">
+                <div class="col-8">
+                    <h5>Preamble</h5>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-8">
+                    <p>
+                        Welcome to Stanford REDCap's DUSTER, a self-service tool to automatically import clinical data associated with research subjects in your study.
+                    </p>
+                    <p>
+                        DUSTER has both patient data and structured clinical data, which includes risk scores, lab results and medications as well as inpatient stay metrics such as
+                        blood products, LDA, IO and ventilation.
+                    </p>
+                    <p>
+                        You can use DUSTER either to augment an existing REDCap or to populate a newly created REDCap project.
+                    </p>
+                    <p>
+                        Once you have specified the clinical variables of interest, DUSTER will automatically import all data
+                        relating to your patients once a day.
+                    </p>
+                    <p>
+                        DUSTER expects you to create records containing an MRN and date of enrollment. These two fields in REDCap are
+                        then used to retrieve associated patient and clinical data for the patient in the specified time frame(s).
+                    </p>
+                    <p>
+                        This version of DUSTER only supports classic study design. Longitudinal study design support is planned for a future release.
+                    </p>
+                    <p>
+                        Please note that because we are pulling clinical data from the EMR, we require that you store a patient
+                        identifier in your REDCap project. You can use the <a href="https://education.arcus.chop.edu/redcap-tips-phi-permissions/">PHI masking and user role</a>
+                        features of REDCap to ensure that only the minimum necessary PHI is viewed by the study team.
+                    </p>
+                    <p>
+                        We are inspecting your REDCap project, please stand by...
+                    </p>
+                    <p>
+                        You appear to have existing data in this REDCap. You will be prompted for the following:
+                    <ol>
+                        <li>The field in which you record your patient identifier</li>
+                        <li>The field in which you record the start date for data collection for each patient (e.g. date of enrollment)</li>
+                    </ol>
+                    </p>
+                    <p>OR</p>
+                    <p>You do not appear to have any data yet in this REDCap.
+                        We will add instruments and fields to your data dictionary to collect
+                        the clinical data you specify.</p>
+                    <div onclick="goToPage2()" class="btn btn-primary">Let's Get Started ></div>
+                </div>
+            </div>
+        </div>
+        <div id="page2" class="d-none">
+            <div class="row justify-content-start">
+                <div class="col-8">
+                    <h5>Step 1 of 4: Identifying Your Cases</h5>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-8">
+                    <p>
+                        Clinical data is always associated with (1) a patient, and (2) a date and time of day.
+                    </p>
+                    <p>
+                        In order to automatically import clinical data, you must first supply the patient identifier and date or date and time of the defining event for your study.
+                    </p>
+                    <p>
+                        The identifier is almost always the Stanford Medical Record Number (MRN) but may in some cases be another unique identifier such as a radiology accession number. At this time we only support Stanford MRN.
+                    </p>
+                    <p>
+                        The date is generally either the date of study enrollment or the date of the baseline study visit.
+                    </p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-4">
+                    <p>
+                        What REDCap field captures the Stanford MRN?
+                    </p>
+                </div>
+
+                <div class="col-4">
+                    <p>
+                        <select class="form-select" aria-label="Identifier">
+
+                            <option selected value="stanford_mrn">Stanford MRN (mrn)</option>
+                            <option value="1">Some Text Field (other_text_1)</option>
+                            <option value="2">Another Random Text Field (other_text_2)</option>
+                        </select>
+
+                        <!--                        <button type="submit" class="btn btn-primary">Submit</button>-->
+
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-4">
+                    <p>
+                        What REDCap field captures the defining event date?
+                    </p>
+                </div>
+
+                <div class="col-4">
+                    <p>
+                        <select class="form-select" aria-label="Default select example">
+
+                            <option selected value="date_enrolled">Date of Enrollment (date_enrolled)</option>
+                            <option value="date_ed_admit">Date of ED Admission (date_ed_admit)</option>
+                            <option value="date_ed_discharge">Date of ED Discharge (date_ed_discharge)</option>
+                            <option value="date_icu_admit">Date of ICU Admission (date_icu_admit)</option>
+                            <option value="date_icu_discharge">Date of ICU Discharge (date_icu_discharge)</option>
+                        </select>
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <p>Which of the following clinical care venues are relevant to your study</p>
+                <table>
+                    <thead>
+                    <tr><td colspan="2">Clinical Care Venue</td></tr></thead>
+                    <tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="outpatient" onclick="toggleFormFields(this)"></td><td>
+                        Outpatient
+                    </td>
+                    </tr><tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="inpatient" onclick="toggleFormFields(this)"></td><td>
+                        Inpatient
+                    </td>
+                    </tr><tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="ed" onclick="toggleFormFields(this)"></td><td>
+                        ED
+                    </td>
+                    </tr><tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="icu" onclick="toggleFormFields(this)"></td><td>
+                        ICU
+                    </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p></p>
+            </div>
+            <div>
+                <p>
+                    Next we will walk you through the process of selecting the variables of interest
+                    to your study, starting with patient-related information
+                </p>
+            </div>
+            <div onclick="goToPage1()" class="btn btn-primary">< Back</div>
+
+            <div onclick="goToPage3()" class="btn btn-primary">Next ></div>
+
+        </div>
+
+        <!-- page 3 -->
+        <div id="page3" class="d-none">
+            <div class="row justify-content-start">
+                <div class="col-8">
+                    <h5>Step 2 of 4: Patient Demographics, Sentinel Events, and Risk Factors</h5>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-8">
+                    <p>
+                        On this screen you see all information available in DUSTER relating to the patient including demographics, dates of service,
+                        comorbidities, socio-economic status and so on.
+                    </p>
+                    <p>The suffix _dstr is added to all instrument and variable names
+                        to differentiate the DUSTER instruments and their variables from other
+                        variables that may occur in your project</p>
+                    <p>The variables selected on this page will be populated in the following non-repeating instrument:
+                        <strong>demographic_dstr</strong>
+                    </p>
+                    <table>
+                        <thead>
+                        <tr><td>Include?</td><td>Label</td><td>Variable Name</td></tr></thead>
+                        <tbody>
+                        <tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="sex_dstr"></td><td>
+                            Sex
+                        </td><td>sex_dstr</td>
+                        </tr><tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="gender_dstr"></td><td>
+                            Gender
+                        </td><td>gender_dstr</td>
+                        </tr><tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="race_dstr"></td><td>
+                            Race
+                        </td><td>race_dstr</td>
+                        </tr><tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="ethnicity_dstr"></td><td>
+                            Ethnicity
+                        </td><td>ethnicity_dstr</td>
+                        </tr><tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="zip_dstr"></td><td>
+                            Zip Code
+                        </td><td>zip_dstr</td>
+                        </tr><tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="birthdate_dstr"></td><td>
+                            Birth Date (PHI)
+                        </td><td>birthdate_dstr</td>
+                        </tr>
+                        <tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="alcohol_use_dstr"></td><td>
+                            Alcohol Use
+                        </td><td>enrollment_dstr</td>
+                        </tr>
+                        <tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="tobacco_use_dstr"></td><td>
+                            Tobacco Use
+                        </td><td>enrollment_dstr</td>
+                        </tr>
+                        <tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="drug_use_dstr"></td><td>
+                            Drug Use
+                        </td><td>drug_use_dstr</td>
+                        </tr>
+                        <tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="enrollment_dstr"></td><td>
+                            Study Enrollment Date (PHI)
+                        </td><td>enrollment_dstr</td>
+                        </tr><tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="weight_enroll_dstr"></td><td>
+                            Weight at Study Enrollment
+                        </td><td>weight_dstr</td>
+                        </tr><tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="height_enroll_dstr"></td><td>
+                            Height at Study Enrollment
+                        </td><td>height_dstr</td>
+                        </tr><tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="bmi_enroll_dstr"></td><td>
+                            BMI at Study Enrollment (Calculated)
+                        </td><td>bmi_dstr</td>
+                        </tr><tr class="inpatient d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="admit_type_dstr"></td><td>
+                            Admission type
+                        </td><td>admit_type_dstr</td>
+                        </tr><tr class="inpatient d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="outcome_dstr"></td><td>
+                            Outcome
+                        </td><td>outcome_dstr</td>
+                        </tr><tr>
+                            <td><input class="form-check-input" type="checkbox" value="" id="deathdate_dstr"></td><td>
+                            Death Date (PHI)
+                        </td><td>deathdate_dstr</td>
+                        </tr><tr class="inpatient d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="discharged_to_dstr"></td><td>
+                            Discharged to
+                        </td><td>discharged_to_dstr</td>
+                        </tr><tr class="inpatient d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="hosp_admit_date_dstr"></td><td>
+                            Hospital Admission Date
+                        </td><td>hosp_admit_date_dstr</td>
+                        </tr><tr class="inpatient d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="hosp_admit_age_dstr"></td><td>
+                            Age at Hospital Admission (Calculated)
+                        </td><td>hosp_admit_age_dstr</td>
+                        </tr><tr class="inpatient d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="hosp_disch_date_dstr"></td><td>
+                            Hospital Discharge Date
+                        </td><td>hosp_disch_date_dstr</td>
+                        </tr><tr class="inpatient d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="hosp_disch_age_dstr"></td><td>
+                            Age at Hospital Discharge (Calculated)
+                        </td><td>hosp_disch_age_dstr</td>
+                        </tr><tr class="inpatient d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="weight_admit_dstr"></td><td>
+                            Weight at Hospital Admission
+                        </td><td>weight_dstr</td>
+                        </tr><tr class="inpatient d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="height_admit_dstr"></td><td>
+                            Height at Hospital Admission
+                        </td><td>height_dstr</td>
+                        </tr><tr class="inpatient d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="bmi_admit_dstr"></td><td>
+                            BMI at Hospital Admission (Calculated)
+                        </td><td>bmi_dstr</td>
+                        </tr><tr class="ed d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="ed_admit_date_dstr"></td><td>
+                            ED Admission Date
+                        </td><td>ed_admit_date_dstr</td>
+                        </tr><tr class="ed d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="ed_admit_age_dstr"></td><td>
+                            Age at ED Admission (Calculated)
+                        </td><td>ed_admit_age_dstr</td>
+                        </tr><tr class="ed d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="ed_disch_date_dstr"></td><td>
+                            ED Discharge Date
+                        </td><td>ed_disch_date_dstr</td>
+                        </tr><tr class="ed d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="ed_disch_age_dstr"></td><td>
+                            Age at ED Discharge (Calculated)
+                        </td><td>ed_disch_age_dstr</td>
+                        </tr><tr class="icu d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="icu_admit_date_dstr"></td><td>
+                            ICU Admission Date
+                        </td><td>icu_admit_date_dstr</td>
+                        </tr><tr class="icu d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="icu_admit_age_dstr"></td><td>
+                            Age at ICU Admission (Calculated)
+                        </td><td>icu_admit_age_dstr</td>
+                        </tr><tr class="icu d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="ich_disch_date_dstr"></td><td>
+                            ICU Discharge Date
+                        </td><td>icu_disch_date_dstr</td>
+                        </tr><tr class="icu d-none">
+                            <td><input class="form-check-input" type="checkbox" value="" id="icu_disch_age_dstr"></td><td>
+                            Age at ICU Discharge (Calculated)
+                        </td><td>icu_disch_date_dstr</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p></p>
+                    <div onclick="goToPage2()" class="btn btn-primary">< Back</div>
+
+                    <div onclick="goToPage4()" class="btn btn-primary">Next ></div>
+
+                </div>
+            </div>
+        </div>
+        <div id="page4" class="d-none">
+            <div class="row justify-content-start">
+                <div class="col-8">
+                    <h5>Step 3 of 4: Clinical Data Types</h5>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-8">
+                    <p>Clinical data always has a date or date and time associated with it.
+                    </p><p>
+                    On this page you can design your instrument(s) by selecting the types of data
+                    you are interested in.<br>
+                    On the next page you will be specifying the frequency and intervals
+                    at which the data on each instrument should be collected.
+                </p>
+
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <ul class="nav nav-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" id="scores" onclick="tabTo(this)">Scores</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="labs" onclick="tabTo(this)">Labs</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="meds" onclick="tabTo(this)">Medications</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="blood" onclick="tabTo(this)">Blood Products</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="io"  onclick="tabTo(this)">I/O</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="vent"  onclick="tabTo(this)">Ventilator</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="scores row tab">
+                <div class="col-12">
+                    <p>Each score is recorded on a separate instrument. The Apache II score instrument
+                        is "apache_2_dstr".</p>
+                    <table><thead><td colspan="2">Score</td><td>Instrument name</td></thead><tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="apache2_dstr"></td><td>
+                        Apache II</td><td>apache_2_dstr</td>
+                    </tr>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="sofa_dstr"></td><td>
+                        SOFA</td><td>sofa_dstr</td>
+                    </tr>
+                    </tbody></table>
+                </div>
+            </div>
+
+            <div class="labs row d-none tab">
+                <div class="col-12">
+                    <p>The selected items will be collected on an instrument named "lab_dstr" if you are collecting
+                        only one set of labs on your patients, and "lab_n_dstr", where 'n' is the repeat counter,
+                        e.g. lab_1_dstr, lab_2_dstr and so on, if you are collecting multiple sets.</p>
+                    <table><thead></thead><tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="wbc_dstr"></td><td>
+                        WBC</td><td>wbc_dstr</td>
+                    </tr>
+                    </tbody></table>
+                </div>
+            </div>
+
+            <div class="meds row d-none tab">
+                <div class="col-12">
+                    <p>The selected items will be collected on an instrument named "med_dstr" if you are collecting
+                        only one set of medication orders / administration on your patients, and "med_n_dstr", where 'n' is the repeat counter,
+                        e.g. med_1_dstr, med_2_dstr and so on, if you are collecting multiple sets.</p>
+                    <table><thead></thead><tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="saline9_dstr"></td><td>
+                        Saline 0.9%</td><td>saline9_dstr</td>
+                    </tr>
+                    </tbody></table>
+                </div>
+            </div>
+
+            <div class="blood row d-none tab">
+                <div class="col-12">
+                    <p>The selected items will be collected on an instrument named "bloodprd_dstr" if you are collecting
+                        only one set of medication orders / administration on your patients, and "bloodprd_n_dstr", where 'n' is the repeat counter,
+                        e.g. bloodprd_1_dstr, bloodprd_2_dstr and so on, if you are collecting multiple sets.</p>
+                    <table><thead></thead><tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="redbloodcell_dstr"></td><td>
+                        Red Blood Cells</td><td>redbloodcell_dstr</td>
+                    </tr>
+                    </tbody></table>
+                </div>
+            </div>
+
+            <div class="io row d-none tab">
+                <div class="col-12">
+                    <p>The selected items will be collected on an instrument named "io_dstr" if you are collecting
+                        only one set of labs on your patients, and "io_n_dstr", where 'n' is the repeat counter,
+                        e.g. io_1_dstr, io_2_dstr and so on, if you are collecting multiple sets.</p>
+                    <table><thead></thead><tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="urine_dstr"></td><td>
+                        Urine Out Foley</td><td>urine_dstr</td>
+                    </tr>
+                    </tbody></table>
+                </div>
+            </div>
+            <div class="vent row d-none tab">
+                <div class="col-12">
+                    <p>The selected items will be collected on an instrument named "vent_dstr" if you are collecting
+                        only one set of vent data on your patients, and "vent_n_dstr", where 'n' is the repeat counter,
+                        e.g. vent_1_dstr, vent_2_dstr and so on, if you are collecting multiple sets.</p>
+                    <table><thead></thead><tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="rrtotal_dstr"></td><td>
+                        RR total</td><td>rrtotal_dstr</td>
+                    </tr>
+                    </tbody></table>
+                </div>
+            </div>
+            <p></p>    <!--  adds a bit of white space between the rows -->
+
+
+
+            <div class="row">
+                <div class="col-6">
+
+
+                    <div onclick="goToPage3()" class="btn btn-primary">< Back</div>
+
+                    <div onclick="goToPage5()" class="btn btn-primary">Next ></div>
+
+                </div>
+
+            </div>
+
+
+
+        </div>
+
+        <!-- page 5 -->
+        <div id="page5" class="d-none">
+            <div class="row justify-content-start">
+                <div class="col-8">
+                    <h5>Step 4 of 4: Repeat Interval and Frequency</h5>
+                </div>
+            </div>
+            <div class="row">
+
+            </div>
+
+            <div onclick="goToPage4()" class="btn btn-primary"> < Back </div>
+        </div>
+
+        <!-- Demographics Edit Modal -->
+        <div class="modal fade" id="demogModal" tabindex="-1" aria-labelledby="demogModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="demogModalLabel">Configure Demographics and Identifiers</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h3>Demographics</h3>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="sex">
+                            <label class="form-check-label" for="sex">
+                                Sex Assigned at Birth
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="gender">
+                            <label class="form-check-label" for="gender">
+                                Gender Identity
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="birthyear">
+                            <label class="form-check-label" for="birthyear">
+                                Year of Birth
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="race">
+                            <label class="form-check-label" for="race">
+                                Primary Race
+                            </label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="eth">
+                            <label class="form-check-label" for="eth">
+                                Ethnicity
+                            </label>
+                        </div>
+                        <p></p>
+                        <h3>Identifiers</h3>
+                        <small><i>Please bear in mind HIPAA Minimum Necessary when specifying identifying information</i></small>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="firstname">
+                            <label class="form-check-label" for="firstname">
+                                First Name
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="lastname">
+                            <label class="form-check-label" for="lastname">
+                                Last Name
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="birthdate">
+                            <label class="form-check-label" for="firstname">
+                                Date of Birth
+                            </label>
+                        </div>
+
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Date Edit Modal -->
+        <div class="modal fade" id="dateModal" tabindex="-1" aria-labelledby="dateModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="dateModalLabel">Configure Date</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Click on each dropdown to see available options.</p>
+                        <small><i><p>You can leave the timing (start and end) fields blank to indicate "any", e.g. when selecting "First"</p>
+                            <p>For dates of discharge you can also specify that you wish the discharge date associated with a previously configured date of admission.</p></i></small>
+                        <table><tr><td>
+                            <select class="form-select auto-width" aria-label="Temporal Selector"  >
+                                <option selected value="first">First</option>
+                                <option value="last">Last</option>
+                                <option value="associated">Associated</option>
+                            </select>
+                        </td><td>
+                            <select class="form-select auto-width" aria-label="Field Selector">
+                                <option value="date_op_appt">Outpatient Appointment</option>
+                                <option value="date_op_visit">Outpatient Visit</option>
+                                <option value="date_hosp_admission">Hospital Admission</option>
+                                <option value="date_hosp_discharge">Hospital Discharge</option>
+                                <option value="date_ed_admission">ED Admission</option>
+                                <option selected value="date_ed_discharge">ED Discharge</option>
+                                <option value="date_icu_admission">ICU Admission</option>
+                                <option value="date_icu_discharge">ICU Discharge</option>
+                            </select>
+                        </td></tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td>(</td>
+                                <td style='width:80px'><input class="form-control " placeholder="start" type="text"  id="date_timeframe_start"></td>
+                                <td>to
+                                </td>
+                                <td style='width:80px'>
+                                    <input class="form-control  " placeholder="end"  type="text"  id="date_timeframe_end">
+                                </td>
+                                <td><select class="form-select auto-width " aria-label="Interval Selector"  id="date_timeframe_units">
+                                    <option selected value="hours">Hours</option>
+                                    <option value="days">Days</option>
+                                    <option value="months">Months</option>
+                                    <option value="years">Years</option>
+                                </select></td>
+                                <td>)</td>
+                            </tr></table>
+                        <table><tr><td>
+
+                            <select class="form-select" aria-label="Interval Selector"  id="date_ab">
+                                <option selected value="after">After</option>
+                                <option value="before">Before</option>
+                            </select></td>
+                            <td>
+                                Date of Enrollment
+                            </td></tr></table>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lab Edit Modal -->
+        <div class="modal fade" id="labModal" tabindex="-1" aria-labelledby="labModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="labModalLabel">Configure Lab</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Click on each dropdown to see available options.</p>
+                        <small><i><p>You can leave the timing (start and end) fields blank to indicate "any", e.g. when selecting "First"</p></i></small>
+                        <table><tr><td>
+                            <select class="form-select auto-width" aria-label="Temporal Selector"  >
+                                <option selected value="first">First</option>
+                                <option value="last">Last</option>
+                                <option selected value="lowest">Lowest</option>
+                                <option value="highest">Highest</option>
+                            </select>
+                        </td><td>
+                            <select class="form-select auto-width" aria-label="Field Selector">
+                                <option value="wbc">WBC</option>
+                                <option value="rbc">RBC</option>
+                                <option value="na">Sodium</option>
+                                <option value="creat">Creatinine</option>
+                                <option value="k">Potassium</option>
+                                <option value="hem">Hematocrit</option>
+                                <option value="fio2">FiO2</option>
+                                <option value="pao2">PaO2</option>
+                            </select>
+                        </td></tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td>(</td>
+                                <td style='width:80px'><input class="form-control " placeholder="start" type="text"  id="lab_timeframe_start"></td>
+                                <td>to
+                                </td>
+                                <td style='width:80px'>
+                                    <input class="form-control  " placeholder="end"  type="text"   id="lab_timeframe_end">
+                                </td>
+                                <td><select class="form-select auto-width " aria-label="Interval Selector"  id="lab_timeframe_units">
+                                    <option selected value="hours">Hours</option>
+                                    <option value="days">Days</option>
+                                    <option value="months">Months</option>
+                                    <option value="years">Years</option>
+                                </select></td>
+                                <td>)</td>
+                            </tr></table>
+                        <table><tr><td>
+
+                            <select class="form-select" aria-label="Interval Selector"  id="lab_ab">
+                                <option selected value="after">After</option>
+                                <option value="before">Before</option>
+                                <option value="before">Before or After</option>
+                            </select></td>
+                            <td>
+                                <select class="form-select auto-width" aria-label="Field Selector">
+                                    <option selected value="date_enrolled">Enrollment Date</option>
+                                    <option value="date_op_appt">Outpatient Appointment</option>
+                                    <option value="date_op_visit">Outpatient Visit</option>
+                                    <option value="date_hosp_admission">Hospital Admission</option>
+                                    <option value="date_hosp_discharge">Hospital Discharge</option>
+                                    <option value="date_ed_admission">ED Admission</option>
+                                    <option value="date_ed_discharge">ED Discharge</option>
+                                    <option value="date_icu_admission">ICU Admission</option>
+                                    <option value="date_icu_discharge">ICU Discharge</option>
+                                </select>
+
+                            </td></tr></table>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vitals Edit Modal -->
+        <div class="modal fade" id="vitalsModal" tabindex="-1" aria-labelledby="vitalsModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="vitalsModalLabel">Configure Vital Sign</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Click on each dropdown to see available options.</p>
+                        <small><i><p>You can leave the timing (start and end) fields blank to indicate "any", e.g. when selecting "First"</p></i></small>
+                        <table><tr><td>
+                            <select class="form-select auto-width" aria-label="Temporal Selector"  >
+                                <option selected value="first">First</option>
+                                <option value="last">Last</option>
+                                <option selected value="lowest">Lowest</option>
+                                <option value="highest">Highest</option>
+                            </select>
+                        </td><td>
+                            <select class="form-select auto-width" aria-label="Field Selector">
+                                <option value="temp">Temperature</option>
+                                <option value="pulse">Heart Rate / Pulse</option>
+                                <option value="resp_rate">Resp. Rate</option>
+                            </select>
+                        </td></tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td>(</td>
+                                <td style='width:80px'><input class="form-control " placeholder="start" type="text"  id="vitals_timeframe_start"></td>
+                                <td>to
+                                </td>
+                                <td style='width:80px'>
+                                    <input class="form-control  " placeholder="end"  type="text"   id="vitals_timeframe_end">
+                                </td>
+                                <td><select class="form-select auto-width " aria-label="Interval Selector"  id="vitals_timeframe_units">
+                                    <option selected value="hours">Hours</option>
+                                    <option value="days">Days</option>
+                                    <option value="months">Months</option>
+                                    <option value="years">Years</option>
+                                </select></td>
+                                <td>)</td>
+                            </tr></table>
+                        <table><tr><td>
+
+                            <select class="form-select" aria-label="Interval Selector"  id="vitals_ab">
+                                <option selected value="after">After</option>
+                                <option value="before">Before</option>
+                                <option value="before">Before or After</option>
+                            </select></td>
+                            <td>
+                                <select class="form-select auto-width" aria-label="Field Selector">
+                                    <option selected value="date_enrolled">Enrollment Date</option>
+                                    <option value="date_op_appt">Outpatient Appointment</option>
+                                    <option value="date_op_visit">Outpatient Visit</option>
+                                    <option value="date_hosp_admission">Hospital Admission</option>
+                                    <option value="date_hosp_discharge">Hospital Discharge</option>
+                                    <option value="date_ed_admission">ED Admission</option>
+                                    <option value="date_ed_discharge">ED Discharge</option>
+                                    <option value="date_icu_admission">ICU Admission</option>
+                                    <option value="date_icu_discharge">ICU Discharge</option>
+                                </select>
+
+                            </td></tr></table>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flowsheet Edit Modal -->
+        <div class="modal fade" id="flowModal" tabindex="-1" aria-labelledby="flowModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="flowModalLabel">Configure Flowsheet Measure</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Click on each dropdown to see available options.</p>
+                        <small><i><p>You can leave the timing (start and end) fields blank to indicate "any", e.g. when selecting "First"</p></i></small>
+                        <table><tr><td>
+                            <select class="form-select auto-width" aria-label="Temporal Selector"  >
+                                <option selected value="first">First</option>
+                                <option value="last">Last</option>
+                                <option selected value="lowest">Lowest</option>
+                                <option value="highest">Highest</option>
+                            </select>
+                        </td><td>
+                            <select class="form-select auto-width" aria-label="Field Selector">
+                                <option value="temp">Vent Settings</option>
+                            </select>
+                        </td></tr>
+                        </table>
+                        <table>
+                            <tr>
+                                <td>(</td>
+                                <td style='width:80px'><input class="form-control " placeholder="start" type="text"  id="flow_timeframe_start"></td>
+                                <td>to
+                                </td>
+                                <td style='width:80px'>
+                                    <input class="form-control  " placeholder="end"  type="text"   id="flow_timeframe_end">
+                                </td>
+                                <td><select class="form-select auto-width " aria-label="Interval Selector"  id="flow_timeframe_units">
+                                    <option selected value="hours">Hours</option>
+                                    <option value="days">Days</option>
+                                    <option value="months">Months</option>
+                                    <option value="years">Years</option>
+                                </select></td>
+                                <td>)</td>
+                            </tr></table>
+                        <table><tr><td>
+
+                            <select class="form-select" aria-label="Interval Selector"  id="flow_ab">
+                                <option selected value="after">After</option>
+                                <option value="before">Before</option>
+                                <option value="before">Before or After</option>
+                            </select></td>
+                            <td>
+                                <select class="form-select auto-width" aria-label="Field Selector">
+                                    <option selected value="date_enrolled">Enrollment Date</option>
+                                    <option value="date_op_appt">Outpatient Appointment</option>
+                                    <option value="date_op_visit">Outpatient Visit</option>
+                                    <option value="date_hosp_admission">Hospital Admission</option>
+                                    <option value="date_hosp_discharge">Hospital Discharge</option>
+                                    <option value="date_ed_admission">ED Admission</option>
+                                    <option value="date_ed_discharge">ED Discharge</option>
+                                    <option value="date_icu_admission">ICU Admission</option>
+                                    <option value="date_icu_discharge">ICU Discharge</option>
+                                </select>
+
+                            </td></tr></table>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Edit Modal -->
+        <div class="modal fade" id="scoreModal" tabindex="-1" aria-labelledby="scoreModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="scoreModalLabel">Configure Score </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>First select the score you wish...</p>
+                        <p><select class="form-select auto-width" aria-label="Score Selector"  >
+                            <option selected value="apache2">Apache II</option>
+                            <option value="sofa">SOFA</option>
+                        </select></p>
+
+                        <p> ...then select the form you will be using. </p>
+                        <p><select class="form-select auto-width" aria-label="Form Selector">
+                            <option value="demographics">Demographics</option>
+                            <option value="labs1">Labs Week 1</option>
+                            <option value="labs2">Labs Week 2</option>
+                            <option value="labs3">Labs Week 3</option>
+                            <option value="apache">Apache II</option>
+                        </select></p>
+                        <p>The form will include field calculations, so we recommend you use our forms rather than your own.</p>
+                        <p>
+                            <a href="">Download the TDS-Research Apache II Score Data Dictionary</a> </p>
+                        <p>
+                            <a href="">Download the TDS-Research SOFA Score Data Dictionary</a> </p>
+
+                        <p>Training on how to work with Data Dictionaries <a href="https://redcap.stanford.edu/redcap_v12.0.4/Home/index.php?action=training">is available here </a> in the "Building a project" section.</p>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+</div>
+<script>
+    function toggleFormFields(cb) {
+        // every element associated with a checkbox has the checkbox id as a class attribute
+        // the selector for class attributes is prefixed with a period
+        var myClassSelector = '.'+cb.id;
+        var x = document.querySelectorAll(myClassSelector);
+        // this would be more concise using jQuery
+        var i;
+        for (i = 0; i < x.length; i++) {
+            if(cb.checked == true) {
+                x[i].classList.remove("d-none");
+            } else {
+                x[i].classList.add("d-none");
+            }
+        }
+    }
+    function tabTo(tab) {
+        // every element associated with a tab has the checkbox id as a class attribute
+        // and class 'tab', which is used to first hide all tab content panes
+        // before showing the content pane associated with the tab that was just clicked
+        // the selector for class attributes is prefixed with a period
+        var i;
+        var t = document.querySelectorAll(".tab");
+        for (i = 0; i < t.length; i++) {
+            t[i].classList.add("d-none");
+        }
+        t = document.querySelectorAll(".nav-link");
+        for (i = 0; i < t.length; i++) {
+            t[i].classList.remove("active");
+        }
+        var myClassSelector = '.'+tab.id;
+        var x = document.querySelectorAll(myClassSelector);
+        x[0].classList.remove("d-none");
+        tab.classList.add("active");
+    }
+    function goToPage1() {
+        document.getElementById("page1").classList.remove("d-none");
+        document.getElementById("page2").classList.add("d-none");
+        document.getElementById("page3").classList.add("d-none");
+        document.getElementById("page4").classList.add("d-none");
+        document.getElementById("page5").classList.add("d-none");
+    }
+    function goToPage2() {
+        document.getElementById("page1").classList.add("d-none");
+        document.getElementById("page2").classList.remove("d-none");
+        document.getElementById("page3").classList.add("d-none");
+        document.getElementById("page4").classList.add("d-none");
+        document.getElementById("page5").classList.add("d-none");
+    }
+    function goToPage3() {
+        document.getElementById("page1").classList.add("d-none");
+        document.getElementById("page2").classList.add("d-none");
+        document.getElementById("page3").classList.remove("d-none");
+        document.getElementById("page4").classList.add("d-none");
+        document.getElementById("page5").classList.add("d-none");
+    }
+    function goToPage4() {
+        document.getElementById("page1").classList.add("d-none");
+        document.getElementById("page2").classList.add("d-none");
+        document.getElementById("page3").classList.add("d-none");
+        document.getElementById("page4").classList.remove("d-none");
+        document.getElementById("page5").classList.add("d-none");
+    }
+    function goToPage5() {
+        document.getElementById("page1").classList.add("d-none");
+        document.getElementById("page2").classList.add("d-none");
+        document.getElementById("page3").classList.add("d-none");
+        document.getElementById("page4").classList.add("d-none");
+        document.getElementById("page5").classList.remove("d-none");
+    }
+
+
+
+</script>
+
+</body>
+</html>
