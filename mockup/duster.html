@@ -12,6 +12,10 @@
     <style>
         .auto-width {width: auto;}
         h5 {color: rgba(49, 108, 244, 0.99);}
+        th, td {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
         thead > tr > td {font-weight: bold;}
     </style>
     <title>DUSTER</title>
@@ -193,15 +197,14 @@
                         On this screen you see all information available in DUSTER relating to the patient including demographics, dates of service,
                         comorbidities, socio-economic status and so on.
                     </p>
-                    <p>The suffix _dstr is added to all instrument and variable names
-                        to differentiate the DUSTER instruments and their variables from other
-                        variables that may occur in your project</p>
-                    <p>The variables selected on this page will be populated in the following non-repeating instrument:
-                        <strong>demographic_dstr</strong>
-                    </p>
+                    <p>The suffix _dstr is added to all field names
+                        to differentiate the DUSTER fields from other
+                        fields that may occur in your project. At the end of this process you will have the option of
+                    reorganizing the generated fields into instrument groupings that make the most sense for your study.</p>
+
                     <table>
                         <thead>
-                        <tr><td>Include?</td><td>Label</td><td>Variable Name</td></tr></thead>
+                        <tr><td>Include?</td><td>Label</td><td>Field Name</td></tr></thead>
                         <tbody>
                         <tr>
                             <td><input class="form-check-input" type="checkbox" value="" id="sex_dstr"></td><td>
@@ -346,6 +349,43 @@
                 </div>
             </div>
         </div>
+
+        <!-- page 3 a risk scores -->
+        <div id="page3a" class="d-none">
+            <div class="row justify-content-start">
+                <div class="col-8">
+                    <h5>Step 2, Part 2: Calculated ICU Mortality Risk Scores</h5>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <p>
+                        DUSTER is able to pull most but not all the required variables to calculate the Apache II and SOFA scores.
+                        If you select one of the options below, DUSTER will add a set of variables including several that
+                        you will need to manually enter data for after chart review before the score can be calculated.
+                    </p>
+
+                    <p>Each score is accompanied by a set of associated fields required to calculate the score. Note the companion fields all have the same prefix and suffix as the score field.</p>
+                    <table><thead><td>Include?</td><td>Score</td><td>Final Score Field Name</td><td>Companion Fields Requiring Chart Review</td> <td>Auto-populated Companion Fields </td></thead><tbody>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="apache2__score_dstr"></td><td>
+                        Apache II</td><td>apache_2_score_dstr</td><td>apache_2_organ_fail_dstr, apache_2_renal_fail_dstr, glasgow_coma_dstr </td><td>apache_2_age_dstr, apache_2_temp_dstr, mort_risk_map_dstr, apache_2_ph_dstr, apache_2_pulse_dstr,  apache_2_rr_dstr, apache_2_na_dstr, apache_2_k_dstr, mort_risk_creat_dstr, apache_2_hct_dstr, apache_2_wbc_dstr, apache_2_fio2_dstr</td>
+                    </tr>
+                    <tr>
+                        <td><input class="form-check-input" type="checkbox" value="" id="sofa__score_dstr"></td><td>
+                        SOFA</td><td>sofa_score_dstr</td><td>sofa_mechanical_vent_dstr</td><td>sofa_pao2_dstr, sofa_fio2_dstr, sofa_plt_dstr, glasgow_coma_dstr, mort_risk_map_dstr, mort_risk_creat_dstr</td>
+                    </tr>
+                    </tbody></table>
+                    <p></p>
+                    <div onclick="goToPage3()" class="btn btn-primary">< Back</div>
+
+                    <div onclick="goToPage4()" class="btn btn-primary">Next ></div>
+                </div>
+
+
+            </div>
+        </div>
+
         <div id="page4" class="d-none">
             <div class="row justify-content-start">
                 <div class="col-8">
@@ -353,18 +393,31 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-8">
+                <div class="col-12">
                     <p>Clinical data always has a date or date and time associated with it.
                     </p><p>
-                    On this page you can design your instrument(s) by selecting the types of data
+                    On this page you can select the types of data
                     you are interested in.<br>
                     On the next page you will be specifying the frequency and intervals
-                    at which the data on each instrument should be collected.
+                    at which the data should be collected.
                 </p>
-
+                <p><img height="130" src="duster_step_3.png"/></p>
                 </div>
             </div>
+            <div class="row">
 
+                <div class="col-12">
+
+
+                    <div onclick="goToPage3()" class="btn btn-primary">< Back to Demographics</div>
+
+                    <div onclick="goToPage5()" class="btn btn-primary">Go To Step 4 ></div>
+                    <p><strong>Click the tab buttons below to see all available options.</strong> <br>Once you have selected all clinical data type of interest in all categories, you can move on to Step 4.</p>
+                    <p></p>
+
+                </div>
+
+            </div>
             <div class="row">
                 <div class="col-12">
                     <ul class="nav nav-tabs">
@@ -392,531 +445,410 @@
 
             <div class="scores row tab">
                 <div class="col-12">
-                    <p>Each score is recorded on a separate instrument. The Apache II score instrument
-                        is "apache_2_dstr".</p>
-                    <table><thead><td colspan="2">Score</td><td>Instrument name</td></thead><tbody>
+                    <p></p>
+                    <p>
+                        DUSTER is able to pull most but not all the required variables to calculate the Apache II and SOFA scores.
+                        If you select one of the options below, DUSTER will add a set of variables including several that
+                        you will need to manually enter data for after chart review before the score can be calculated.
+                    </p>
+
+                    <p>Each score is accompanied by a set of associated fields required to calculate the score. Note the companion fields all have the same prefix and suffix as the score field.
+                        The field names in this table are used as suffixes for the final field names, determined in Step 4.</p>
+                    <table><thead><td>Include?</td><td>Score</td><td>Final Score Field Name</td><td>Companion Fields Requiring Chart Review</td> <td>Auto-populated Companion Fields </td></thead><tbody>
                     <tr>
-                        <td><input class="form-check-input" type="checkbox" value="" id="apache2_dstr"></td><td>
-                        Apache II</td><td>apache_2_dstr</td>
+                        <td><input class="form-check-input" type="checkbox" value="" id="apache2_score_dstr"></td><td>
+                        Apache II</td><td>apache_2_score_dstr</td><td>apache_2_organ_fail_dstr, apache_2_renal_fail_dstr, glasgow_coma_dstr </td><td>apache_2_age_dstr, apache_2_temp_dstr, mort_risk_map_dstr, apache_2_ph_dstr, apache_2_pulse_dstr,  apache_2_rr_dstr, apache_2_na_dstr, apache_2_k_dstr, mort_risk_creat_dstr, apache_2_hct_dstr, apache_2_wbc_dstr, apache_2_fio2_dstr</td>
                     </tr>
                     <tr>
-                        <td><input class="form-check-input" type="checkbox" value="" id="sofa_dstr"></td><td>
-                        SOFA</td><td>sofa_dstr</td>
+                        <td><input class="form-check-input" type="checkbox" value="" id="sofa_score_dstr"></td><td>
+                        SOFA</td><td>sofa_score_dstr</td><td>sofa_mechanical_vent_dstr</td><td>sofa_pao2_dstr, sofa_fio2_dstr, sofa_plt_dstr, glasgow_coma_dstr, mort_risk_map_dstr, mort_risk_creat_dstr</td>
                     </tr>
                     </tbody></table>
+                    <p></p>
                 </div>
             </div>
 
             <div class="labs row d-none tab">
                 <div class="col-12">
-                    <p>The selected items will be collected on an instrument named "lab_dstr" if you are collecting
-                        only one set of labs on your patients, and "lab_n_dstr", where 'n' is the repeat counter,
-                        e.g. lab_1_dstr, lab_2_dstr and so on, if you are collecting multiple sets.</p>
-                    <table><thead></thead><tbody>
-                    <tr>
-                        <td><input class="form-check-input" type="checkbox" value="" id="wbc_dstr"></td><td>
-                        WBC</td><td>wbc_dstr</td>
+                    <p></p>
+                    <p>Multiple lab results can occur in a given time frame, so in addition to selecting the type of result, you must also
+                    specify which results to collect. </p>
+                    <p>This approach, while convenient, may wind up creating some unnecessary fields; these extra fields can later
+                    be deleted from your data dictionary.</p>
+                    <p>The final field suffixes will be calculated by combining selections from table 1 and 2, e.g. first_serum_glucose_dstr</p>
+                    <p><strong>Table 1: Temporal Selections</strong>
+                    <table><thead><td>Include?</td><td>Lab Result</td><td>Field name prefix</td><td></td></thead>
+                    <tbody>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='first'></td><td>First</td><td>first_</td>
+                    <td rowspan="4"><img height="130" src="duster_lab.png"/></td>
                     </tr>
-                    </tbody></table>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='highest'></td><td>Highest / Maximum</td><td>max_</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='lowest'></td><td>Lowest / Minimum</td><td>min_</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='last'></td><td>Last</td><td>last_</td></tr>
+                    </tbody>
+                    </table></p>
+                    <p><strong>Table 2: Lab Result Types</strong>
+                    <table><thead><td>Include?</td><td>Lab Result</td><td>Field name suffix</td><td>Include?</td><td>Lab Result</td><td>Field name suffix</td></thead><tbody>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='serum_glucose_dstr'></td><td>Serum Glucose</td><td>serum_glucose_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='hemoglobin_dstr'></td><td>Hemoglobin</td><td>hemoglobin_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='serum_potassium_dstr'></td><td>Serum Potassium</td><td>serum_potassium_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_creatinine_dstr'></td><td>Serum Creatinine</td><td>serum_creatinine_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='serum_bun_dstr'></td><td>Serum BUN</td><td>serum_bun_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='hematocrit_dstr'></td><td>Hematocrit</td><td>hematocrit_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='blood_platelet_count_dstr'></td><td>Blood Platelet Count</td><td>blood_platelet_count_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='blood_mcv_dstr'></td><td>Blood MCV</td><td>blood_mcv_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='blood_rbc_dstr'></td><td>Blood RBC</td><td>blood_rbc_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='blood_rdw_dstr'></td><td>Blood RDW</td><td>blood_rdw_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='blood_wbc_dstr'></td><td>Blood WBC</td><td>blood_wbc_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_hco3_dstr'></td><td>Serum HCO3</td><td>serum_hco3_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='anion_gap-arterial_dstr'></td><td>Anion Gap-Arterial</td><td>anion_gap-arterial_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='base_excess_dstr'></td><td>Base Excess</td><td>base_excess_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='blood_neutrophils_no_dstr'></td><td>Blood Neutrophils No</td><td>blood_neutrophils_no_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_magnesium_dstr'></td><td>Serum Magnesium</td><td>serum_magnesium_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='po2-arterial_dstr'></td><td>pO2-Arterial</td><td>po2-arterial_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='pco2-arterial_dstr'></td><td>pCO2-Arterial</td><td>pco2-arterial_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='ph-arterial_dstr'></td><td>pH-Arterial</td><td>ph-arterial_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_phosphorus_dstr'></td><td>Serum Phosphorus</td><td>serum_phosphorus_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='so2-arterial_dstr'></td><td>SO2-Arterial</td><td>so2-arterial_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_calcium_ionized_dstr'></td><td>Serum Calcium Ionized</td><td>serum_calcium_ionized_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='inr_dstr'></td><td>INR</td><td>inr_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_lactate_dstr'></td><td>Serum Lactate</td><td>serum_lactate_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='ptt_dstr'></td><td>PTT</td><td>ptt_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_bilirubin-total_dstr'></td><td>Serum Bilirubin-Total</td><td>serum_bilirubin-total_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='serum_alt_dstr'></td><td>Serum ALT</td><td>serum_alt_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_ast_dstr'></td><td>Serum AST</td><td>serum_ast_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='blood_lymphocytes_pct_dstr'></td><td>Blood Lymphocytes pct</td><td>blood_lymphocytes_pct_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='pco2-venous_dstr'></td><td>pCO2-Venous</td><td>pco2-venous_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='po2-venous_dstr'></td><td>pO2-Venous</td><td>po2-venous_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='ph-venous_dstr'></td><td>pH-Venous</td><td>ph-venous_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='blood_band_%_dstr'></td><td>Blood Band %</td><td>blood_band_%_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_bilirubin-direct_dstr'></td><td>Serum Bilirubin-Direct</td><td>serum_bilirubin-direct_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='troponin_t_dstr'></td><td>Troponin T</td><td>troponin_t_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='rbc_dstr'></td><td>RBC</td><td>rbc_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='serum_osmolality_dstr'></td><td>Serum Osmolality</td><td>serum_osmolality_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_albumin_dstr'></td><td>Serum Albumin</td><td>serum_albumin_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='serum_ck_dstr'></td><td>Serum CK</td><td>serum_ck_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='plasma_fibrinogen_dstr'></td><td>Plasma Fibrinogen</td><td>plasma_fibrinogen_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='serum_ammonia_dstr'></td><td>Serum Ammonia</td><td>serum_ammonia_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_ldh_dstr'></td><td>Serum LDH</td><td>serum_ldh_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='blood_neutrophils_pct_dstr'></td><td>Blood Neutrophils pct</td><td>blood_neutrophils_pct_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_lipase_dstr'></td><td>Serum Lipase</td><td>serum_lipase_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='serum_protein_dstr'></td><td>Serum Protein</td><td>serum_protein_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='crp_dstr'></td><td>CRP</td><td>crp_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='bnp_dstr'></td><td>BNP</td><td>bnp_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='blood_reticulocytes_pct_dstr'></td><td>Blood Reticulocytes pct</td><td>blood_reticulocytes_pct_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='hba1c_dstr'></td><td>HbA1C</td><td>hba1c_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='serum_ferritin_dstr'></td><td>Serum Ferritin</td><td>serum_ferritin_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='serum_ggt_dstr'></td><td>Serum GGT</td><td>serum_ggt_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='svo2_dstr'></td><td>SvO2</td><td>svo2_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='fibrin_degradation_products_dstr'></td><td>Fibrin Degradation Products</td><td>fibrin_degradation_products_dstr</td>
+                        <td><input class='form-check-input' type='checkbox' value='' id='d-dimer_dstr'></td><td>D-Dimer</td><td>d-dimer_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='troponin_i_dstr'></td><td>Troponin I</td><td>troponin_i_dstr</td></tr>
+                    </tbody></table></p>
                 </div>
             </div>
 
             <div class="meds row d-none tab">
                 <div class="col-12">
-                    <p>The selected items will be collected on an instrument named "med_dstr" if you are collecting
-                        only one set of medication orders / administration on your patients, and "med_n_dstr", where 'n' is the repeat counter,
-                        e.g. med_1_dstr, med_2_dstr and so on, if you are collecting multiple sets.</p>
-                    <table><thead></thead><tbody>
-                    <tr>
-                        <td><input class="form-check-input" type="checkbox" value="" id="saline9_dstr"></td><td>
-                        Saline 0.9%</td><td>saline9_dstr</td>
-                    </tr>
+                    <p></p>
+                    <p>DUSTER will calculate the total dose of each selected medication for the timespan specified in the next step.</p>
+                    <p>The field names in this table are used as suffixes for the final field names, determined in Step 4.</p>
+                    <table><thead><td>Include?</td><td>Medication</td><td>Field name suffix</td></thead><tbody>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='saline_0.9pct_dstr'></td><td>Saline 0.9%</td><td>saline_0.9pct_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='lactated_ringers'></td><td>Lactated Ringers</td><td>lactated_ringers</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='saline_0.45pct_dstr'></td><td>Saline 0.45%</td><td>saline_0.45pct_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='insulin'></td><td>Insulin</td><td>insulin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='fentanyl'></td><td>Fentanyl</td><td>fentanyl</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='heparin'></td><td>Heparin</td><td>heparin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='albumin_5pct_dstr'></td><td>Albumin 5%</td><td>albumin_5pct_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='albuterol_/_ipratropium_bromide'></td><td>Albuterol / Ipratropium bromide</td><td>albuterol_/_ipratropium_bromide</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='piperacillin/tazobactam'></td><td>Piperacillin/Tazobactam</td><td>piperacillin/tazobactam</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='vancomycin'></td><td>Vancomycin</td><td>vancomycin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='metoprolol'></td><td>Metoprolol</td><td>metoprolol</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='metronidazole'></td><td>Metronidazole</td><td>metronidazole</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='albumin_25pct_dstr'></td><td>Albumin 25%</td><td>albumin_25pct_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='hydrocortisone'></td><td>Hydrocortisone</td><td>hydrocortisone</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='pantoprazole'></td><td>Pantoprazole</td><td>pantoprazole</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='furosemide'></td><td>Furosemide</td><td>furosemide</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='midazolam'></td><td>Midazolam</td><td>midazolam</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='lorazepam'></td><td>Lorazepam</td><td>lorazepam</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='cefepime'></td><td>Cefepime</td><td>cefepime</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='phenylephrine'></td><td>Phenylephrine</td><td>phenylephrine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='levofloxacin'></td><td>Levofloxacin</td><td>levofloxacin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='meropenem'></td><td>Meropenem</td><td>meropenem</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='d5w'></td><td>D5W</td><td>d5w</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='propofol'></td><td>Propofol</td><td>propofol</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='norepinephrine'></td><td>Norepinephrine</td><td>norepinephrine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='methylprednisolone'></td><td>Methylprednisolone</td><td>methylprednisolone</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='magnesium_sulfate'></td><td>Magnesium Sulfate</td><td>magnesium_sulfate</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='lansoprazole'></td><td>Lansoprazole</td><td>lansoprazole</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='aspirin'></td><td>Aspirin</td><td>aspirin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='sodium_phosphate'></td><td>Sodium Phosphate</td><td>sodium_phosphate</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='vasopressin'></td><td>Vasopressin</td><td>vasopressin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='serum_alk_phos'></td><td>Serum Alk Phos</td><td>serum_alk_phos</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='ciprofloxacin'></td><td>Ciprofloxacin</td><td>ciprofloxacin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='calcium'></td><td>Calcium</td><td>calcium</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='omeprazole'></td><td>Omeprazole</td><td>omeprazole</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='ceftriaxone'></td><td>Ceftriaxone</td><td>ceftriaxone</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='ketamine'></td><td>Ketamine</td><td>ketamine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='d50w'></td><td>D50W</td><td>d50w</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='etomidate'></td><td>Etomidate</td><td>etomidate</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='amiodarone'></td><td>Amiodarone</td><td>amiodarone</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='morphine'></td><td>Morphine</td><td>morphine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='succinylcholine'></td><td>Succinylcholine</td><td>succinylcholine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='oseltamivir'></td><td>Oseltamivir</td><td>oseltamivir</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='rocuronium'></td><td>Rocuronium</td><td>rocuronium</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='acyclovir'></td><td>Acyclovir</td><td>acyclovir</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='epinephrine'></td><td>Epinephrine</td><td>epinephrine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='octreotide'></td><td>Octreotide</td><td>octreotide</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='levetiracetam'></td><td>Levetiracetam</td><td>levetiracetam</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='labetalol'></td><td>Labetalol</td><td>labetalol</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='ampicillin'></td><td>Ampicillin</td><td>ampicillin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='lidocaine'></td><td>Lidocaine</td><td>lidocaine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='amlodipine'></td><td>Amlodipine</td><td>amlodipine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='acetylcysteine'></td><td>Acetylcysteine</td><td>acetylcysteine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='saline_3pct_dstr'></td><td>Saline 3%</td><td>saline_3pct_dstr</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='carvedilol'></td><td>Carvedilol</td><td>carvedilol</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='hydralazine'></td><td>Hydralazine</td><td>hydralazine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='aztreonam'></td><td>Aztreonam</td><td>aztreonam</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='warfarin'></td><td>Warfarin</td><td>warfarin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='dexmedetomidine'></td><td>Dexmedetomidine</td><td>dexmedetomidine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='vecuronium'></td><td>Vecuronium</td><td>vecuronium</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='clindamycin'></td><td>Clindamycin</td><td>clindamycin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='glucagon'></td><td>Glucagon</td><td>glucagon</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='cefazolin'></td><td>Cefazolin</td><td>cefazolin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='dexamethasone'></td><td>Dexamethasone</td><td>dexamethasone</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='lisinopril'></td><td>Lisinopril</td><td>lisinopril</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='nafcillin'></td><td>Nafcillin</td><td>nafcillin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='terlipressin'></td><td>Terlipressin</td><td>terlipressin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='azithromycin'></td><td>Azithromycin</td><td>azithromycin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='linezolid'></td><td>Linezolid</td><td>linezolid</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='clonazepam'></td><td>Clonazepam</td><td>clonazepam</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='clonidine'></td><td>Clonidine</td><td>clonidine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='tobramycin'></td><td>Tobramycin</td><td>tobramycin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='caspofungin'></td><td>Caspofungin</td><td>caspofungin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='fluconazole'></td><td>Fluconazole</td><td>fluconazole</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='enoxaparin'></td><td>Enoxaparin</td><td>enoxaparin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='d5_0.45pct_dstr_nacl'></td><td>D5 0.45% NaCl</td><td>d5_0.45pct_dstr_nacl</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='voriconazole'></td><td>Voriconazole</td><td>voriconazole</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='isoproterenol'></td><td>Isoproterenol</td><td>isoproterenol</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='metolazone'></td><td>Metolazone</td><td>metolazone</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='atracurium'></td><td>Atracurium</td><td>atracurium</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='ampicillin/sulbactam'></td><td>Ampicillin/Sulbactam</td><td>ampicillin/sulbactam</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='ceftazidime'></td><td>Ceftazidime</td><td>ceftazidime</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='acetazolamide'></td><td>Acetazolamide</td><td>acetazolamide</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='rifampin'></td><td>Rifampin</td><td>rifampin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='nitroglycerin'></td><td>Nitroglycerin</td><td>nitroglycerin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='erythromycin'></td><td>Erythromycin</td><td>erythromycin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='tpa'></td><td>TPA</td><td>tpa</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='dobutamine'></td><td>Dobutamine</td><td>dobutamine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='spironolactone'></td><td>Spironolactone</td><td>spironolactone</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='phenytoin'></td><td>Phenytoin</td><td>phenytoin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='ticarcillin/clavulanate'></td><td>Ticarcillin/Clavulanate</td><td>ticarcillin/clavulanate</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='diazepam'></td><td>Diazepam</td><td>diazepam</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='esmolol'></td><td>Esmolol</td><td>esmolol</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='gentamicin'></td><td>Gentamicin</td><td>gentamicin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='atenolol'></td><td>Atenolol</td><td>atenolol</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='amoxicillin'></td><td>Amoxicillin</td><td>amoxicillin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='propranolol'></td><td>Propranolol</td><td>propranolol</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='ertapenem'></td><td>Ertapenem</td><td>ertapenem</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='daptomycin'></td><td>Daptomycin</td><td>daptomycin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='carbamazepine'></td><td>Carbamazepine</td><td>carbamazepine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='adenosine'></td><td>Adenosine</td><td>adenosine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='dopamine'></td><td>Dopamine</td><td>dopamine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='gancyclovir'></td><td>Gancyclovir</td><td>gancyclovir</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='desmopressin'></td><td>Desmopressin</td><td>desmopressin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='cefotaxime'></td><td>Cefotaxime</td><td>cefotaxime</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='losartan'></td><td>Losartan</td><td>losartan</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='hetastarch_6pct_dstr/ns'></td><td>Hetastarch 6%/NS</td><td>hetastarch_6pct_dstr/ns</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='captopril'></td><td>Captopril</td><td>captopril</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='hydrochlorothiazide'></td><td>Hydrochlorothiazide</td><td>hydrochlorothiazide</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='tiotropium_bromide'></td><td>Tiotropium bromide</td><td>tiotropium_bromide</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='isosorbide_dinitrate'></td><td>Isosorbide dinitrate</td><td>isosorbide_dinitrate</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='imipenem'></td><td>Imipenem</td><td>imipenem</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='d5ns'></td><td>D5NS</td><td>d5ns</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='fondaparinux'></td><td>Fondaparinux</td><td>fondaparinux</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='milrinone'></td><td>Milrinone</td><td>milrinone</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='hartmanns'></td><td>Hartmanns</td><td>hartmanns</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='nicardipine'></td><td>Nicardipine</td><td>nicardipine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='nitroprusside'></td><td>Nitroprusside</td><td>nitroprusside</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='bivalirudin'></td><td>Bivalirudin</td><td>bivalirudin</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='penicillin_v'></td><td>Penicillin V</td><td>penicillin_v</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='plasmalyte_a'></td><td>PlasmaLyte A</td><td>plasmalyte_a</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='mannitol'></td><td>Mannitol</td><td>mannitol</td></tr>
                     </tbody></table>
                 </div>
             </div>
 
             <div class="blood row d-none tab">
                 <div class="col-12">
-                    <p>The selected items will be collected on an instrument named "bloodprd_dstr" if you are collecting
-                        only one set of medication orders / administration on your patients, and "bloodprd_n_dstr", where 'n' is the repeat counter,
-                        e.g. bloodprd_1_dstr, bloodprd_2_dstr and so on, if you are collecting multiple sets.</p>
-                    <table><thead></thead><tbody>
-                    <tr>
-                        <td><input class="form-check-input" type="checkbox" value="" id="redbloodcell_dstr"></td><td>
-                        Red Blood Cells</td><td>redbloodcell_dstr</td>
-                    </tr>
+                    <p></p>
+                    <p>DUSTER will calculate the total amount of blood products administered for the timespan specified in the next step.</p>
+                    <p>The field names in this table are used as suffixes for the final field names, determined in Step 4.</p>
+                    <table><thead><td>Include?</td><td>Blood Product Measure</td><td>Field name suffix</td></thead><tbody>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='red_blood_cells'></td><td>Red Blood Cells</td><td>red_blood_cells</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='fresh_frozen_plasma'></td><td>Fresh Frozen Plasma</td><td>fresh_frozen_plasma</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='platelets'></td><td>Platelets</td><td>platelets</td></tr>
                     </tbody></table>
                 </div>
             </div>
 
             <div class="io row d-none tab">
                 <div class="col-12">
-                    <p>The selected items will be collected on an instrument named "io_dstr" if you are collecting
-                        only one set of labs on your patients, and "io_n_dstr", where 'n' is the repeat counter,
-                        e.g. io_1_dstr, io_2_dstr and so on, if you are collecting multiple sets.</p>
-                    <table><thead></thead><tbody>
-                    <tr>
-                        <td><input class="form-check-input" type="checkbox" value="" id="urine_dstr"></td><td>
-                        Urine Out Foley</td><td>urine_dstr</td>
-                    </tr>
+                    <p></p>
+                    <p>DUSTER will calculate the total amount of I/O for the timespan specified in the next step.</p>
+                    <p>The field names in this table are used as suffixes for the final field names, determined in Step 4.</p>
+                    <table><thead><td>Include?</td><td>Input Output Measure</td><td>Field name suffix</td></thead><tbody>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='urine_out_foley'></td><td>Urine Out Foley</td><td>urine_out_foley</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='po_intake'></td><td>Po Intake</td><td>po_intake</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='urine_out'></td><td>Urine Out</td><td>urine_out</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='dialysis_fluid_out'></td><td>Dialysis fluid out</td><td>dialysis_fluid_out</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='uretheral_catheter'></td><td>Uretheral Catheter</td><td>uretheral_catheter</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='suprapubic_catheter'></td><td>Suprapubic Catheter</td><td>suprapubic_catheter</td></tr>
+
                     </tbody></table>
                 </div>
             </div>
             <div class="vent row d-none tab">
                 <div class="col-12">
-                    <p>The selected items will be collected on an instrument named "vent_dstr" if you are collecting
-                        only one set of vent data on your patients, and "vent_n_dstr", where 'n' is the repeat counter,
-                        e.g. vent_1_dstr, vent_2_dstr and so on, if you are collecting multiple sets.</p>
-                    <table><thead></thead><tbody>
-                    <tr>
-                        <td><input class="form-check-input" type="checkbox" value="" id="rrtotal_dstr"></td><td>
-                        RR total</td><td>rrtotal_dstr</td>
-                    </tr>
+                    <p></p>
+                    <p><em>Unclear whether to treat these like lab results or medications</em></p>
+                    <p>The field names in this table are used as suffixes for the final field names, determined in Step 4.</p>
+                    <table><thead><td>Include?</td><td>Vent Measure</td><td>Field name suffix</td></thead><tbody>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='rrtotal'></td><td>RRtotal</td><td>rrtotal</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='fio2'></td><td>FiO2</td><td>fio2</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='pip'></td><td>PIP</td><td>pip</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='total_minute_volume'></td><td>Total Minute Volume</td><td>total_minute_volume</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='tidal_volume_-_observed'></td><td>Tidal Volume - Observed</td><td>tidal_volume_-_observed</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='peep'></td><td>PEEP</td><td>peep</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='ventilation_mode'></td><td>Ventilation Mode</td><td>ventilation_mode</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='pressure_support'></td><td>Pressure Support</td><td>pressure_support</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='peak_flow'></td><td>Peak Flow</td><td>peak_flow</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='tidal_volume_-_machine'></td><td>Tidal Volume - Machine</td><td>tidal_volume_-_machine</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='i:e'></td><td>I:E</td><td>i:e</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='rrmandatory'></td><td>RRmandatory</td><td>rrmandatory</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='inspiratory_pressure'></td><td>Inspiratory Pressure</td><td>inspiratory_pressure</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='etco2'></td><td>ETCO2</td><td>etco2</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='o2_delivery_device'></td><td>O2 Delivery Device</td><td>o2_delivery_device</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='inspiratory_time'></td><td>Inspiratory Time</td><td>inspiratory_time</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='rrspont'></td><td>RRspont</td><td>rrspont</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='o2_flow_rate_#2'></td><td>O2 Flow Rate #2</td><td>o2_flow_rate_#2</td></tr>
+                    <tr><td><input class='form-check-input' type='checkbox' value='' id='o2_delivery_device_#2'></td><td>O2 Delivery Device #2</td><td>o2_delivery_device_#2</td></tr>
                     </tbody></table>
                 </div>
             </div>
             <p></p>    <!--  adds a bit of white space between the rows -->
-
-
-
-            <div class="row">
-                <div class="col-6">
-
-
-                    <div onclick="goToPage3()" class="btn btn-primary">< Back</div>
-
-                    <div onclick="goToPage5()" class="btn btn-primary">Next ></div>
-
-                </div>
-
-            </div>
-
-
-
         </div>
 
         <!-- page 5 -->
         <div id="page5" class="d-none">
             <div class="row justify-content-start">
-                <div class="col-8">
+                <div class="col-12">
                     <h5>Step 4 of 4: Repeat Interval and Frequency</h5>
                 </div>
             </div>
-            <div class="row">
-
+            <div class="row">You are now on Step 4 where you specify time frame start, duration, and recurrence
+                schedule for the variables selected in Step 3.
+                <p><img height="130" src="duster_step_4.png"/></p>
             </div>
 
             <div onclick="goToPage4()" class="btn btn-primary"> < Back </div>
+            <div onclick="goToPage6()" class="btn btn-primary"> > Next </div>
         </div>
 
-        <!-- Demographics Edit Modal -->
-        <div class="modal fade" id="demogModal" tabindex="-1" aria-labelledby="demogModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="demogModalLabel">Configure Demographics and Identifiers</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <h3>Demographics</h3>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="sex">
-                            <label class="form-check-label" for="sex">
-                                Sex Assigned at Birth
-                            </label>
-                        </div>
 
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="gender">
-                            <label class="form-check-label" for="gender">
-                                Gender Identity
-                            </label>
-                        </div>
-
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="birthyear">
-                            <label class="form-check-label" for="birthyear">
-                                Year of Birth
-                            </label>
-                        </div>
-
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="race">
-                            <label class="form-check-label" for="race">
-                                Primary Race
-                            </label>
-                        </div>
-
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="eth">
-                            <label class="form-check-label" for="eth">
-                                Ethnicity
-                            </label>
-                        </div>
-                        <p></p>
-                        <h3>Identifiers</h3>
-                        <small><i>Please bear in mind HIPAA Minimum Necessary when specifying identifying information</i></small>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="firstname">
-                            <label class="form-check-label" for="firstname">
-                                First Name
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="lastname">
-                            <label class="form-check-label" for="lastname">
-                                Last Name
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="birthdate">
-                            <label class="form-check-label" for="firstname">
-                                Date of Birth
-                            </label>
-                        </div>
-
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save changes</button>
-                    </div>
+        <!-- page 6 -->
+        <div id="page6" class="d-none">
+            <div class="row justify-content-start">
+                <div class="col-8">
+                    <h5>Design Review and Cleanup</h5>
                 </div>
             </div>
-        </div>
-
-
-        <!-- Date Edit Modal -->
-        <div class="modal fade" id="dateModal" tabindex="-1" aria-labelledby="dateModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="dateModalLabel">Configure Date</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Click on each dropdown to see available options.</p>
-                        <small><i><p>You can leave the timing (start and end) fields blank to indicate "any", e.g. when selecting "First"</p>
-                            <p>For dates of discharge you can also specify that you wish the discharge date associated with a previously configured date of admission.</p></i></small>
-                        <table><tr><td>
-                            <select class="form-select auto-width" aria-label="Temporal Selector"  >
-                                <option selected value="first">First</option>
-                                <option value="last">Last</option>
-                                <option value="associated">Associated</option>
-                            </select>
-                        </td><td>
-                            <select class="form-select auto-width" aria-label="Field Selector">
-                                <option value="date_op_appt">Outpatient Appointment</option>
-                                <option value="date_op_visit">Outpatient Visit</option>
-                                <option value="date_hosp_admission">Hospital Admission</option>
-                                <option value="date_hosp_discharge">Hospital Discharge</option>
-                                <option value="date_ed_admission">ED Admission</option>
-                                <option selected value="date_ed_discharge">ED Discharge</option>
-                                <option value="date_icu_admission">ICU Admission</option>
-                                <option value="date_icu_discharge">ICU Discharge</option>
-                            </select>
-                        </td></tr>
-                        </table>
-                        <table>
-                            <tr>
-                                <td>(</td>
-                                <td style='width:80px'><input class="form-control " placeholder="start" type="text"  id="date_timeframe_start"></td>
-                                <td>to
-                                </td>
-                                <td style='width:80px'>
-                                    <input class="form-control  " placeholder="end"  type="text"  id="date_timeframe_end">
-                                </td>
-                                <td><select class="form-select auto-width " aria-label="Interval Selector"  id="date_timeframe_units">
-                                    <option selected value="hours">Hours</option>
-                                    <option value="days">Days</option>
-                                    <option value="months">Months</option>
-                                    <option value="years">Years</option>
-                                </select></td>
-                                <td>)</td>
-                            </tr></table>
-                        <table><tr><td>
-
-                            <select class="form-select" aria-label="Interval Selector"  id="date_ab">
-                                <option selected value="after">After</option>
-                                <option value="before">Before</option>
-                            </select></td>
-                            <td>
-                                Date of Enrollment
-                            </td></tr></table>
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save changes</button>
-                    </div>
-                </div>
+            <div class="row"><div class="col-12"><p>As an optional final step you can now reorganize and prune your
+                variables by grouping them into instruments and removing unwanted fields.</p>
+                <p>You can edit the instrument names, introduce new instruments, and delete extraneous fields
+                at any time using the Data Dictionary. Be aware however that if you change any of the field
+                names ending in "_dstr" you will no longer get data in the renamed fields.</p>
+            <h5>Design Summary</h5>
+                <table><thead><td>Instrument (can be renamed in Data Dictionary)</td><td>Fields (can be deleted but do not rename)</td></thead>
+                <tbody>
+                <tr>
+                    <td>demographics</td><td>sex_dstr, gender_dstr, race_dstr, ethnicity_dstr, 	zip_dstr, birthdate_dstr,
+                    alcohol_use_dstr,
+                    tobacco_use_dstr,
+                    drug_use_dstr,
+                    	enrollment_dstr,
+                    	weight_dstr,
+                    	height_dstr,
+                    	bmi_dstr,
+                    deathdate_dstr</td>
+                </tr>
+                <tr>
+                    <td>lab_icu_0</td><td>i0_serum_glucose_dstr,
+                    i0_hemoglobin_dstr,
+                    i0_serum_potassium_dstr,
+                    i0_serum_creatinine_dstr,
+                    i0_serum_bun_dstr,
+                    i0_hematocrit_dstr,
+                    i0_blood_platelet_count_dstr,
+                    i0_blood_mcv_dstr,
+                    i0_blood_rbc_dstr,
+                    i0_blood_rdw_dstr,
+                    i0_blood_wbc_dstr,
+                    i0_serum_hco3_dstr,
+                    i0_anion_gap-arterial_dstr,
+                    i0_base_excess_dstr,
+                    i0_blood_neutrophils_no_dstr,
+                    i0_serum_magnesium_dstr,
+                    i0_po2-arterial_dstr,
+                    i0_pco2-arterial_dstr,
+                    i0_ph-arterial_dstr,
+                    i0_serum_phosphorus_dstr,
+                    i0_so2-arterial_dstr,
+                    i0_serum_calcium_ionized_dstr,
+                    i0_inr_dstr,
+                    i0_serum_lactate_dstr,
+                    i0_ptt_dstr,
+                    i0_serum_bilirubin-total_dstr,
+                    i0_serum_alt_dstr,
+                    i0_serum_ast_dstr,
+                    i0_blood_lymphocytes_pct_dstr,
+                    i0_pco2-venous_dstr,
+                    i0_po2-venous_dstr,
+                    i0_ph-venous_dstr,
+                    i0_blood_band_%_dstr,
+                    i0_serum_bilirubin-direct_dstr,
+                    i0_troponin_t_dstr,
+                    i0_rbc_dstr,
+                    i0_serum_osmolality_dstr,
+                    i0_serum_albumin_dstr,
+                    i0_serum_ck_dstr,
+                    i0_plasma_fibrinogen_dstr,
+                    i0_serum_ammonia_dstr,
+                    i0_serum_ldh_dstr,
+                    i0_blood_neutrophils_%_dstr,
+                    i0_serum_lipase_dstr,
+                    i0_serum_protein_dstr,
+                    i0_crp_dstr,
+                    i0_bnp_dstr,
+                    i0_blood_reticulocytes_%_dstr,
+                    i0_hba1c_dstr,
+                    i0_serum_ferritin_dstr,
+                    i0_serum_ggt_dstr,
+                    i0_svo2_dstr,
+                    i0_fibrin_degradation_products_dstr,
+                    i0_d-dimer_dstr,
+                    i0_troponin_i_dstr</td>
+                </tr>
+                </tbody>
+                </table>
             </div>
-        </div>
-
-        <!-- Lab Edit Modal -->
-        <div class="modal fade" id="labModal" tabindex="-1" aria-labelledby="labModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="labModalLabel">Configure Lab</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Click on each dropdown to see available options.</p>
-                        <small><i><p>You can leave the timing (start and end) fields blank to indicate "any", e.g. when selecting "First"</p></i></small>
-                        <table><tr><td>
-                            <select class="form-select auto-width" aria-label="Temporal Selector"  >
-                                <option selected value="first">First</option>
-                                <option value="last">Last</option>
-                                <option selected value="lowest">Lowest</option>
-                                <option value="highest">Highest</option>
-                            </select>
-                        </td><td>
-                            <select class="form-select auto-width" aria-label="Field Selector">
-                                <option value="wbc">WBC</option>
-                                <option value="rbc">RBC</option>
-                                <option value="na">Sodium</option>
-                                <option value="creat">Creatinine</option>
-                                <option value="k">Potassium</option>
-                                <option value="hem">Hematocrit</option>
-                                <option value="fio2">FiO2</option>
-                                <option value="pao2">PaO2</option>
-                            </select>
-                        </td></tr>
-                        </table>
-                        <table>
-                            <tr>
-                                <td>(</td>
-                                <td style='width:80px'><input class="form-control " placeholder="start" type="text"  id="lab_timeframe_start"></td>
-                                <td>to
-                                </td>
-                                <td style='width:80px'>
-                                    <input class="form-control  " placeholder="end"  type="text"   id="lab_timeframe_end">
-                                </td>
-                                <td><select class="form-select auto-width " aria-label="Interval Selector"  id="lab_timeframe_units">
-                                    <option selected value="hours">Hours</option>
-                                    <option value="days">Days</option>
-                                    <option value="months">Months</option>
-                                    <option value="years">Years</option>
-                                </select></td>
-                                <td>)</td>
-                            </tr></table>
-                        <table><tr><td>
-
-                            <select class="form-select" aria-label="Interval Selector"  id="lab_ab">
-                                <option selected value="after">After</option>
-                                <option value="before">Before</option>
-                                <option value="before">Before or After</option>
-                            </select></td>
-                            <td>
-                                <select class="form-select auto-width" aria-label="Field Selector">
-                                    <option selected value="date_enrolled">Enrollment Date</option>
-                                    <option value="date_op_appt">Outpatient Appointment</option>
-                                    <option value="date_op_visit">Outpatient Visit</option>
-                                    <option value="date_hosp_admission">Hospital Admission</option>
-                                    <option value="date_hosp_discharge">Hospital Discharge</option>
-                                    <option value="date_ed_admission">ED Admission</option>
-                                    <option value="date_ed_discharge">ED Discharge</option>
-                                    <option value="date_icu_admission">ICU Admission</option>
-                                    <option value="date_icu_discharge">ICU Discharge</option>
-                                </select>
-
-                            </td></tr></table>
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save changes</button>
-                    </div>
-                </div>
             </div>
+
+            <div onclick="goToPage5()" class="btn btn-primary"> < Back to DUSTER Designer </div>
+            <div onclick="goToDD()" class="btn btn-primary"> Go To Data Dictionary </div>
         </div>
 
-        <!-- Vitals Edit Modal -->
-        <div class="modal fade" id="vitalsModal" tabindex="-1" aria-labelledby="vitalsModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="vitalsModalLabel">Configure Vital Sign</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Click on each dropdown to see available options.</p>
-                        <small><i><p>You can leave the timing (start and end) fields blank to indicate "any", e.g. when selecting "First"</p></i></small>
-                        <table><tr><td>
-                            <select class="form-select auto-width" aria-label="Temporal Selector"  >
-                                <option selected value="first">First</option>
-                                <option value="last">Last</option>
-                                <option selected value="lowest">Lowest</option>
-                                <option value="highest">Highest</option>
-                            </select>
-                        </td><td>
-                            <select class="form-select auto-width" aria-label="Field Selector">
-                                <option value="temp">Temperature</option>
-                                <option value="pulse">Heart Rate / Pulse</option>
-                                <option value="resp_rate">Resp. Rate</option>
-                            </select>
-                        </td></tr>
-                        </table>
-                        <table>
-                            <tr>
-                                <td>(</td>
-                                <td style='width:80px'><input class="form-control " placeholder="start" type="text"  id="vitals_timeframe_start"></td>
-                                <td>to
-                                </td>
-                                <td style='width:80px'>
-                                    <input class="form-control  " placeholder="end"  type="text"   id="vitals_timeframe_end">
-                                </td>
-                                <td><select class="form-select auto-width " aria-label="Interval Selector"  id="vitals_timeframe_units">
-                                    <option selected value="hours">Hours</option>
-                                    <option value="days">Days</option>
-                                    <option value="months">Months</option>
-                                    <option value="years">Years</option>
-                                </select></td>
-                                <td>)</td>
-                            </tr></table>
-                        <table><tr><td>
-
-                            <select class="form-select" aria-label="Interval Selector"  id="vitals_ab">
-                                <option selected value="after">After</option>
-                                <option value="before">Before</option>
-                                <option value="before">Before or After</option>
-                            </select></td>
-                            <td>
-                                <select class="form-select auto-width" aria-label="Field Selector">
-                                    <option selected value="date_enrolled">Enrollment Date</option>
-                                    <option value="date_op_appt">Outpatient Appointment</option>
-                                    <option value="date_op_visit">Outpatient Visit</option>
-                                    <option value="date_hosp_admission">Hospital Admission</option>
-                                    <option value="date_hosp_discharge">Hospital Discharge</option>
-                                    <option value="date_ed_admission">ED Admission</option>
-                                    <option value="date_ed_discharge">ED Discharge</option>
-                                    <option value="date_icu_admission">ICU Admission</option>
-                                    <option value="date_icu_discharge">ICU Discharge</option>
-                                </select>
-
-                            </td></tr></table>
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Flowsheet Edit Modal -->
-        <div class="modal fade" id="flowModal" tabindex="-1" aria-labelledby="flowModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="flowModalLabel">Configure Flowsheet Measure</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>Click on each dropdown to see available options.</p>
-                        <small><i><p>You can leave the timing (start and end) fields blank to indicate "any", e.g. when selecting "First"</p></i></small>
-                        <table><tr><td>
-                            <select class="form-select auto-width" aria-label="Temporal Selector"  >
-                                <option selected value="first">First</option>
-                                <option value="last">Last</option>
-                                <option selected value="lowest">Lowest</option>
-                                <option value="highest">Highest</option>
-                            </select>
-                        </td><td>
-                            <select class="form-select auto-width" aria-label="Field Selector">
-                                <option value="temp">Vent Settings</option>
-                            </select>
-                        </td></tr>
-                        </table>
-                        <table>
-                            <tr>
-                                <td>(</td>
-                                <td style='width:80px'><input class="form-control " placeholder="start" type="text"  id="flow_timeframe_start"></td>
-                                <td>to
-                                </td>
-                                <td style='width:80px'>
-                                    <input class="form-control  " placeholder="end"  type="text"   id="flow_timeframe_end">
-                                </td>
-                                <td><select class="form-select auto-width " aria-label="Interval Selector"  id="flow_timeframe_units">
-                                    <option selected value="hours">Hours</option>
-                                    <option value="days">Days</option>
-                                    <option value="months">Months</option>
-                                    <option value="years">Years</option>
-                                </select></td>
-                                <td>)</td>
-                            </tr></table>
-                        <table><tr><td>
-
-                            <select class="form-select" aria-label="Interval Selector"  id="flow_ab">
-                                <option selected value="after">After</option>
-                                <option value="before">Before</option>
-                                <option value="before">Before or After</option>
-                            </select></td>
-                            <td>
-                                <select class="form-select auto-width" aria-label="Field Selector">
-                                    <option selected value="date_enrolled">Enrollment Date</option>
-                                    <option value="date_op_appt">Outpatient Appointment</option>
-                                    <option value="date_op_visit">Outpatient Visit</option>
-                                    <option value="date_hosp_admission">Hospital Admission</option>
-                                    <option value="date_hosp_discharge">Hospital Discharge</option>
-                                    <option value="date_ed_admission">ED Admission</option>
-                                    <option value="date_ed_discharge">ED Discharge</option>
-                                    <option value="date_icu_admission">ICU Admission</option>
-                                    <option value="date_icu_discharge">ICU Discharge</option>
-                                </select>
-
-                            </td></tr></table>
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Score Edit Modal -->
-        <div class="modal fade" id="scoreModal" tabindex="-1" aria-labelledby="scoreModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="scoreModalLabel">Configure Score </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>First select the score you wish...</p>
-                        <p><select class="form-select auto-width" aria-label="Score Selector"  >
-                            <option selected value="apache2">Apache II</option>
-                            <option value="sofa">SOFA</option>
-                        </select></p>
-
-                        <p> ...then select the form you will be using. </p>
-                        <p><select class="form-select auto-width" aria-label="Form Selector">
-                            <option value="demographics">Demographics</option>
-                            <option value="labs1">Labs Week 1</option>
-                            <option value="labs2">Labs Week 2</option>
-                            <option value="labs3">Labs Week 3</option>
-                            <option value="apache">Apache II</option>
-                        </select></p>
-                        <p>The form will include field calculations, so we recommend you use our forms rather than your own.</p>
-                        <p>
-                            <a href="">Download the TDS-Research Apache II Score Data Dictionary</a> </p>
-                        <p>
-                            <a href="">Download the TDS-Research SOFA Score Data Dictionary</a> </p>
-
-                        <p>Training on how to work with Data Dictionaries <a href="https://redcap.stanford.edu/redcap_v12.0.4/Home/index.php?action=training">is available here </a> in the "Building a project" section.</p>
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
     </form>
 </div>
@@ -959,36 +891,64 @@
         document.getElementById("page1").classList.remove("d-none");
         document.getElementById("page2").classList.add("d-none");
         document.getElementById("page3").classList.add("d-none");
+        document.getElementById("page3a").classList.add("d-none");
         document.getElementById("page4").classList.add("d-none");
         document.getElementById("page5").classList.add("d-none");
+        document.getElementById("page6").classList.add("d-none");
     }
     function goToPage2() {
         document.getElementById("page1").classList.add("d-none");
         document.getElementById("page2").classList.remove("d-none");
         document.getElementById("page3").classList.add("d-none");
+        document.getElementById("page3a").classList.add("d-none");
         document.getElementById("page4").classList.add("d-none");
         document.getElementById("page5").classList.add("d-none");
+        document.getElementById("page6").classList.add("d-none");
     }
     function goToPage3() {
         document.getElementById("page1").classList.add("d-none");
         document.getElementById("page2").classList.add("d-none");
         document.getElementById("page3").classList.remove("d-none");
+        document.getElementById("page3a").classList.add("d-none");
         document.getElementById("page4").classList.add("d-none");
         document.getElementById("page5").classList.add("d-none");
+        document.getElementById("page6").classList.add("d-none");
+    }
+    function goToPage3a() {
+        document.getElementById("page1").classList.add("d-none");
+        document.getElementById("page2").classList.add("d-none");
+        document.getElementById("page3").classList.add("d-none");
+        document.getElementById("page3a").classList.remove("d-none");
+        document.getElementById("page4").classList.add("d-none");
+        document.getElementById("page5").classList.add("d-none");
+        document.getElementById("page6").classList.add("d-none");
     }
     function goToPage4() {
         document.getElementById("page1").classList.add("d-none");
         document.getElementById("page2").classList.add("d-none");
         document.getElementById("page3").classList.add("d-none");
+        document.getElementById("page3a").classList.add("d-none");
         document.getElementById("page4").classList.remove("d-none");
         document.getElementById("page5").classList.add("d-none");
+        document.getElementById("page6").classList.add("d-none");
     }
     function goToPage5() {
         document.getElementById("page1").classList.add("d-none");
         document.getElementById("page2").classList.add("d-none");
         document.getElementById("page3").classList.add("d-none");
+        document.getElementById("page3a").classList.add("d-none");
         document.getElementById("page4").classList.add("d-none");
         document.getElementById("page5").classList.remove("d-none");
+        document.getElementById("page6").classList.add("d-none");
+    }
+    function goToPage6() {
+        document.getElementById("page1").classList.add("d-none");
+        document.getElementById("page2").classList.add("d-none");
+        document.getElementById("page3").classList.add("d-none");
+        document.getElementById("page3a").classList.add("d-none");
+        document.getElementById("page4").classList.add("d-none");
+        document.getElementById("page5").classList.add("d-none");
+        document.getElementById("page6").classList.remove("d-none");
     }
 
 
