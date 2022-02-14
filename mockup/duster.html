@@ -460,16 +460,31 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-4">
+                <div class="col-6">
                     <p>
-                    <table><thead><td><input class='form-check-input' type='checkbox' value='' id='lab_temp' onClick="toggleCb(this);"></td><td>Lab Result Selector</td><td>Field name prefix</td><td></td></thead>
+                    <table><thead><td><input class='form-check-input' type='checkbox' value='' id='lab_temp' onClick="toggleCb(this);"></td><td colspan="2">Recurring Result Selector</td><td>Field name prefix</td><td></td></thead>
                         <tbody>
-                        <tr><td><input class='form-check-input lab_temp' type='checkbox' value='' id='first'></td><td>First</td><td>first_</td>
+                        <tr><td><input class='form-check-input lab_temp' type='checkbox' value='' id='first'></td><td>First</td><td></td><td>first_</td>
 
                         </tr>
-                        <tr><td><input class='form-check-input lab_temp' type='checkbox' value='' id='highest'></td><td>Highest / Maximum</td><td>max_</td></tr>
-                        <tr><td><input class='form-check-input lab_temp' type='checkbox' value='' id='lowest'></td><td>Lowest / Minimum</td><td>min_</td></tr>
-                        <tr><td><input class='form-check-input lab_temp' type='checkbox' value='' id='last'></td><td>Last</td><td>last_</td></tr>
+                        <tr><td><input class='form-check-input lab_temp' type='checkbox' value='' id='highest'></td><td colspan="2">Highest / Maximum</td><td>max_</td></tr>
+                        <tr><td><input class='form-check-input lab_temp' type='checkbox' value='' id='lowest'></td><td colspan="2">Lowest / Minimum</td><td>min_</td></tr>
+                        <tr><td><input class='form-check-input lab_temp' type='checkbox' value='' id='last'></td><td>Last</td></td><td><td>last_</td></tr>
+                        <tr><td><input class='form-check-input lab_temp' type='checkbox' value='' id='closest'></td><td>Closest to </td><td><select class="form-select" aria-label="Time frame start">
+                            <option value="12am">midnight</option>
+                            <option value="8am">8am</option>
+                            <option value="12pm">noon</option>
+                            <option value="4pm">4pm</option>
+                            <option value="8pm">8pm</option>
+                        </select>
+                        </td><td>close_</td></tr>
+                        <tr><td><input class='form-check-input lab_temp' type='checkbox' value='' id='first_after'></td><td>First after </td><td><select class="form-select" aria-label="Time frame start">
+                            <option value="12am">midnight</option>
+                            <option value="8am">8am</option>
+                            <option value="12pm">noon</option>
+                            <option value="4pm">4pm</option>
+                            <option value="8pm">8pm</option>
+                        </select></td><td>first_</td></tr>
                         </tbody>
                     </table></p>
                     <p>
@@ -479,7 +494,7 @@
                     <p><img height="200" src="timeframe.png"/></p>
                 </div>
                 <div class="col-5">
-                    <table><tbody><tr><td>Time frame start</td><td> <select class="form-select" aria-label="Default select example">
+                    <table><tbody><tr><td>Time frame start</td><td> <select class="form-select" aria-label="Time frame start">
 
                         <option selected value="date_enrolled">Enrollment Date (date_enrolled)</option>
                         <option value="date_ed_admit">ED Admission (date_ed_admit)</option>
@@ -536,7 +551,16 @@
                 <div class="col-12">
                     <ul class="nav nav-tabs">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page"  id="labs" onclick="tabTo('labs')">Labs</a>
+                            <a class="nav-link active" aria-current="page"  id="labs" onclick="tabTo('labs')">Lab Results</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="vitals"  onclick="tabTo('vitals')">Vitals Results</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="vent"  onclick="tabTo('vent')">Vent Results</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="vent_outcomes"  onclick="tabTo('vent_out')">Vent Outcomes</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" id="meds" onclick="tabTo('meds')">Medications</a>
@@ -546,9 +570,6 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" id="io"  onclick="tabTo('io')">I/O</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="vent"  onclick="tabTo('vent')">Ventilator</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link " id="scores" onclick="tabTo('scores')">Scores</a>
@@ -584,6 +605,7 @@
                 <div class="labs row  tab">
                     <div class="col-12">
                         <p></p>
+                        <p>The following lab results will be selected: <strong>First, Last, Closest to 8am</strong>. You can adjust these selections on the previous page</p>
                         <p>Field suffixes will be composed of the temporal field selectors chosen
                             on the previous page prepended to the suffixes selected below, e.g. first_serum_glucose_dstr</p>
                         <p><strong>Lab Result Types</strong>
@@ -808,14 +830,26 @@
                         </tbody></table>
                     </div>
                 </div>
-                <div class="vent row d-none tab">
+                <div class="vitals row d-none tab">
                     <div class="col-12">
                         <p></p>
-                        <p><em>Unclear whether to treat these like lab results or medications</em></p>
+                        <p>The following vital signs results will be selected: <strong>First, Last, Closest to 8am</strong>. You can adjust these selections on the previous page</p>
                         <p>The field names in this table are used as suffixes for the final field names, determined in Step 4.</p>
-                        <table><thead><td>Include?</td><td>Vent Measure</td><td>Field name suffix</td></thead><tbody>
-                        <tr><td><input class='form-check-input' type='checkbox' value='' id='rrtotal'></td><td>RRtotal</td><td>rrtotal</td></tr>
-                        <tr><td><input class='form-check-input' type='checkbox' value='' id='fio2'></td><td>FiO2</td><td>fio2</td></tr>
+                        <table><thead><td>Include?</td><td>Vital Signs</td><td>Field name suffix</td></thead><tbody>
+                        <tr><td><input class='form-check-input' type='checkbox' value='' id='pulse'></td><td>Pulse</td><td>pulse</td></tr>
+                        <tr><td><input class='form-check-input' type='checkbox' value='' id='bp'></td><td>Blood Pressure</td><td>bp</td></tr>
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="vent row d-none tab">
+                        <div class="col-12">
+                            <p></p>
+                            <p>The following vent settings results will be selected: <strong>First, Last, Closest to 8am</strong>. You can adjust these selections on the previous page</p>
+                            <p>The field names in this table are used as suffixes for the final field names, determined in Step 4.</p>
+                            <table><thead><td>Include?</td><td>Vent Measure</td><td>Field name suffix</td></thead><tbody>
+                            <tr><td><input class='form-check-input' type='checkbox' value='' id='rrtotal'></td><td>RRtotal</td><td>rrtotal</td></tr>
+                            <tr><td><input class='form-check-input' type='checkbox' value='' id='fio2'></td><td>FiO2</td><td>fio2</td></tr>
                         <tr><td><input class='form-check-input' type='checkbox' value='' id='pip'></td><td>PIP</td><td>pip</td></tr>
                         <tr><td><input class='form-check-input' type='checkbox' value='' id='total_minute_volume'></td><td>Total Minute Volume</td><td>total_minute_volume</td></tr>
                         <tr><td><input class='form-check-input' type='checkbox' value='' id='tidal_volume_-_observed'></td><td>Tidal Volume - Observed</td><td>tidal_volume_-_observed</td></tr>
