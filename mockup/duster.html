@@ -504,12 +504,10 @@
                 </div>
                 <div class="col-10">
                     <p></p>
-                    <table><tbody><tr><td>Repeat &nbsp; &nbsp; <input class='form-check-input' type='checkbox' value='' id='repeat_every' onClick="toggleFormFields(this);"></td><td class="repeat_every d-none">Repeat every</td>
-                        <td  style='width:80px' class="repeat_every d-none"><input class="form-control "  type="text"  id="timeframe_start"></td>
-                        <td class="repeat_every d-none"><select class="form-select auto-width " aria-label="Interval Selector"  id="timeframe_units1">
-                            <option selected value="hours">Hours</option>
-                            <option value="days">Days</option>
-                        </select></td>
+                    <table><tbody><tr><td> <input class='form-check-input' type='checkbox' value='' id='repeat' onClick="toggleFormFields(this);"></td>
+                        <td >Repeat</td>
+                        <td style='width:80px' class="repeat d-none"><input class="form-control "  type="text"  id="repeat_n_times"></td>
+                        <td class="repeat d-none">times</td>
                     </tr></tbody></table>
                 </div>
                 <div class="col-12">
@@ -937,7 +935,7 @@
                     <br>Be aware however that if you change any of the field
                     names ending in "_dstr" you will no longer get data in the renamed fields.</p>
                 <h5>Design Summary</h5>
-                <table class="tb"><thead><td>Instrument (can be renamed in Data Dictionary)</td><td>Fields (can be deleted but do not rename)</td></thead>
+                <table class="tb"><thead><td>Instrument (can be renamed in Data Dictionary)</td><td>Fields (can be deleted but not renamed)</td></thead>
                     <tbody>
                     <tr>
                         <td>demographics <button type="button"  class="btn btn-light"  ><img src="pencil.png" height="20" onClick="goToPage3();"/></button></td><td>sex_dstr, gender_dstr, race_dstr, ethnicity_dstr, 	zip_dstr, birthdate_dstr,
