@@ -846,89 +846,16 @@
             </div>
         </div>
 
-        <!-- page 5 -->
-<!--        <div id="page5" class="d-none">-->
-<!--            <div class="row justify-content-start">-->
-<!--                <div class="col-12">-->
-<!--                    <h5>Step 4 of 4: Repeat Interval and Frequency</h5>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--            <div class="row">You are now on Step 4 where you specify time frame start, duration, and recurrence-->
-<!--                schedule for the variables selected in Step 3.-->
-<!--                <p><img height="130" src="duster_step_4.png"/></p>-->
-<!--            </div>-->
-<!--            <div class="row">-->
-<!--                <div class="col-12">-->
-<!--                    <table><thead><td>Time Frame Start</td><td colspan="2">Duration</td><td colspan="2">Repeat Every</td><td colspan="2">For</td></thead><tbody>-->
-<!--                    <tr><td><input class="form-check-input demo" type="checkbox" value="" id="tf1" onclick="toggleFormFields(this)">-->
-<!--                        &nbsp; Study Enrollment Date-->
-<!--                    </td>-->
-<!--                        <td class="tf1 d-none" style='width:80px'><input class="form-control "  type="text"  id="vitals_timeframe_start"></td>-->
-<!--                        <td class="tf1 d-none"><select class="form-select auto-width " aria-label="Interval Selector"  id="vitals_timeframe_units1">-->
-<!--                            <option selected value="hours">Hours</option>-->
-<!--                            <option value="days">Days</option>-->
-<!--                        </select></td>-->
-<!--                        <td class="tf1 d-none" style='width:80px'>-->
-<!--                            <input class="form-control  " type="text"   id="vitals_timeframe_end">-->
-<!--                        </td>-->
-<!--                        <td class="tf1 d-none"><select class="form-select auto-width " aria-label="Interval Selector"  id="vitals_timeframe_units2">-->
-<!--                            <option selected value="hours">Hours</option>-->
-<!--                            <option value="days">Days</option>-->
-<!--                        </select></td>-->
-<!--                        <td class="tf1 d-none" style='width:80px'>-->
-<!--                            <input class="form-control  "   type="text"   id="vitals_timeframe_end2">-->
-<!--                        </td>-->
-<!--                        <td class="tf1 d-none"><select class="form-select auto-width " aria-label="Interval Selector"  id="vitals_timeframe_units3">-->
-<!--                            <option selected value="hours">Hours</option>-->
-<!--                            <option value="days">Days</option>-->
-<!--                        </select></td>-->
 
-<!--                    </tr>-->
-
-<!--                    <tr class="inpatient d-none">-->
-<!--                        <td><input class="form-check-input demo" type="checkbox" value="" id="hosp_admit_date1_dstr"></td><td>-->
-<!--                        Hospital Admission Date-->
-<!--                    </td><td>hosp_admit_date_dstr</td>-->
-<!--                    </tr><tr class="inpatient d-none">-->
-<!--                        <td><input class="form-check-input demo" type="checkbox" value="" id="hosp_disch_date1_dstr"></td><td>-->
-<!--                        Hospital Discharge Date-->
-<!--                    </td><td>hosp_disch_date_dstr</td>-->
-<!--                    </tr><tr class="ed d-none">-->
-<!--                        <td><input class="form-check-input demo" type="checkbox" value="" id="ed_admit_date1_dstr"></td><td>-->
-<!--                        ED Admission Date-->
-<!--                    </td><td>ed_admit_date_dstr</td>-->
-<!--                    </tr><tr class="ed d-none">-->
-<!--                        <td><input class="form-check-input demo" type="checkbox" value="" id="ed_disch_date1_dstr"></td><td>-->
-<!--                        ED Discharge Date-->
-<!--                    </td><td>ed_disch_date_dstr</td>-->
-<!--                    </tr><tr class="icu d-none">-->
-<!--                        <td><input class="form-check-input demo" type="checkbox" value="" id="icu_admit_date1_dstr"></td><td>-->
-<!--                        ICU Admission Date-->
-<!--                    </td><td>icu_admit_date_dstr</td>-->
-<!--                    </tr><tr class="icu d-none">-->
-<!--                        <td><input class="form-check-input demo" type="checkbox" value="" id="ich_disch_date1_dstr"></td><td>-->
-<!--                        ICU Discharge Date-->
-<!--                    </td><td>icu_disch_date_dstr</td>-->
-<!--                    </tr>-->
-
-
-<!--                    </tbody></table>-->
-
-<!--                    <p></p>-->
-<!--                    <div onclick="goToPage4()" class="btn btn-primary"> < Back </div>-->
-<!--                    <div onclick="goToPage6()" class="btn btn-primary"> > Next </div>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </div>-->
 
         <!-- page 6 -->
         <div id="page6" class="d-none">
             <div class="row justify-content-start">
                 <div class="col-10">
-                    <h5>Design Review and Cleanup</h5>
+                    <h5>Design Review</h5>
                 </div>
             </div>
-            <div class="row"><div class="col-12"><p>As an optional final step you can now reorganize and prune your
+            <div class="row"><div class="col-12"><p>Once you accept the design shown below, you have the option of reorganizing and pruning your
                 variables by grouping them into instruments and removing unwanted fields.</p>
                 <p>You can edit the instrument names, introduce new instruments, and delete extraneous fields
                     at any time using the Data Dictionary.
@@ -1070,10 +997,40 @@
                 </table>
                 <p></p>
                 <div onclick="goToPage5()" class="btn btn-primary"> < Back to DUSTER Designer </div>
-                <div onclick="goToDD()" class="btn btn-primary"> Go To Data Dictionary </div>
+                <div onclick="goToPage7()" class="btn btn-primary"> Accept Design > </div>
             </div>
             </div>
         </div>
+
+        <div id="page7" class="d-none">
+            <div class="row justify-content-start">
+                <div class="col-10">
+                    <h5>(Optional) How to Configure DDP</h5>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-10">
+                    <p>Congratulations, you are all set to start collecting data.</p>
+                    <p>If you want to make adjustments supported by DDP, you can find
+                        the DDP setup page by navigating to the Project Setup page...</p>
+                </div>
+                <div class="col-12">
+                    <img class="screenshot" src="ddp_setup_1.png" width="750"/>
+                    <p></p>
+                </div>
+                <div class="col-12">
+                    <p>... then scrolling down to the "Set up Dynamic Data Pull (DDP) from STARR" section
+                        and clicking the button "Set up mapping for Dynamic Data Pull (DDP)"</p>
+                    <img class="screenshot" src="ddp_setup_2.png" width="750"/>
+                    <p></p>
+                    <div class="btn btn-primary">Back to my REDCap Project </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
     </form>
 </div>
 <script>
@@ -1192,6 +1149,17 @@
         document.getElementById("page4").classList.add("d-none");
         document.getElementById("page5").classList.add("d-none");
         document.getElementById("page6").classList.remove("d-none");
+    }
+
+    function goToPage7() {
+        document.getElementById("page1").classList.add("d-none");
+        document.getElementById("page2").classList.add("d-none");
+        document.getElementById("page2a").classList.add("d-none");
+        document.getElementById("page3").classList.add("d-none");
+        document.getElementById("page4").classList.add("d-none");
+        document.getElementById("page5").classList.add("d-none");
+        document.getElementById("page6").classList.add("d-none");
+        document.getElementById("page7").classList.remove("d-none");
     }
 
 
