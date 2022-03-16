@@ -1,0 +1,71 @@
+{
+	"name": "Duster",
+
+	"namespace": "Stanford\\Duster",
+
+	"description": "A self-service tool for researchers to automatically import clinical data into REDCap projects",
+
+	"documentation": "README.md",
+
+	"authors": [
+		{
+			"name": "Jonasel Roque",
+			"email": "jonaselr@stanford.edu",
+			"institution": "Stanford University & Stanford Health Care"
+		}
+	],
+
+	"permissions": [
+		"redcap_module_system_enable",
+		"redcap_module_project_enable",
+		"redcap_module_save_configuration",
+        "redcap_every_page_top"
+	],
+
+	"enable-every-page-hooks-on-system-pages": true,
+
+	"links": {
+		"project": [
+
+		],
+		"control-center": [
+
+		]
+	},
+
+	"no-auth-pages": [
+
+	],
+
+	"project-settings": [
+		{
+			"key": "enable-project-debug-logging",
+			"name": "<b>Enable Debug Logging</b><br><i>(optional)</i> Requires installation and configuration of emLogger",
+			"required": false,
+			"type": "checkbox"
+		}
+	],
+
+
+	"system-settings": [
+		{
+			"key": "enable-system-debug-logging",
+			"name": "<b>Enable Debug Logging (system-wide)</b><i>(optional)</i> Requires installation and configuration of emLogger",
+			"required": false,
+			"type": "checkbox"
+		},
+        {
+            "key": "starrapi-metadata-url",
+            "name": "STARRapi Metadata Webservice URL",
+            "required": true,
+            "type": "text"
+        }
+	],
+
+	"compatibility": {
+		"php-version-min": "",
+		"php-version-max": "",
+		"redcap-version-min": "",
+		"redcap-version-max": ""
+	}
+}
