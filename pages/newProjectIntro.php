@@ -2,6 +2,7 @@
 namespace Stanford\Duster;
 /** @var $module Duster */
 
+// TODO require_once APP_PATH_DOCROOT . 'Views/HomeTabs.php';
 ?>
 
 <!doctype html>
@@ -72,60 +73,35 @@ namespace Stanford\Duster;
         </div>
         <div class="row">
             <div class="col-10">
+            <!--
                 <p>
-                    Clinical data is always associated with (1) a patient, and (2) a date-time.
+                    DUSTER expects you to create records containing an MRN and date of enrollment. These two fields in REDCap are
+                    then used to retrieve associated patient and clinical data for the patient in the specified time frame(s).
+                </p>
+            -->
+                <p>
+                    DUSTER requires each REDCap record to contain an MRN and a clinical date (e.g., an enrollment date or visit date).
+                    These two fields are needed to identify the requested data.
+                    By default, an enrollment date is designated as the clinical date.
+                    This can be changed at the final step of DUSTER's project creation wizard.
                 </p>
                 <p>
-                    In order to automatically import clinical data, you must first supply the patient identifier and date or date and time of the defining event for your study.
-                </p>
-                <p>
-                    The identifier is almost always the Stanford Medical Record Number (MRN) but may in some cases be another unique identifier such as a radiology accession number. At this time we only support Stanford MRN.
-                </p>
-                <p>
-                    The date is generally either the date of study enrollment or the date of the baseline study visit.
-                </p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-4">
-                <p>
-                    What REDCap field captures this identifier?
-                </p>
-            </div>
-
-            <div class="col-4">
-                <p>
-                    <select class="form-select" aria-label="Identifier">
-                        <option selected value="stanford_mrn">Stanford MRN (mrn)</option>
-                        <option value="1">Some Text Field (other_text_1)</option>
-                        <option value="2">Another Random Text Field (other_text_2)</option>
-                    </select>
+                    You can choose to create each record one at a time using standard REDCap data entry (left), or you can import your
+                    records using REDCap's data import tool (right).
                 </p>
             </div>
         </div>
         <div class="row">
-            <div class="col-4">
-                <p>
-                    What REDCap field captures the defining event date?
-                </p>
-            </div>
-            <div class="col-4">
-                <p>
-                    <select class="form-select" aria-label="Default select example">
-
-                        <option selected value="date_enrolled">Date of Enrollment (date_enrolled)</option>
-                        <option value="date_ed_admit">Date of ED Admission (date_ed_admit)</option>
-                        <option value="date_ed_discharge">Date of ED Discharge (date_ed_discharge)</option>
-                        <option value="date_icu_admit">Date of ICU Admission (date_icu_admit)</option>
-                        <option value="date_icu_discharge">Date of ICU Discharge (date_icu_discharge)</option>
-                    </select>
-                </p>
+            <div class="col-12">
+                <img class="screenshot" src="<?php echo $module->getUrl("images/option_1_data_entry.png") ?>" height="200" />
+                <img class="screenshot" src="<?php echo $module->getUrl("images/option2_data_import.png") ?>" height="100" />
             </div>
         </div>
         <div class="row">
             <div class="col-10">
                 <p></p>
-                <form action="<?php echo $module->getUrl("pages/newProject.php") ?>" method="post">
+                <form action="<?php echo $module->getUrl("pages/newProject.php", false, true) ?>" method="post">
+                    <input type="hidden" name="type" value="module">
                     <input type="hidden" name="app_title" value=<?php echo $_POST["app_title"] ?>>
                     <input type="hidden" name="purpose" value=<?php echo $_POST["purpose"] ?>>
                     <input type="hidden" name="project_note" value=<?php echo $_POST["project_note"] ?>>

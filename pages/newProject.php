@@ -66,11 +66,11 @@ namespace Stanford\Duster;
                                 </td>
                             </tr><tr>
                                 <td><input class="venue-input" type="checkbox" value="ed" id="venue-ed"></td><td>
-                                    Inpatient
+                                    ED
                                 </td>
                             </tr><tr>
                                 <td><input class="venue-input" type="checkbox" value="inpatient" id="venue-inpatient"></td><td>
-                                    ED
+                                    Inpatient
                                 </td>
                             </tr><tr>
                                 <td><input class="venue-input" type="checkbox" value="icu" id="venue-icu"></td><td>
@@ -89,8 +89,9 @@ namespace Stanford\Duster;
                         </p>
                     </div>
                     <div class="margin10"></div>
-                    <button onclick="goToStep(1)" class="btn btn-primary">< Back</button>
-                    <button onclick="goToStep(2)" class="btn btn-primary" id="step1-next" disabled>Next ></button>
+                    <button type="button" onclick="goToStep(1)" class="btn btn-primary">< Back</button>
+                    <button type="button" onclick="goToStep(2)" class="btn btn-primary" id="step1-next" disabled>Next ></button>
+                    <label id="select-venue-msg"> At least one Clinical Care Venue must be selected to continue.</label>
                 </div>
                 <div id="step2" class="step" style="display:none">
                     <div class="row justify-content-start">
@@ -121,11 +122,44 @@ namespace Stanford\Duster;
                             <div class="margin2"></div>
                         </div>
                     </div>
-                    <div onclick="goToStep(1)" class="btn btn-primary">< Back</div>
-                    <div onclick="goToStep(3)" class="btn btn-primary">Next ></div>
+                    <button type="button" onclick="goToStep(1)" class="btn btn-primary">< Back</button>
+                    <button type="button" onclick="goToStep(3)" class="btn btn-primary">Review ></button>
                 </div>
             </div>
-            <div id="step3" class="step" style="display:none">
+
+            <div id="step3" class="step" style="display":none>
+                <div class="row justify-content-start">
+                    <div class="col-10">
+                        <h5>Review Design</h5>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-10">
+                        <p>
+                            Once you accept the design shown below, you have the option of reorganizing and pruning your
+                            variables by grouping them into instruments and removing unwanted fields.
+                        </p>
+                        <p>The suffix _dstr is added to all field names
+                            to differentiate the DUSTER fields from other
+                            fields that may occur in your project. At the end of this process you will have the option of
+                            reorganizing the generated fields into instrument groupings that make the most sense for your study.</p>
+                        <table>
+                            <thead>
+                            <tr><td><input class="form-check-input" type="checkbox" value="" id="demo"  onclick="toggleCb(this)"></td><td>Label</td><td>Field Name</td></tr></thead>
+                            <tbody id="tbody-step2">
+
+                            </tbody>
+                        </table>
+                        <p></p>
+                        <div class="margin2"></div>
+                        <div class="margin2"></div>
+                    </div>
+                </div>
+                <div onclick="goToStep(1)" class="btn btn-primary">< Back</div>
+                <div onclick="goToStep(3)" class="btn btn-primary">Create Project</div>
+            </div>
+
+            <div id="step3a" class="step" style="display:none">
                 <div class="row justify-content-start">
                     <div class="col-10">
                         <h5>Step 3 of 4: Time Frame & Selectors for Data Capture</h5>
@@ -742,75 +776,109 @@ namespace Stanford\Duster;
         </form>
 </div>
 <script>
- //   let venueChoices = {"outpatient":false, "ed":false, "inpatient":false, "icu":false};
-
-    let metadata;
     $(document).ready(function() {
+        let metadata,
+            demographics,
+            labs,
+            outcomes,
+            oxygenation,
+            scores,
+            vitals;
+
         $.get('<?php echo $module->getUrl("services/getMetadata.php"); ?>', function(data) {
             goToStep(1);
-            metadata = JSON.parse(data);
-            console.log(metadata);
-            let demographics = metadata.demographics;
-            console.log(demographics);
+
+            // parse metadata
+            metadata     = JSON.parse(data);
+            demographics = metadata.demographics;
+            labs         = metadata.labs;
+            outcomes     = metadata.outcomes;
+            oxygenation  = metadata.oxygenation;
+            scores       = metadata.scores;
+            vitals       = metadata.vitals;
+            /*
+            $.each(metadata, function(key, category) {
+                console.log(category);
+            });
+            */
+
+            // insert demographics and outcomes metadata fields for step 2
             $.each(demographics, function(index, value) {
-                let row = '<tr><td><input class="form-check-input demo" type="checkbox" value="" id="' + value.field + '_dstr"></td><td>' + value.label + '</td><td>' + value.field + ' _dstr</td></tr>';
+                let row = '<tr class="md-field" id="' + value.field + '"><td><input class="form-check-input demo" type="checkbox" value="" id="' + value.field + '-dstr"></td><td>' + value.label + '</td><td>' + value.field + '_dstr</td></tr>';
                 $("#tbody-step2").append(row);
             });
-            let outcomes = metadata.outcomes;
-            console.log(outcomes);
+
             $.each(outcomes, function(index, value) {
-                let row = '<tr><td><input class="form-check-input demo" type="checkbox" value="" id="' + value.field + '_dstr"></td><td>' + value.label + '</td><td>' + value.field + ' _dstr</td></tr>';
+                let row = '<tr class="md-field" id="' + value.field + '"><td><input class="form-check-input demo" type="checkbox" value="" id="' + value.field + '-dstr"></td><td>' + value.label + '</td><td>' + value.field + ' _dstr</td></tr>';
                 $("#tbody-step2").append(row);
             });
         });
 
-
-        // TODO change? this doesn't seem efficient
+        // control metadata displayed according to venue choices
         $(".venue-input").change(function() {
-            let venueChoices = {"outpatient": false, "ed":false, "inpatient":false, "icu":false};
-            $(".venue-input").each(function() {
-                if(this.checked) {
-                    venueChoices[this.value] = true;
-                } else {
-                    venueChoices[this.value] = false;
-                }
+            let venueChoices = {
+                "outpatient": $("#venue-outpatient").prop('checked'),
+                "ed":         $("#venue-ed").prop('checked'),
+                "inpatient":  $("#venue-inpatient").prop('checked'),
+                "icu":        $("#venue-icu").prop('checked')
+            };
+
+            /*
+            // filter metadata for every category according to selected venue choices
+            $.each(metadata, function(key, category) {
+               filterMetadata(venueChoices, category);
             });
+            */
+            filterMetadata(venueChoices, demographics);
+            filterMetadata(venueChoices, outcomes);
 
-            // TODO call filterMetadata()
-           // filterMetadata()
-
-            // disable next button if no venue is selected on step1
-            let anyVenueSelected = false;
+            // disable next button if no venue is selected on step 1
+            $("#step1-next").prop("disabled", true);
+            $("#select-venue-msg").show();
             $.each(venueChoices, function(key, value) {
-                if(value == true) {
-                    anyVenueSelected = true;
+                if(value) {
+                    $("#step1-next").prop("disabled", false);
+                    $("#select-venue-msg").hide();
+                    return false;
                 }
             });
-            if(anyVenueSelected == true) {
-                $("#step1-next").prop("disabled", false);
-            } else {
-                $("#step1-next").prop("disabled", true);
-            }
         });
-
     });
 
-    // TODO show/hide Metadata. any hidden medata fields selected should be unselected
-    // function filterMetadata()
-
-    function goToStep(stepNum) {
-        $(".step").hide();
-        $('#step' + stepNum).show();
-        document.title = 'DUSTER: Step ' + stepNum;
+    // show/hide metadata according to clinical care venues selected
+    // iterates over an entire category of metadata
+    function filterMetadata(venueChoices, category) {
+        $.each(category, function (index, mdValue) {
+            let hideField = true;
+            let currVenueChoices = JSON.parse(mdValue.venue);
+            $.each(currVenueChoices, function (i, value) {
+                // check if this metadata field needs to be shown
+                if (venueChoices[value] || value == "all") {
+                    $("#" + mdValue.field).show();
+                    return (hideField = false); // break loop
+                }
+            });
+            // if needed, hide metadata field and uncheck it
+            if (hideField) {
+                $("#" + mdValue.field + "-dstr").prop('checked', false);
+                $("#" + mdValue.field).hide();
+            }
+        });
     }
 
-    /*
-    function goToStep(stepNum) {
-        $(".step").addClass("d-none");
-        $('#step' + stepNum).removeClass("d-none");
-        document.title = 'DUSTER: Step ' + stepNum;
-    }
-    */
+     // navigate between steps of UI
+     function goToStep(stepNum) {
+         $(".step").hide();
+         $('#step' + stepNum).show();
+         document.title = 'DUSTER: Step ' + stepNum;
+     }
+     /*
+      function goToStep(stepNum) {
+          $(".step").addClass("d-none");
+          $('#step' + stepNum).removeClass("d-none");
+          document.title = 'DUSTER: Step ' + stepNum;
+      }
+      */
 
     function toggleFormFields(cb) {
         // every element associated with a checkbox has the checkbox id as a class attribute
