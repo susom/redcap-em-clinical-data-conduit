@@ -5,6 +5,8 @@
 
 	"description": "A self-service tool for researchers to automatically import clinical data into REDCap projects",
 
+    "framework-version": 9,
+
 	"documentation": "README.md",
 
 	"authors": [

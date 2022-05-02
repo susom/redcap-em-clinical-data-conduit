@@ -59,8 +59,7 @@ namespace Stanford\Duster;
                     You can use DUSTER either to augment an existing REDCap or to populate a newly created REDCap project.
                 </p>
                 <p>
-                    Once you have specified the clinical variables of interest, DUSTER will automatically import all data
-                    relating to your patients once a day.
+                    Once you have specified the clinical variables of interest, DUSTER will automatically import all data for your cohort.
                 </p>
             </div>
             <div class="col-3"><img class="screenshot" src="<?php echo $module->getUrl("images/duster_infographic.png") ?>" height="200"  /></div>
@@ -102,9 +101,13 @@ namespace Stanford\Duster;
                 <p></p>
                 <form action="<?php echo $module->getUrl("pages/newProject.php", false, true) ?>" method="post">
                     <input type="hidden" name="type" value="module">
-                    <input type="hidden" name="app_title" value=<?php echo $_POST["app_title"] ?>>
-                    <input type="hidden" name="purpose" value=<?php echo $_POST["purpose"] ?>>
-                    <input type="hidden" name="project_note" value=<?php echo $_POST["project_note"] ?>>
+                    <?php
+                    foreach($_POST as $name=>$value) {
+                        $value = is_array($value) ? implode(",", $value) : $value;
+                        echo "<input type=\"hidden\" name=\"$name\" value=\"$value\">";
+                    }
+                    echo "<input type=\"hidden\" name=\"redcap_csrf_token\"value=\"{$module->getCSRFToken()}\">";
+                    ?>
                     <input type="submit" class="btn btn-primary" value="Let's Get Started >">
                 </form>
             </div>
