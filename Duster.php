@@ -154,37 +154,4 @@ class Duster extends \ExternalModules\AbstractExternalModule {
             throw new Exception ("Returned $num_results in " . __METHOD__ . " from token '$token'");
         }
     }
-
-    /*
-    public function enableDusterOnProject($project_id) {
-        // check $project_id is a valid project id before calling enableModule()
-        if($this->isValidProjectId($project_id)) {
-            $this->enableModule($project_id, NULL);
-        } else {
-            // TODO error
-        }
-    }
-    */
-
-    // normally, ProjectSetup\modify_project_setting_ajax.php is hit with a POST request when manually enabling DDP in project setup
-    // the SQL used here is taken from that PHP file
-    public function enableDDP($project_id) {
-        // saveProjectSetting($(this),'realtime_webservice_enabled','1','0',1,'setupChklist-modules');
-        $sql = "
-                UPDATE redcap_projects
-                SET
-                    realtime_webservice_enabled = '1',
-                    realtime_webservice_type = 'CUSTOM'
-                WHERE project_id = ?
-                ";
-
-        $q = $this->createQuery();
-        $q->add($sql, $project_id);
-        $q->execute();
-        if($q->affected_rows === 1 /* TODO || DDP is already enabled*/) {
-            // TODO success
-        } else {
-            // TODO fail or DDP was already enabled
-        }
-    }
 }

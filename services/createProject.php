@@ -134,9 +134,6 @@ if (!$q || db_affected_rows() != 1) {
 // $module->enableDusterOnProject($project_id);
 $module->enableModule($project_id, NULL);
 
-// enable DDP
-$module->enableDDP($project_id);
-
 // delete the project super token if needed
 if($delete_token) {
     $db->deleteApiTokenSuper(USERID);

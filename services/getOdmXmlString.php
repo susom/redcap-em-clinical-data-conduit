@@ -47,7 +47,7 @@ project_note = $_POST['project_note'];
 }
 */
 
-$odm_str = $global_variables = $ddp = $metadata_version = $form_def = $item_group_def = $item_defs = $code_list = "";
+$odm_str = $global_variables = $metadata_version = $form_def = $item_group_def = $item_defs = $code_list = "";
 
 $rc_var_suffix = "_dstr";
 
@@ -71,17 +71,11 @@ $global_variables .= "<GlobalVariables>\n"
         . "\t<redcap:Purpose>" . $_POST['purpose'] . "</redcap:Purpose>\n"
         . "\t<redcap:PurposeOther>" . implode(",",$_POST['purpose_other']) . "</redcap:PurposeOther>\n"
         . "\t<redcap:ProjectNotes>" . $_POST['project_note'] ."</redcap:ProjectNotes>\n"
-        . "\t<redcap:DdpType>CUSTOM</redcap:DdpType>\n" // TODO or maybe nothing to do?
-	    . "\t<redcap:DdpOffsetDays>7</redcap:DdpOffsetDays>\n" // TODO
-	    . "\t<redcap:DdpOffsetPlusMinus>+-</redcap:DdpOffsetPlusMinus>\n" // TODO
         . "\t<redcap:MissingDataCodes></redcap:MissingDataCodes>\n"
         . "\t<redcap:ProtectedEmailMode>0</redcap:ProtectedEmailMode>\n"
         . "\t<redcap:ProtectedEmailModeCustomText></redcap:ProtectedEmailModeCustomText>\n"
         . "\t<redcap:ProtectedEmailModeTrigger>ALL</redcap:ProtectedEmailModeTrigger>\n"
         . "\t<redcap:ProtectedEmailModeLogo></redcap:ProtectedEmailModeLogo>\n";
-
-$ddp .= "\t<redcap:DdpMappingGroup>\n"
-      . "\t\t<redcap:DdpMapping is_record_identifier=\"1\" temporal_field=\"\" preselect=\"\" external_source_field_name=\"mrn\" event_id=\"event_1_arm_1\" field_name=\"mrn\"/>\n";
 
 // opening medata version
 $metadata_version .= "<MetaDataVersion OID=\"" . ODM::getMetadataVersionOID($_POST['app_title']) . "\" Name=\"" . RCView::escape($_POST['app_title']) . "\" redcap:RecordIdField=\"record_id\">\n";
@@ -146,8 +140,6 @@ if(isset($_POST['demographics'])) {
         $item_defs .= "\t<ItemDef OID=\"" . $item["item"] . "\" Name=\"" . $item["item"] . "\" DataType=\"text\" Length=\"999\" redcap:Variable=\"" . $item["redcap_var"] . "\" redcap:FieldType=\"text\">\n"
         . "\t\t<Question><TranslatedText>" . $item["label"] . "</TranslatedText></Question>\n"
         .  "\t</ItemDef>\n";
-
-        $ddp .= "\t<redcap:DdpMapping is_record_identifier=\"\" temporal_field=\"\" preselect=\"\" external_source_field_name=\"{$item["item"]}\" event_id=\"event_1_arm_1\" field_name=\"{$item["redcap_var"]}\" />\n";
     }
 
     $item_group_def .= "\t</ItemGroupDef>\n"
@@ -191,8 +183,6 @@ if(isset($_POST['outcomes'])) {
         $item_defs .= "\t<ItemDef OID=\"" . $item["item"] . "\" Name=\"" . $item["item"] . "\" DataType=\"text\" Length=\"999\" redcap:Variable=\"" . $item["redcap_var"] . "\" redcap:FieldType=\"text\">\n"
             . "\t\t<Question><TranslatedText>" . $item["label"] . "</TranslatedText></Question>\n"
             .  "\t</ItemDef>\n";
-
-        $ddp .= "\t<redcap:DdpMapping is_record_identifier=\"\" temporal_field=\"\" preselect=\"\" external_source_field_name=\"{$item["item"]}\" event_id=\"event_1_arm_1\" field_name=\"{$item["redcap_var"]}\" />\n";
     }
 
     $item_group_def .= "\t</ItemGroupDef>\n"
@@ -212,13 +202,7 @@ if(isset($_POST['outcomes'])) {
         . "\t</CodeList>\n";
 }
 
-$ddp .= "\t</redcap:DdpMappingGroup>\n"
-      . "\t<redcap:DdpPreviewFieldsGroup>\n"
-      . "\t\t<redcap:DdpPreviewFields field1=\"\" field2=\"\" field3=\"\" field4=\"\" field5=\"\"/>\n"
-      .	"\t</redcap:DdpPreviewFieldsGroup>\n";
-
-$global_variables .= $ddp . "</GlobalVariables>\n";
-
+$global_variables .= "</GlobalVariables>\n";
 
 $odm_str .= $global_variables . $metadata_version . $form_def . $item_group_def . $item_defs . $code_list;
 
