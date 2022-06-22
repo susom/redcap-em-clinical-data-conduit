@@ -386,12 +386,12 @@
                                             </v-col>
                                             <v-col
                                                 cols="4"
+                                                v-show="clinical_dates.includes(new_event.start_dttm)"
                                             >
                                                 <v-select
-                                                    v-model="new_event.start_based"
+                                                    v-model="new_event.start_based_dttm"
                                                     label="based on"
                                                     :items="rp_dates_arr"
-                                                    v-show="clinical_dates.includes(new_event.start_dttm)"
                                                 >
                                                 </v-select>
                                             </v-col>
@@ -599,7 +599,133 @@
                                                     <v-tab-item
                                                     >
                                                         <v-card>
-                                                            <v-card-text>Labs & Vitals</v-card-text>
+                                                            <v-autocomplete
+                                                                v-model="new_lv_obj"
+                                                                :items="labs_vitals"
+                                                                color="white"
+                                                                auto-select-first
+                                                                hide-no-data
+                                                                placeholder="Search for labs and vitals to add..."
+                                                                prepend-icon="mdi-magnify"
+                                                                item-text="label"
+                                                                return-object
+                                                                @change="addLV"
+                                                            ></v-autocomplete>
+                                                            <v-dialog
+                                                                v-model="edit_lv_dialog"
+                                                                persistent
+                                                                max-width="600px"
+                                                            >
+                                                                <v-card>
+                                                                    <v-card-title
+                                                                        class="justify-center"
+                                                                    >
+                                                                        Edit aggregates for this clinical variable
+                                                                    </v-card-title>
+                                                                    <v-container>
+                                                                        <v-checkbox
+                                                                            v-model="edit_lv_obj.aggregates"
+                                                                            v-for="aggregate in aggregate_options"
+                                                                            :label="aggregate"
+                                                                            :value="aggregate"
+                                                                            dense
+                                                                        >
+                                                                        </v-checkbox>
+                                                                    </v-container>
+                                                                    <v-card-actions>
+                                                                        <v-spacer></v-spacer>
+                                                                        <v-btn
+                                                                            color="primary"
+                                                                            @click="confirmEditLV"
+                                                                        >
+                                                                            Save
+                                                                        </v-btn>
+                                                                        <v-btn
+                                                                            color="secondary"
+                                                                            @click="closeEditLV"
+                                                                        >
+                                                                            Cancel
+                                                                        </v-btn>
+                                                                        <v-spacer></v-spacer>
+                                                                    </v-card-actions>
+                                                                </v-card>
+                                                            </v-dialog>
+                                                            <v-dialog
+                                                                v-model="delete_lv_dialog"
+                                                                persistent
+                                                                max-width="600px"
+                                                            >
+                                                                <v-card>
+                                                                    <v-card-title
+                                                                        class="justify-center"
+                                                                    >
+                                                                        Are you sure you want to delete this clinical variable?
+                                                                    </v-card-title>
+                                                                    <v-card-actions>
+                                                                        <v-spacer></v-spacer>
+                                                                        <v-btn
+                                                                            color="error"
+                                                                            @click="confirmDeleteLV"
+                                                                        >
+                                                                            Yes
+                                                                        </v-btn>
+                                                                        <v-btn
+                                                                            color="secondary"
+                                                                            @click="closeDeleteLV"
+                                                                        >
+                                                                            Cancel
+                                                                        </v-btn>
+                                                                        <v-spacer></v-spacer>
+                                                                    </v-card-actions>
+                                                                </v-card>
+                                                            </v-dialog>
+
+                                                            <v-snackbar
+                                                                v-model="alert_lv_success"
+                                                                color="success"
+                                                                outlined
+                                                                timeout=1000
+                                                            >
+                                                                    {{alert_lv_label}} added.
+                                                            </v-snackbar>
+                                                            <v-snackbar
+                                                                v-model="alert_lv_error"
+                                                                color="error"
+                                                                outlined
+                                                                timeout=1000
+                                                            >
+                                                                {{alert_lv_label}} was already added.
+                                                            </v-snackbar>
+                                                            <v-data-table
+                                                                :headers="lv_headers"
+                                                                :items="new_event.data.labs_vitals"
+                                                                :items-per-page="10"
+                                                                fixed-header
+                                                                no-data-text="Use search bar above to start adding labs and vitals."
+                                                            >
+                                                                <template v-slot:item.aggregates="{ item }">
+                                                                        <v-chip
+                                                                            v-for="aggregate in item.aggregates"
+                                                                        >
+                                                                            {{aggregate}}
+                                                                        </v-chip>
+                                                                </template>
+                                                                <template v-slot:item.actions="{ item }">
+                                                                    <v-icon
+                                                                        small
+                                                                        class="mr-2"
+                                                                        @click="editLV(item)"
+                                                                    >
+                                                                        mdi-pencil
+                                                                    </v-icon>
+                                                                    <v-icon
+                                                                        small
+                                                                        @click="deleteLV(item)"
+                                                                    >
+                                                                        mdi-delete
+                                                                    </v-icon>
+                                                                </template>
+                                                            </v-data-table>
                                                         </v-card>
                                                     </v-tab-item>
                                                     <v-tab-item
@@ -1067,12 +1193,33 @@
                 repeat_type: null, // hours || days when event_type is 'finite_repeating or 'calculated_repeating'
                 nonrepeat_type: null, // hours || day || end_dttm when event_type is 'nonrepeating'
                 num_hours: null, // number of hours when repeat_type is 'hours' or nonrepeat_type is hours
-                start_type: null,
+                start_type: null, // dttm || date
                 start_dttm: null, // start date/datetime
                 start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
                 end_dttm: null, // end date/datetime when applicable
-                end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                end_based_dttm: "Study Enrollment Date", // required when end_dttm is based on a clinical date
+                data: {
+                    labs_vitals: []
+                }
             },
+            lv_headers: [
+                {text: 'Label', value: 'label'},
+                {text: 'Aggregates', value: 'aggregates', sortable: false},
+                {text: 'Actions', value: 'actions', sortable: false}
+            ],
+            new_lv_obj : {
+                label: null,
+            },
+            alert_lv_success: false,
+            alert_lv_error: false,
+            alert_lv_label: null,
+            edit_lv_dialog: false,
+            edit_lv_index: null,
+            edit_lv_obj: {
+                label: null,
+                aggregates: []
+            },
+            delete_lv_dialog: false,
             new_event_dialog: false,
             clinical_dates: [
                 "ED Presentation Datetime",
@@ -1094,6 +1241,7 @@
                         repeat_type: null,
                         nonrepeat_type: "end_dttm",
                         num_hours: null,
+                        start_type: "dttm",
                         start_dttm: "ED Presentation Datetime",
                         start_based_dttm: "Study Enrollment Date",
                         end_dttm: "ED Discharge Datetime",
@@ -1109,6 +1257,7 @@
                         repeat_type: null,
                         nonrepeat_type: "hours",
                         num_hours: 24,
+                        start_type: "dttm",
                         start_dttm: "Hospital Presentation Datetime",
                         start_based_dttm: "Study Enrollment Date",
                         end_dttm: null,
@@ -1124,6 +1273,7 @@
                         repeat_type: null,
                         nonrepeat_type: "hours",
                         num_hours: 24,
+                        start_type: "dttm",
                         start_dttm: "First ICU Admission Datetime",
                         start_based_dttm: "Study Enrollment Date",
                         end_dttm: null,
@@ -1171,6 +1321,37 @@
             event_dates: function() {
                 let rp_dates_arr = this.rp_dates.map(value => value.label);
                 return this.clinical_dates.concat(rp_dates_arr);
+            },
+            labs: function() {
+              let labs_arr = [
+                  {header: "Labs"},
+                  {
+                      label: "White Blood Count"
+                  }
+              ];
+              return labs_arr;
+            },
+            vitals: function() {
+                let vitals_arr = [
+                    {header: "Vitals"},
+                    {
+                        label: "Heart Rate (beats per minute)"
+                    },
+                    {
+                        label: "Temperature (Celsius)"
+                    },
+                    {
+                        label: "Mean Arterial Pressure (MAP)"
+                    },
+                    {
+                        label: "Systolic Blood Pressure (SBP)"
+                    }
+                ];
+                return vitals_arr;
+            },
+            labs_vitals: function() {
+                let labs_vitals_arr = this.labs.concat([{divider: true}]);
+                return labs_vitals_arr.concat(this.vitals);
             }
         },
         methods: {
@@ -1241,6 +1422,52 @@
             resetEventForm() {
                 this.$refs.event_form.reset();
                 this.new_event_dialog = false;
+            },
+            addLV() {
+                this.alert_lv_label = this.new_lv_obj.label;
+                if(!this.new_event.data.labs_vitals.map(value => value.label).includes(this.new_lv_obj.label)) {
+                    this.new_event.data.labs_vitals.push(JSON.parse(JSON.stringify({
+                        label: this.new_lv_obj.label,
+                        aggregates: this.aggregate_defaults
+                    })));
+                    this.alert_lv_success = true;
+                } else {
+                    this.alert_lv_error = true;
+                }
+                this.new_lv_obj = {
+                    label: null
+                };
+            },
+            editLV(obj) {
+                this.edit_lv_index = this.new_event.data.labs_vitals.indexOf(obj);
+                this.edit_lv_obj = Object.assign({}, obj);
+                this.edit_lv_dialog = true;
+            },
+            confirmEditLV() {
+                if(this.edit_lv_index !== null) {
+                    Object.assign(this.new_event.data.labs_vitals[this.edit_lv_index], this.edit_lv_obj);
+                }
+                this.edit_lv_index = null;
+                this.edit_lv_obj = {
+                    label: null,
+                    aggregates: []
+                };
+                this.closeEditLV();
+            },
+            closeEditLV() {
+                this.edit_lv_dialog = false;
+            },
+            deleteLV(obj) {
+                this.edit_lv_index = this.new_event.data.labs_vitals.indexOf(obj);
+                this.delete_lv_dialog = true;
+            },
+            confirmDeleteLV() {
+                this.new_event.data.labs_vitals.splice(this.edit_lv_index, 1);
+                this.edit_lv_index = null;
+                this.closeDeleteLV();
+            },
+            closeDeleteLV() {
+                this.delete_lv_dialog = false;
             }
         }
     })
