@@ -234,8 +234,9 @@
                                 <v-stepper-step
                                     :complete="event_1_stepper > 1"
                                     step="1"
+                                    editable
                                 >
-                                    Define Event
+                                    Set Timing
                                 </v-stepper-step>
 
                                 <v-stepper-content step="1">
@@ -262,7 +263,7 @@
                                                 cols="6"
                                             >
                                                 <v-text-field
-                                                    v-model="new_event.instr_name"
+                                                    v-model="new_event.params.instr_name"
                                                     label="REDCap Instrument Name"
                                                 >
                                                 </v-text-field>
@@ -271,7 +272,7 @@
 
                                         <!-- Is this data collection event repeatable (i.e., multiple instances)? -->
                                         <v-radio-group
-                                            v-model="new_event.event_type"
+                                            v-model="new_event.type"
                                             label="Is this data collection event repeatable (i.e., multiple instances)?"
                                             @change="resetEventType"
                                         >
@@ -300,7 +301,7 @@
                                                             cols="1"
                                                         >
                                                             <v-text-field
-                                                                v-model="new_event.num_instances"
+                                                                v-model="new_event.params.num_instances"
                                                                 dense
                                                                 type="number"
                                                                 min="2"
@@ -326,9 +327,9 @@
 
                                         <!-- When should this event start? -->
                                         <v-radio-group
-                                            v-model="new_event.start_type"
+                                            v-model="new_event.params.start_type"
                                             label="When should this event start?"
-                                            v-show="new_event.event_type === 'nonrepeating'"
+                                            v-show="new_event.type === 'nonrepeating'"
                                         >
                                             <v-radio
                                                 value="dttm"
@@ -377,19 +378,19 @@
                                                 cols="4"
                                             >
                                                 <v-select
-                                                    v-model="new_event.start_dttm"
+                                                    v-model="new_event.params.start_dttm"
                                                     :items="event_dates"
                                                     label="Date/Datetime of Interest"
-                                                    v-show="new_event.event_type"
+                                                    v-show="new_event.type"
                                                 >
                                                 </v-select>
                                             </v-col>
                                             <v-col
                                                 cols="4"
-                                                v-show="clinical_dates.includes(new_event.start_dttm)"
+                                                v-show="clinical_dates.includes(new_event.params.start_dttm)"
                                             >
                                                 <v-select
-                                                    v-model="new_event.start_based_dttm"
+                                                    v-model="new_event.params.start_based_dttm"
                                                     label="based on"
                                                     :items="rp_dates_arr"
                                                 >
@@ -400,10 +401,10 @@
                                         <!-- When should this event end? -->
                                         <!-- Show only for nonrepeating events -->
                                         <v-radio-group
-                                            v-model="new_event.nonrepeat_type"
+                                            v-model="new_event.params.type"
                                             label="When should this event end?"
                                             @change="resetNonRepeatEnd"
-                                            v-show="new_event.event_type === 'nonrepeating' && new_event.start_dttm"
+                                            v-show="new_event.type === 'nonrepeating' && new_event.params.start_dttm"
                                         >
                                             <v-radio
                                                 value="hours"
@@ -425,7 +426,7 @@
                                                             cols="1"
                                                         >
                                                             <v-text-field
-                                                                v-model="new_event.num_hours"
+                                                                v-model="new_event.params.num_hours"
                                                                 dense
                                                                 type="number"
                                                                 min="1"
@@ -435,21 +436,21 @@
                                                         <v-col
                                                             cols="auto"
                                                         >
-                                                            hour(s) after the {{new_event.start_dttm}}.
+                                                            hour(s) after the {{new_event.params.start_dttm}}.
                                                         </v-col>
                                                     </v-row>
                                                 </template>
                                             </v-radio>
                                             <v-radio
-                                                value="days"
+                                                value="day"
                                             >
                                                 <template v-slot:label>
-                                                    This event ends on 23:59 on the same calendar date of the {{new_event.start_dttm}}.
+                                                    This event ends on 23:59 on the same calendar date of the {{new_event.params.start_dttm}}.
                                                 </template>
                                             </v-radio>
                                             <v-radio
                                                 label="This event ends based on a specified date/datetime."
-                                                value="end_dttm"
+                                                value="dttm"
                                             >
                                             </v-radio>
                                         </v-radio-group>
@@ -457,10 +458,10 @@
                                         <!-- How should this data collection event be repeated? -->
                                         <!-- Show only for repeating events -->
                                         <v-radio-group
-                                            v-model="new_event.repeat_type"
+                                            v-model="new_event.params.type"
                                             label="How should this data collection event be repeated?"
-                                            @change="resetRepeatType"
-                                            v-show="['finite_repeating', 'calculated_repeating'].includes(new_event.event_type)"
+                                            @change="resetRepeat()"
+                                            v-show="['finite_repeating', 'calculated_repeating'].includes(new_event.type)"
                                         >
                                             <v-radio
                                                 value="hours"
@@ -481,7 +482,7 @@
                                                             cols="1"
                                                         >
                                                             <v-text-field
-                                                                v-model="new_event.num_hours"
+                                                                v-model="new_event.params.num_hours"
                                                                 dense
                                                                 type="number"
                                                                 min="1"
@@ -512,12 +513,12 @@
                                                 cols="4"
                                             >
                                                 <v-select
-                                                    v-model="new_event.end_dttm"
+                                                    v-model="new_event.params.end_dttm"
                                                     :items="event_dates"
                                                     label="End date/datetime"
                                                     v-show="
-                                                (new_event.event_type === 'nonrepeating' && new_event.nonrepeat_type === 'end_dttm')
-                                                || new_event.event_type === 'calculated_repeating'
+                                                (new_event.type === 'nonrepeating' && new_event.params.type === 'dttm')
+                                                || new_event.type === 'calculated_repeating'
                                                "
                                                 >
                                                 </v-select>
@@ -526,32 +527,35 @@
                                                 cols="4"
                                             >
                                                 <v-select
-                                                    v-model="new_event.end_based_dttm"
+                                                    v-model="new_event.params.end_based_dttm"
                                                     label="based on"
                                                     :items="rp_dates_arr"
-                                                    v-show="clinical_dates.includes(new_event.end_dttm)"
+                                                    v-show="clinical_dates.includes(new_event.params.end_dttm)"
                                                 >
                                                 </v-select>
                                             </v-col>
                                         </v-row>
                                     </v-form>
+                                    <!--
                                     <v-btn
                                         color="primary"
                                         @click="addDataStep"
                                     >
                                         Continue
                                     </v-btn>
+                                    -->
                                     <v-btn
                                         color="error"
                                         type="reset"
-                                        @click="resetEventForm"
+                                        @click="resetTiming()"
                                     >
-                                        Reset
+                                        Reset Timing
                                     </v-btn>
                                 </v-stepper-content>
 
                                 <v-stepper-step
                                     step="2"
+                                    :editable="isValidTiming()"
                                 >
                                     Add Clinical Data
                                 </v-stepper-step>
@@ -567,19 +571,103 @@
                                                         <br>
                                                         Such variables may have their settings individually changed after being added.
                                                     </p>
-                                                    <v-select
-                                                        v-model="aggregate_defaults"
-                                                        :items="aggregate_options"
-                                                        label="Default aggregates"
-                                                        multiple
-                                                        chips
-                                                        deletable-chips
+                                                    <v-row
+                                                        no-gutters
                                                     >
-                                                    </v-select>
+                                                        <v-col
+                                                            cols="1"
+                                                        >
+                                                            <v-checkbox
+                                                                v-model="new_event.aggregate_defaults.min"
+                                                                dense
+                                                                label="Min"
+                                                            >
+                                                            </v-checkbox>
+                                                        </v-col>
+                                                        <v-col
+                                                            cols="1"
+                                                        >
+                                                            <v-checkbox
+                                                                v-model="new_event.aggregate_defaults.max"
+                                                                dense
+                                                                label="Max"
+                                                            >
+                                                            </v-checkbox>
+                                                        </v-col>
+                                                        <v-col
+                                                            cols="1"
+                                                        >
+                                                            <v-checkbox
+                                                                v-model="new_event.aggregate_defaults.first"
+                                                                dense
+                                                                label="First"
+                                                            >
+                                                            </v-checkbox>
+                                                        </v-col>
+                                                        <v-col
+                                                            cols="1"
+                                                        >
+                                                            <v-checkbox
+                                                                v-model="new_event.aggregate_defaults.last"
+                                                                dense
+                                                                label="Last"
+                                                            >
+                                                            </v-checkbox>
+                                                        </v-col>
+                                                    </v-row>
+                                                    <v-row
+                                                        no-gutters
+                                                    >
+                                                        <v-col
+                                                            cols="4"
+                                                        >
+                                                            <v-checkbox
+                                                                v-model="new_event.aggregate_defaults.closest_start"
+                                                                dense
+                                                                :label="`Closest to ${new_event.params.start_dttm}`"
+                                                                v-show="canAggStart()"
+                                                            >
+                                                            </v-checkbox>
+                                                        </v-col>
+                                                    </v-row>
+                                                    <v-row
+                                                        no-gutters
+                                                    >
+                                                        <v-col
+                                                            cols="4"
+                                                        >
+                                                            <v-checkbox
+                                                                v-model="new_event.aggregate_defaults.closest_time"
+                                                                dense
+                                                                v-show="canAggTime()"
+                                                            >
+                                                                <template v-slot:label>
+                                                                    <v-row
+                                                                        align="center"
+                                                                        no-gutters
+                                                                    >
+                                                                        <v-col
+                                                                            cols="auto"
+                                                                            class="pr-1"
+                                                                        >
+                                                                            Closest to
+                                                                        </v-col>
+                                                                        <v-col
+                                                                            cols="auto"
+                                                                        >
+                                                                            <v-text-field
+                                                                                v-model="new_event.aggregate_defaults.closest_timestamp"
+                                                                                type="time"
+                                                                                value="08:00:00"
+                                                                                dense
+                                                                            ></v-text-field>
+                                                                        </v-col>
+                                                                    </v-row>
+                                                                </template>
+                                                            </v-checkbox>
+                                                        </v-col>
+                                                    </v-row>
                                                 </v-card-text>
-
-
-
                                             </v-card>
                                         </v-col>
                                     </v-row>
@@ -622,16 +710,120 @@
                                                                     >
                                                                         Edit aggregates for this clinical variable
                                                                     </v-card-title>
-                                                                    <v-container>
-                                                                        <v-checkbox
-                                                                            v-model="edit_lv_obj.aggregates"
-                                                                            v-for="aggregate in aggregate_options"
-                                                                            :label="aggregate"
-                                                                            :value="aggregate"
-                                                                            dense
+                                                                    <v-radio-group
+                                                                        v-model="edit_lv_obj.aggregates.default"
+                                                                        column
+                                                                    >
+                                                                        <v-radio
+                                                                            label="Use default aggregates"
+                                                                            :value="true"
+                                                                        ></v-radio>
+                                                                        <v-radio
+                                                                            label="Set custom aggregates"
+                                                                            :value="false"
+                                                                        ></v-radio>
+                                                                    </v-radio-group>
+                                                                    <v-card
+                                                                        flat
+                                                                        v-show="!edit_lv_obj.aggregates.default"
+                                                                    >
+                                                                        <v-row
+                                                                            no-gutters
                                                                         >
-                                                                        </v-checkbox>
-                                                                    </v-container>
+                                                                            <v-col
+                                                                                cols="2"
+                                                                            >
+                                                                                <v-checkbox
+                                                                                    v-model="edit_lv_obj.aggregates.min"
+                                                                                    dense
+                                                                                    label="Min"
+                                                                                >
+                                                                                </v-checkbox>
+                                                                            </v-col>
+                                                                            <v-col
+                                                                                cols="2"
+                                                                            >
+                                                                                <v-checkbox
+                                                                                    v-model="edit_lv_obj.aggregates.max"
+                                                                                    dense
+                                                                                    label="Max"
+                                                                                >
+                                                                                </v-checkbox>
+                                                                            </v-col>
+                                                                            <v-col
+                                                                                cols="2"
+                                                                            >
+                                                                                <v-checkbox
+                                                                                    v-model="edit_lv_obj.aggregates.first"
+                                                                                    dense
+                                                                                    label="First"
+                                                                                >
+                                                                                </v-checkbox>
+                                                                            </v-col>
+                                                                            <v-col
+                                                                                cols="2"
+                                                                            >
+                                                                                <v-checkbox
+                                                                                    v-model="edit_lv_obj.aggregates.last"
+                                                                                    dense
+                                                                                    label="Last"
+                                                                                >
+                                                                                </v-checkbox>
+                                                                            </v-col>
+                                                                        </v-row>
+                                                                        <v-row
+                                                                            no-gutters
+                                                                        >
+                                                                            <v-col
+                                                                                cols="8"
+                                                                            >
+                                                                                <v-checkbox
+                                                                                    v-model="edit_lv_obj.aggregates.closest_start"
+                                                                                    dense
+                                                                                    :label="`Closest to ${new_event.params.start_dttm}`"
+                                                                                    v-show="canAggStart()"
+                                                                                >
+                                                                                </v-checkbox>
+                                                                            </v-col>
+                                                                        </v-row>
+                                                                        <v-row
+                                                                            no-gutters
+                                                                        >
+                                                                            <v-col
+                                                                                cols="8"
+                                                                            >
+                                                                                <v-checkbox
+                                                                                    v-model="edit_lv_obj.aggregates.closest_time"
+                                                                                    dense
+                                                                                    v-show="canAggTime()"
+                                                                                >
+                                                                                    <template v-slot:label>
+                                                                                        <v-row
+                                                                                            align="center"
+                                                                                            no-gutters
+                                                                                        >
+                                                                                            <v-col
+                                                                                                cols="auto"
+                                                                                                class="pr-1"
+                                                                                            >
+                                                                                                Closest to
+                                                                                            </v-col>
+                                                                                            <v-col
+                                                                                                cols="auto"
+                                                                                            >
+                                                                                                <v-text-field
+                                                                                                    v-model="edit_lv_obj.aggregates.closest_timestamp"
+                                                                                                    type="time"
+                                                                                                    value="08:00:00"
+                                                                                                    dense
+                                                                                                ></v-text-field>
+                                                                                            </v-col>
+                                                                                        </v-row>
+                                                                                    </template>
+                                                                                </v-checkbox>
+                                                                            </v-col>
+                                                                        </v-row>
+                                                                    </v-card>
                                                                     <v-card-actions>
                                                                         <v-spacer></v-spacer>
                                                                         <v-btn
@@ -704,11 +896,41 @@
                                                                 no-data-text="Use search bar above to start adding labs and vitals."
                                                             >
                                                                 <template v-slot:item.aggregates="{ item }">
-                                                                        <v-chip
-                                                                            v-for="aggregate in item.aggregates"
-                                                                        >
-                                                                            {{aggregate}}
-                                                                        </v-chip>
+                                                                    <v-chip
+                                                                        v-show="item.aggregates.default == true"
+                                                                    >
+                                                                        Using Default Aggregates
+                                                                    </v-chip>
+                                                                    <v-chip
+                                                                        v-show="item.aggregates.default == false && item.aggregates.min == true"
+                                                                    >
+                                                                        Min
+                                                                    </v-chip>
+                                                                    <v-chip
+                                                                        v-show="item.aggregates.default == false && item.aggregates.max == true"
+                                                                    >
+                                                                        Max
+                                                                    </v-chip>
+                                                                    <v-chip
+                                                                        v-show="item.aggregates.default == false && item.aggregates.first == true"
+                                                                    >
+                                                                        First
+                                                                    </v-chip>
+                                                                    <v-chip
+                                                                        v-show="item.aggregates.default == false && item.aggregates.last == true"
+                                                                    >
+                                                                        Last
+                                                                    </v-chip>
+                                                                    <v-chip
+                                                                        v-show="item.aggregates.default == false && item.aggregates.closest_start == true"
+                                                                    >
+                                                                        Closest to {{new_event.params.start_dttm}}
+                                                                    </v-chip>
+                                                                    <v-chip
+                                                                        v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
+                                                                    >
+                                                                        Closest to {{item.aggregates.closest_timestamp}}
+                                                                    </v-chip>
                                                                 </template>
                                                                 <template v-slot:item.actions="{ item }">
                                                                     <v-icon
@@ -762,16 +984,18 @@
                                             color="primary"
                                             type="submit"
                                             @click="saveCollectionEventForm"
-                                            :disabled="!isValidEvent"
+                                            :disabled="!isValidEvent()"
                                         >
-                                            Save
+                                            Save Event
                                         </v-btn>
+                                        <!--
                                         <v-btn
                                             color="primary"
                                             @click="event_1_stepper = 1"
                                         >
-                                            Back
+                                            Back to Set Timing
                                         </v-btn>
+                                        -->
                                     </v-card-actions>
 
                                 </v-stepper-content>
@@ -845,9 +1069,9 @@
 
                                             <!-- Is this data collection event repeatable (i.e., multiple instances)? -->
                                             <v-radio-group
-                                                v-model="new_event.event_type"
+                                                v-model="new_event.type"
                                                 label="Is this data collection event repeatable (i.e., multiple instances)?"
-                                                @change="resetEventType"
+                                                @change="resetEventType()"
                                             >
                                                 <v-radio
                                                     label="No"
@@ -905,7 +1129,7 @@
                                                     cols="4"
                                                 >
                                                     <v-select
-                                                        v-model="new_event.start_dttm"
+                                                        v-model="new_event.params.start_dttm"
                                                         :items="event_dates"
                                                         label="Start Date/Datetime"
                                                     >
@@ -913,7 +1137,7 @@
                                                 </v-col>
                                                 <v-col
                                                     cols="4"
-                                                    v-show="clinical_dates.includes(new_event.start_dttm)"
+                                                    v-show="clinical_dates.includes(new_event.params.start_dttm)"
                                                 >
                                                     <v-select
                                                         v-model="new_event.start_based_dttm"
@@ -984,8 +1208,8 @@
                                             <v-radio-group
                                                 v-model="new_event.repeat_type"
                                                 label="How should this data collection event be repeated?"
-                                                @change="resetRepeatType"
-                                                v-show="['finite_repeating', 'calculated_repeating'].includes(new_event.event_type)"
+                                                @change="resetRepeat()"
+                                                v-show="['finite_repeating', 'calculated_repeating'].includes(new_event.type)"
                                             >
                                                 <v-radio
                                                     value="hours"
@@ -1006,7 +1230,7 @@
                                                                 cols="1"
                                                             >
                                                                 <v-text-field
-                                                                    v-model="new_event.num_hours"
+                                                                    v-model="new_event.params.num_hours"
                                                                     dense
                                                                     type="number"
                                                                     min="1"
@@ -1041,8 +1265,8 @@
                                                         :items="event_dates"
                                                         label="End Date/Datetime"
                                                         v-show="
-                                                        (new_event.event_type === 'nonrepeating' && new_event.nonrepeat_type === 'end_dttm')
-                                                        || new_event.event_type === 'calculated_repeating'
+                                                        (new_event.type === 'nonrepeating' && new_event.params.type === 'dttm')
+                                                        || new_event.type === 'calculated_repeating'
                                                        "
                                                     >
                                                     </v-select>
@@ -1054,7 +1278,7 @@
                                                         v-model="new_event.end_based_dttm"
                                                         label="based on"
                                                         :items="rp_dates_arr"
-                                                        v-show="clinical_dates.includes(new_event.end_dttm)"
+                                                        v-show="clinical_dates.includes(new_event.params.end_dttm)"
                                                     >
                                                     </v-select>
                                                 </v-col>
@@ -1188,6 +1412,24 @@
             ],
             new_event: {
                 instr_name: null,
+                type: null, // nonrepeating || finite_repeating || calculated_repeating
+                params: {},  // params change depending on event_type
+                aggregate_defaults: {
+                    min: false,
+                    max: false,
+                    first: false,
+                    last: false,
+                    closest_start: false,
+                    closest_time: false,
+                    closest_timestamp: "08:00:00"
+                },
+                data: {
+                    labs_vitals: []
+                }
+            },
+            /*
+            new_event: {
+                instr_name: null,
                 event_type: null, // nonrepeating || finite_repeating || calculated_repeating
                 num_instances: null, // number of instances when event_type = 'finite_repeating'
                 repeat_type: null, // hours || days when event_type is 'finite_repeating or 'calculated_repeating'
@@ -1198,10 +1440,16 @@
                 start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
                 end_dttm: null, // end date/datetime when applicable
                 end_based_dttm: "Study Enrollment Date", // required when end_dttm is based on a clinical date
-                data: {
-                    labs_vitals: []
-                }
-            },
+                aggregate_defaults: {
+                    min: false,
+                    max: false,
+                    first: false,
+                    last: false,
+                    closest_start: false,
+                    closest_time: false,
+                    closest_timestamp: "08:00:00"
+                },
+             */
             lv_headers: [
                 {text: 'Label', value: 'label'},
                 {text: 'Aggregates', value: 'aggregates', sortable: false},
@@ -1217,7 +1465,16 @@
             edit_lv_index: null,
             edit_lv_obj: {
                 label: null,
-                aggregates: []
+                aggregates: {
+                    default: true,
+                    min: false,
+                    max: false,
+                    first: false,
+                    last: false,
+                    closest_start: false,
+                    closest_time: false,
+                    closest_timestamp: "08:00:00"
+                }
             },
             delete_lv_dialog: false,
             new_event_dialog: false,
@@ -1310,9 +1567,7 @@
                         end_based_dttm: "Study Enrollment Date"
                     }
                 }
-            ],
-            aggregate_options: ["minimum", "maximum", "closest to Start Datetime", "closest to 0800", "first", "last"],
-            aggregate_defaults: []
+            ]
         },
         computed: {
             rp_dates_arr: function() {
@@ -1324,21 +1579,65 @@
             },
             labs: function() {
               let labs_arr = [
-                  {header: "Labs"},
                   {
-                      label: "White Blood Count"
+                      label: "White Blood Count (WBC)"
+                  },
+                  {
+                      label: "Red Blood Cells (RBC)"
+                  },
+                  {
+                      label: "Lymphocyte Count"
+                  },
+                  {
+                      label: "Platelets"
+                  },
+                  {
+                      label: "Hematocrit (Hct)"
+                  },
+                  {
+                      label: "Hemoglobin (Hgb)"
+                  },
+                  {
+                      label: "Hemoglobin A1C (HbA1c)"
+                  },
+                  {
+                      label: "Glucose (Glu)"
+                  },
+                  {
+                      label: "Albumin"
+                  },
+                  {
+                      label: "Calcium (Ca)"
+                  },
+                  {
+                      label: "Sodium (Na)"
+                  },
+                  {
+                      label: "Creatinine (Cr)"
+                  },
+                  {
+                      label: "Potassium (K)"
+                  },
+                  {
+                      label: "Chloride (Cl)"
+                  },
+                  {
+                      label: "Blood Urea Nitrogen (BUN)"
                   }
               ];
-              return labs_arr;
+                labs_arr.sort((a, b) => {return a.label.localeCompare(b.label)});
+                return [{header: "Labs"}].concat(labs_arr);
             },
             vitals: function() {
                 let vitals_arr = [
-                    {header: "Vitals"},
                     {
                         label: "Heart Rate (beats per minute)"
                     },
                     {
                         label: "Temperature (Celsius)"
+                    },
+                    {
+                        label: "Respiratory Rate (RR)"
                     },
                     {
                         label: "Mean Arterial Pressure (MAP)"
@@ -1347,7 +1646,8 @@
                         label: "Systolic Blood Pressure (SBP)"
                     }
                 ];
-                return vitals_arr;
+                vitals_arr.sort((a, b) => {return a.label.localeCompare(b.label)});
+                return [{header: "Vitals"}].concat(vitals_arr);
             },
             labs_vitals: function() {
                 let labs_vitals_arr = this.labs.concat([{divider: true}]);
@@ -1387,26 +1687,65 @@
                 }
             },
             resetEventType() {
-                this.new_event.num_instances =  null;
-                this.new_event.repeat_type =  null;
-                this.new_event.nonrepeat_type = null;
-                this.new_event.num_hours =  null;
-                this.new_event.start_dttm =  null;
-                this.new_event.start_based = "Study Enrollment Date";
-                this.new_event.end_dttm =  null;
-                this.new_event.end_based = "Study Enrollment Date";
+                switch(this.new_event.type) {
+                    case 'nonrepeating':
+                        this.resetNonRepeat();
+                        break;
+                    case 'finite_repeating':
+                        this.resetFiniteRepeat();
+                        break;
+                    case 'calculated_repeating':
+                        this.resetCalculatedRepeat();
+                        break;
+                    default:
+                        // TODO
+                        break;
+                }
             },
-            resetRepeatType() {
-                this.new_event.num_hours =  null;
-                this.new_event.start_dttm =  null;
-                this.new_event.start_based = "Study Enrollment Date";
-                this.new_event.end_dttm =  null;
-                this.new_event.end_based = "Study Enrollment Date";
+            resetNonRepeat() {
+                this.new_event.params = {
+                    type: null, // hours || days || dttm
+                    num_hours: null, // number of hours when type is hours
+                    start_type: null, // dttm || date
+                    start_dttm: null, // start date/datetime
+                    start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
+                    end_dttm: null, // end date/datetime when applicable
+                    end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                };
+            },
+            resetFiniteRepeat() {
+                this.new_event.params = {
+                    type: null, // hours || days
+                    num_hours: null, // number of hours when type is 'hours'
+                    num_instances: null, // number of instances when event_type = 'finite_repeating'
+                    start_dttm: null, // start date/datetime
+                    start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
+                }
+            },
+            resetCalculatedRepeat() {
+                this.new_event.params = {
+                    type: null, // hours || days
+                    num_hours: null, // number of hours when type is 'hours'
+                    start_dttm: null, // start date/datetime
+                    start_based_dttm: "Study Enrollment Date", // required when end_dttm is based on a clinical date
+                    end_dttm: null, // end date/datetime when applicable
+                    end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                }
             },
             resetNonRepeatEnd() {
-                this.new_event.num_hours = null;
-                this.new_event.end_dttm = null;
-                this.new_event.end_based = "Study Enrollment Date";
+                this.new_event.params.num_hours = null,
+                this.new_event.params.end_dttm = null;
+                this.new_event.params.end_based_dttm = "Study Enrollment Date";
+            },
+            resetRepeat() {
+                this.new_event.params.num_hours =  null;
+                if(this.new_event.type === 'calculated_repeating') {
+                    this.new_event.params.end_dttm =  null;
+                    this.new_event.params.end_based_dttm = "Study Enrollment Date";
+                }
+            },
+            isValidTiming() {
+                return true;
             },
             isValidEvent() {
                 return true;
@@ -1417,18 +1756,39 @@
             },
             saveCollectionEventForm() {
                 this.collection_events.push(JSON.parse(JSON.stringify(this.new_event)));
-                this.resetEventForm();
+                this.resetTiming();
+                // TODO reset data
             },
-            resetEventForm() {
-                this.$refs.event_form.reset();
-                this.new_event_dialog = false;
+            resetTiming() {
+                // this.$refs.event_form.reset();
+                // this.new_event_dialog = false;
+                this.new_event.instr_name = null;
+                this.new_event.type = null;
+                this.new_event.params = {};
+            },
+            canAggStart() {
+                return this.new_event.type == 'nonrepeating';
+            },
+            canAggTime() {
+                return (this.new_event.type === 'nonrepeating' && this.new_event.params.type === 'day') ||
+                       ((this.new_event.type === 'finite_repeating' || this.new_event.params.type === 'calculated_repeating') &&
+                       (this.new_event.params.type === 'day'));
             },
             addLV() {
                 this.alert_lv_label = this.new_lv_obj.label;
                 if(!this.new_event.data.labs_vitals.map(value => value.label).includes(this.new_lv_obj.label)) {
                     this.new_event.data.labs_vitals.push(JSON.parse(JSON.stringify({
                         label: this.new_lv_obj.label,
-                        aggregates: this.aggregate_defaults
+                        aggregates: {
+                            default: true,
+                            min: false,
+                            max: false,
+                            first: false,
+                            last: false,
+                            closest_start: false,
+                            closest_time: false,
+                            closest_timestamp: "08:00:00"
+                        }
                     })));
                     this.alert_lv_success = true;
                 } else {
@@ -1440,7 +1800,7 @@
             },
             editLV(obj) {
                 this.edit_lv_index = this.new_event.data.labs_vitals.indexOf(obj);
-                this.edit_lv_obj = Object.assign({}, obj);
+                this.edit_lv_obj = JSON.parse(JSON.stringify(obj));
                 this.edit_lv_dialog = true;
             },
             confirmEditLV() {
@@ -1450,7 +1810,16 @@
                 this.edit_lv_index = null;
                 this.edit_lv_obj = {
                     label: null,
-                    aggregates: []
+                    aggregates: {
+                        default: true,
+                        min: false,
+                        max: false,
+                        first: false,
+                        last: false,
+                        closest_start: false,
+                        closest_time: false,
+                        closest_timestamp: "08:00:00"
+                    }
                 };
                 this.closeEditLV();
             },
