@@ -113,58 +113,67 @@
                                 </v-btn>
                             </template>
                             <v-card>
-                                <v-card-title>
-                                    <span class="text-h5">New Date/Datetime</span>
-                                </v-card-title>
-                                    <v-card-text>
-                                    <v-row>
-                                        <v-col cols="12">
-                                            <v-text-field
-                                                v-model="new_date.label"
-                                                label="Label"
-                                            ></v-text-field>
-                                        </v-col>
-                                        <v-col cols="12">
-                                            <v-text-field
-                                                v-model="new_date.redcap_field"
-                                                label="REDCap field name"
-                                            ></v-text-field>
-                                        </v-col>
-                                        <v-col cols="12">
-                                            <v-radio-group
-                                                v-model="new_date.format"
-                                                label="Format"
-                                                row
-                                            >
-                                                <v-radio
-                                                    label="Date"
-                                                    value="date"
-                                                ></v-radio>
-                                                <v-radio
-                                                    label="Datetime"
-                                                    value="datetime"
-                                                ></v-radio>
-                                            </v-radio-group>
-                                        </v-col>
-                                    </v-row>
-                                </v-card-text>
-                                <v-spacer></v-spacer>
-                                <v-card-actions>
-                                    <v-btn
-                                        color="primary"
-                                        type="submit"
-                                        @click="saveDateForm"
-                                    >
-                                        Submit
-                                    </v-btn>
-                                    <v-btn
-                                        color="secondary"
-                                        type="reset"
-                                        @click="resetDateForm"
-                                    >
-                                        Cancel
-                                    </v-btn>
-                                </v-card-actions>
+                                <v-form
+                                    ref="date_form"
+                                >
+                                    <v-card-title>
+                                        <span class="text-h5">New Date/Datetime</span>
+                                    </v-card-title>
+                                        <v-card-text>
+                                        <v-row>
+                                            <v-col cols="12">
+                                                <v-text-field
+                                                    v-model="new_date.label"
+                                                    :rules="[rules.required, checkRCLabel]"
+                                                    label="Label"
+                                                    required
+                                                ></v-text-field>
+                                            </v-col>
+                                            <v-col cols="12">
+                                                <v-text-field
+                                                    v-model="new_date.redcap_field"
+                                                    :rules="[rules.required, checkRCFieldName]"
+                                                    label="REDCap field name"
+                                                    required
+                                                ></v-text-field>
+                                            </v-col>
+                                            <v-col cols="12">
+                                                <v-radio-group
+                                                    v-model="new_date.format"
+                                                    :rules="[rules.required]"
+                                                    required
+                                                    label="Format"
+                                                    row
+                                                >
+                                                    <v-radio
+                                                        label="Date"
+                                                        value="date"
+                                                    ></v-radio>
+                                                    <v-radio
+                                                        label="Datetime"
+                                                        value="datetime"
+                                                    ></v-radio>
+                                                </v-radio-group>
+                                            </v-col>
+                                        </v-row>
+                                    </v-card-text>
+                                    <v-spacer></v-spacer>
+                                    <v-card-actions>
+                                        <v-btn
+                                            color="primary"
+                                            @click="saveDateForm"
+                                        >
+                                            Submit
+                                        </v-btn>
+                                        <v-btn
+                                            color="secondary"
+                                            type="reset"
+                                            @click="resetDateForm"
+                                        >
+                                            Cancel
+                                        </v-btn>
+                                    </v-card-actions>
+                                </v-form>
                             </v-card>
                         </v-dialog>
                     </v-stepper-content>
@@ -263,8 +272,10 @@
                                                 cols="6"
                                             >
                                                 <v-text-field
-                                                    v-model="new_event.params.instr_name"
+                                                    v-model="new_event.instr_name"
+                                                    :rules="[rules.required, checkInstrName]"
                                                     label="REDCap Instrument Name"
+                                                    required
                                                 >
                                                 </v-text-field>
                                             </v-col>
@@ -273,8 +284,10 @@
                                         <!-- Is this data collection event repeatable (i.e., multiple instances)? -->
                                         <v-radio-group
                                             v-model="new_event.type"
-                                            label="Is this data collection event repeatable (i.e., multiple instances)?"
                                             @change="resetEventType"
+                                            :rules="[rules.required]"
+                                            required
+                                            label="Is this data collection event repeatable (i.e., multiple instances)?"
                                         >
                                             <v-radio
                                                 label="No"
@@ -302,6 +315,8 @@
                                                         >
                                                             <v-text-field
                                                                 v-model="new_event.params.num_instances"
+                                                                :rules="new_event.type === 'finite_repeating' ? [rules.required, rules.num_instances] : []"
+                                                                :required="new_event.type === 'finite_repeating'"
                                                                 dense
                                                                 type="number"
                                                                 min="2"
@@ -984,7 +999,6 @@
                                             color="primary"
                                             type="submit"
                                             @click="saveCollectionEventForm"
-                                            :disabled="!isValidEvent()"
                                         >
                                             Save Event
                                         </v-btn>
@@ -997,6 +1011,15 @@
                                         </v-btn>
                                         -->
                                     </v-card-actions>
+
+                                    <v-alert
+                                        v-model="alert_default_agg"
+                                        type="error"
+                                        dismissible
+                                    >
+                                        One or more clinical variables that you added are using default aggregates, but you did not set them.
+                                        Set default aggregates in order to continue.
+                                    </v-alert>
 
                                 </v-stepper-content>
 
@@ -1413,7 +1436,7 @@
             new_event: {
                 instr_name: null,
                 type: null, // nonrepeating || finite_repeating || calculated_repeating
-                params: {},  // params change depending on event_type
+                params: {},  // params change depending on new_event's type
                 aggregate_defaults: {
                     min: false,
                     max: false,
@@ -1427,29 +1450,6 @@
                     labs_vitals: []
                 }
             },
-            /*
-            new_event: {
-                instr_name: null,
-                event_type: null, // nonrepeating || finite_repeating || calculated_repeating
-                num_instances: null, // number of instances when event_type = 'finite_repeating'
-                repeat_type: null, // hours || days when event_type is 'finite_repeating or 'calculated_repeating'
-                nonrepeat_type: null, // hours || day || end_dttm when event_type is 'nonrepeating'
-                num_hours: null, // number of hours when repeat_type is 'hours' or nonrepeat_type is hours
-                start_type: null, // dttm || date
-                start_dttm: null, // start date/datetime
-                start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
-                end_dttm: null, // end date/datetime when applicable
-                end_based_dttm: "Study Enrollment Date", // required when end_dttm is based on a clinical date
-                aggregate_defaults: {
-                    min: false,
-                    max: false,
-                    first: false,
-                    last: false,
-                    closest_start: false,
-                    closest_time: false,
-                    closest_timestamp: "08:00:00"
-                },
-             */
             lv_headers: [
                 {text: 'Label', value: 'label'},
                 {text: 'Aggregates', value: 'aggregates', sortable: false},
@@ -1458,6 +1458,7 @@
             new_lv_obj : {
                 label: null,
             },
+            alert_default_agg: false,
             alert_lv_success: false,
             alert_lv_error: false,
             alert_lv_label: null,
@@ -1567,7 +1568,11 @@
                         end_based_dttm: "Study Enrollment Date"
                     }
                 }
-            ]
+            ],
+            rules: {
+                required: value => !!value || 'Required.',
+                num_instances: value => value > 1 || 'Number of instances must be greater than 1.'
+            }
         },
         computed: {
             rp_dates_arr: function() {
@@ -1668,6 +1673,7 @@
                 }
             },
             saveDateForm() {
+                this.$refs.date_form.validate();
                 this.rp_dates.push(this.new_date);
                 this.new_date.dialog = false;
                 this.resetDateForm();
@@ -1704,7 +1710,7 @@
             },
             resetNonRepeat() {
                 this.new_event.params = {
-                    type: null, // hours || days || dttm
+                    type: null, // hours || day || dttm
                     num_hours: null, // number of hours when type is hours
                     start_type: null, // dttm || date
                     start_dttm: null, // start date/datetime
@@ -1744,10 +1750,139 @@
                     this.new_event.params.end_based_dttm = "Study Enrollment Date";
                 }
             },
-            isValidTiming() {
+            // checks if the entered REDCap Label already exists
+            checkRCLabel(label) {
+                let labels_arr = this.rp_dates.map(value => value.label);
+                labels_arr = labels_arr.concat(this.clinical_dates);
+                if(labels_arr.includes(label)) {
+                    return 'Enter another label. This label is already used by a predefined clinical date or other researcher-provided date.';
+                }
                 return true;
             },
-            isValidEvent() {
+            // checks if the entered REDCap Field already exists
+            checkRCFieldName(field) {
+                // check field is valid input
+                if(!/^\w+$/.test(field)) {
+                    return 'ONLY letters, numbers, and underscores.';
+                }
+                let fields_arr = this.rp_dates.map(value => value.redcap_field);
+                // TODO this needs to check all REDCap field names, not just what's in dates
+                if(fields_arr.includes(field)) {
+                    return 'Enter another field name. This field name is already taken.';
+                }
+                return true;
+            },
+            // checks if the entered REDCap instrument name already exists
+            checkInstrName(name) {
+                let names_arr = this.collection_events.map(value => value.instr_name);
+                names_arr = names_arr.concat(['Identifiers', 'Researcher-Provided Info', 'Demographics'])
+                if(names_arr.includes(name)) {
+                    return 'Enter another name. This name is already used by another data collection event or other REDCap Instrument DUSTER will create by default.';
+                }
+                return true;
+            },
+            isValidTiming() {
+                // TODO check this.new_event.instr_name meets requirements of REDCap instrument name
+                // TODO check REDCap instrument name does not conflict with other data collection events or REDCap instrument names
+                if(this.new_event.type === 'nonrepeating') {
+                    return this.isValidNonRepeat();
+                } else if(this.new_event.type === 'finite_repeating') {
+                    return this.isValidFiniteRepeat();
+                } else if(this.new_event.type === 'calculated_repeating') {
+                    return this.isValidCalcRepeat();
+                }
+
+                return false;
+            },
+            // helper function
+            // checks validity/completeness of a data collection event form's timing when type is 'nonrepeating'
+            isValidNonRepeat() {
+                // verify type is 'nonrepeating'
+                if(this.new_event.type === 'nonrepeating') {
+                    // check if start_dttm is a clinical event and start_based_dttm is a researcher-provided date
+                    // or if start_dttm is a researcher-provided date/datetime
+                    if((this.clinical_dates.includes(this.new_event.params.start_dttm)
+                        && this.rp_dates_arr.includes(this.new_event.params.start_based_dttm))
+                        || this.rp_dates_arr.includes(this.new_event.params.start_dttm)) {
+
+                        // check this nonrepeating event's type and ending parameters
+                        if((this.new_event.params.type === 'hours' && this.new_event.params.num_hours > 0)
+                            || this.new_event.params.type === 'day') {
+                            return true;
+                        } else if(this.new_event.params.type === 'dttm') {
+                            if((this.clinical_dates.includes(this.new_event.params.end_dttm)
+                                    && this.rp_dates_arr.includes(this.new_event.params.end_based_dttm))
+                                || this.rp_dates_arr.includes(this.new_event.params.end_dttm)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            },
+            // helper function
+            // checks validity/completeness of a data collection event form's timing when type is 'finite_repeating'
+            isValidFiniteRepeat() {
+                // verify type is 'finite_repeating'
+                if(this.new_event.type === 'finite_repeating') {
+                    // check number of instances > 1
+                    if(this.new_event.params.num_instances > 1) {
+                        // check if start_dttm is a clinical event and start_based_dttm is a researcher-provided date
+                        // or if start_dttm is a researcher-provided date/datetime
+                        if((this.clinical_dates.includes(this.new_event.params.start_dttm)
+                                && this.rp_dates_arr.includes(this.new_event.params.start_based_dttm))
+                            || this.rp_dates_arr.includes(this.new_event.params.start_dttm)) {
+                            // check configuration for how instances will be repeated
+                            if((this.new_event.params.type === 'hours' && this.new_event.params.num_hours > 0)
+                                || this.new_event.params.type === 'days') {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            },
+            // helper function
+            // checks validity/completeness of a data collection event form's timing when type is 'calculated_repeating'
+            isValidCalcRepeat() {
+                // verify type is 'calculated_repeating'
+                if(this.new_event.type === 'calculated_repeating') {
+                    // check if start_dttm is a clinical event and start_based_dttm is a researcher-provided date
+                    // or if start_dttm is a researcher-provided date/datetime
+                    if ((this.clinical_dates.includes(this.new_event.params.start_dttm)
+                            && this.rp_dates_arr.includes(this.new_event.params.start_based_dttm))
+                        || this.rp_dates_arr.includes(this.new_event.params.start_dttm)) {
+                        // check if end_dttm is a clinical event and end_based_dttm is a researcher-provided date
+                        // or if end_dttm is a researcher-provided date/datetime
+                        if ((this.clinical_dates.includes(this.new_event.params.end_dttm)
+                                && this.rp_dates_arr.includes(this.new_event.params.end_based_dttm))
+                            || this.rp_dates_arr.includes(this.new_event.params.end_dttm)) {
+                            // check configuration for how instances will be repeated
+                            if ((this.new_event.params.type === 'hours' && this.new_event.params.num_hours > 0)
+                                || this.new_event.params.type === 'days') {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            },
+            // checks if the default aggregate needs to be set
+            // returns true/false
+            checkDefaultAgg() {
+                let noDefaults = true;
+                for(let aggregate in this.new_event.aggregate_defaults) {
+                    if(this.new_event.aggregate_defaults[aggregate] === true) {
+                        noDefaults = false;
+                        break;
+                    }
+                }
+                for(let i = 0; i < this.new_event.data.labs_vitals.length; i++) {
+                    if(this.new_event.data.labs_vitals[i].aggregates.default === true
+                        && noDefaults === true) {
+                        return false;
+                    }
+                }
                 return true;
             },
             addDataStep() {
@@ -1755,9 +1890,14 @@
                 this.event_1_stepper = 2;
             },
             saveCollectionEventForm() {
-                this.collection_events.push(JSON.parse(JSON.stringify(this.new_event)));
-                this.resetTiming();
-                // TODO reset data
+                // check if default aggregates are set if needed
+                if(this.checkDefaultAgg()) {
+                    this.collection_events.push(JSON.parse(JSON.stringify(this.new_event)));
+                    this.resetTiming();
+                    // TODO reset data
+                } else {
+                    this.alert_default_agg = true;
+                }
             },
             resetTiming() {
                 // this.$refs.event_form.reset();
