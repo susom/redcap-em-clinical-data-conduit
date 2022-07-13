@@ -75,11 +75,14 @@
                         <v-divider></v-divider>
 
                         <v-list-item-subtitle><h1>Identifier</h1></v-list-item-subtitle>
-                        <v-list>
-                            <h3>MRN</h3>
+                        <v-list
+                            v-for="identifier in rp_identifier"
+                            :key="identifier.label"
+                        >
+                            <h3>{{identifier.label}}</h3>
                             <p>
-                                REDCap field name: <em>mrn</em><br>
-                                Format: 8-digit number (including leading zeros)
+                                REDCap field name: <em>{{identifier.redcap_field}}</em><br>
+                                Format: {{identifier.format}}
                             </p>
                         </v-list>
 
@@ -93,7 +96,7 @@
                             <h3>{{date.label}}</h3>
                             <p>
                                 REDCap field name: <em>{{date.redcap_field}}</em><br>
-                                Format: {{date.format}}
+                                Format: {{date.format}} [{{date.format=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM'}}]
                             </p>
                             <!-- TODO add edit/remove buttons with v-if to make sure first index is not included -->
                         </v-list>
@@ -195,7 +198,7 @@
                                 v-model="demographics.selected"
                                 v-for="field in demographics.options"
                                 :label="field.label"
-                                :value="field.redcap_field"
+                                :value="field"
                                 dense
                             >
                             </v-checkbox>
@@ -216,24 +219,24 @@
                                 Clinical data is partly defined by relative windows of time.
                                 <br>
                                 <br>
-                                DUSTER uses Data Collection Events to apply this concept of creating windows of time in which you'd like to gather clinical data.
+                                DUSTER uses Data Collection Windows to apply this concept of creating windows of time in which you'd like to gather clinical data.
                                 <br>
-                                Each Data Collection Event will appear in the form of REDCap Instruments in your project.
+                                Each Data Collection Window will appear in the form of REDCap Instruments in your project.
                                 <br>
                                 Within each event, you may add your desired clinical data.
                                 <br>
                                 <br>
-                                You may create Data Collection Events below with the options to choose among preset configurations or to configure from scratch.
+                                You may create Data Collection Windows below with the options to choose among preset configurations or to configure from scratch.
                             </p>
                         </v-card-text>
 
-                        <!-- Create First Data Collection Event -->
+                        <!-- Create First Data Collection Window -->
                         <v-card
                             outlined
                             v-show="!collection_events.length"
                         >
                             <v-card-title>
-                                Create Your First Data Collection Event
+                                Create Your First Data Collection Window
                             </v-card-title>
 
                             <v-stepper
@@ -249,9 +252,11 @@
                                 </v-stepper-step>
 
                                 <v-stepper-content step="1">
+
                                     <v-form
                                         ref="event_form"
                                     >
+
                                         <!-- Preset events -->
                                         <v-row>
                                             <v-col
@@ -260,12 +265,13 @@
                                                 <v-select
                                                     v-model="preset_choice"
                                                     :items="preset_events"
-                                                    @change="new_event=JSON.parse(JSON.stringify(preset_choice))"
+                                                    @change="setPreset(preset_choice)"
                                                     label="Presets"
                                                 >
                                                 </v-select>
                                             </v-col>
                                         </v-row>
+
                                         <!-- REDCap Instrument Name -->
                                         <v-row>
                                             <v-col
@@ -1027,11 +1033,11 @@
 
                         </v-card>
 
-                        <!-- After First Data Collection Event -->
+                        <!-- After First Data Collection Window -->
                         <v-card
                             v-show="collection_events.length"
                         >
-                            <v-list-item-subtitle><h1>Data Collection Events</h1></v-list-item-subtitle>
+                            <v-list-item-subtitle><h1>Data Collection Windows</h1></v-list-item-subtitle>
                             <v-list
                                 v-for="event in collection_events"
                                 :key="event.instr_name"
@@ -1051,13 +1057,13 @@
                                         v-bind="attrs"
                                         v-on="on"
                                     >
-                                        Add New Data Collection Event
+                                        Add New Data Collection Window
                                     </v-btn>
                                 </template>
 
                                 <v-card outlined>
                                     <v-card-title>
-                                        Create New Data Collection Event
+                                        Create New Data Collection Window
                                     </v-card-title>
                                     <v-container>
                                         <v-form
@@ -1337,11 +1343,66 @@
                     </v-stepper-content>
 
                     <v-stepper-content step="4">
+                        <!-- Researcher-Provided Info -->
+                        <h1>Researcher-Provided Info</h1>
                         <v-card
-                            class="mb-12"
-                            color="grey lighten-1"
-                            height="200px"
-                        ></v-card>
+                            outlined
+                            class="mb-4"
+                        >
+                            <v-card-subtitle><h2>Identifier</h2></v-card-subtitle>
+                            <v-data-table
+                                :headers="review_id_headers"
+                                :items="rp_identifier"
+                                item-key="label"
+                                fixed-header
+                                dense
+                                hide-default-footer
+                            ></v-data-table>
+
+                        </v-card>
+                            <v-card
+                                outlined
+                                class="mb-4"
+                            >
+                                <v-card-subtitle><h2>Dates</h2></v-card-subtitle>
+                                <v-data-table
+                                    :headers="review_date_headers"
+                                    :items="rp_dates"
+                                    item-key="label"
+                                    fixed-header
+                                    dense
+                                    hide-default-footer
+                                >
+                                    <template v-slot:item.format="{ item }">
+                                        <span>{{item.format}} [{{item.format=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM'}}]</span>
+                                    </template>
+                                </v-data-table>
+                        </v-card>
+
+                        <v-divider></v-divider>
+
+                        <!-- Demographics -->
+                        <h1>Demographics</h1>
+                        <v-card
+                            outlined
+                            class="mb-4"
+                        >
+                            <v-data-table
+                                :headers="review_demo_headers"
+                                :items="demographics.selected"
+                                item-key="label"
+                                no-data-text="No demographics have been selected."
+                                fixed-header
+                                dense
+                                hide-default-footer
+                            ></v-data-table>
+                        </v-card>
+                        <v-divider></v-divider>
+
+                        <!-- Clinical Data -->
+                        <h1>Clinical Data</h1>
+                        Content goes here
+
                     </v-stepper-content>
                 </v-stepper-items>
             </v-stepper>
@@ -1377,6 +1438,13 @@
             step: 1,
             event_1_stepper: 1,
             dialog: false,
+            rp_identifier: [
+                {
+                    label: "MRN",
+                    redcap_field: "mrn",
+                    format: "8-digit number (including leading zeros, e.g., '01234567')"
+                }
+            ],
             rp_dates: [
                 {
                     label: "Study Enrollment Date",
@@ -1494,80 +1562,154 @@
                     text: "ED Presentation to ED Discharge",
                     value: {
                         instr_name: "ED Presentation to ED Discharge",
-                        event_type: "nonrepeating",
-                        num_instances: null,
-                        repeat_type: null,
-                        nonrepeat_type: "end_dttm",
-                        num_hours: null,
-                        start_type: "dttm",
-                        start_dttm: "ED Presentation Datetime",
-                        start_based_dttm: "Study Enrollment Date",
-                        end_dttm: "ED Discharge Datetime",
-                        end_based_dttm: "Study Enrollment Date"
+                        type: "nonrepeating",
+                        params: {
+                            type: "dttm", // hours || day || dttm
+                            num_hours: null, // number of hours when type is hours
+                            start_type: "dttm", // dttm || date
+                            start_dttm: "ED Presentation Datetime", // start date/datetime
+                            start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
+                            end_dttm: "ED Discharge Datetime", // end date/datetime when applicable
+                            end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                        },
+                        aggregate_defaults: {
+                            min: false,
+                            max: false,
+                            first: false,
+                            last: false,
+                            closest_start: false,
+                            closest_time: false,
+                            closest_timestamp: "08:00:00"
+                        },
+                        data: {
+                            labs_vitals: []
+                        }
                     }
                 },
                 {
                     text: "First 24 Hours of Hospital Presentation",
                     value: {
                         instr_name: "First 24 Hours of Hospital Presentation",
-                        event_type: "nonrepeating",
-                        num_instances: null,
-                        repeat_type: null,
-                        nonrepeat_type: "hours",
-                        num_hours: 24,
-                        start_type: "dttm",
-                        start_dttm: "Hospital Presentation Datetime",
-                        start_based_dttm: "Study Enrollment Date",
-                        end_dttm: null,
-                        end_based_dttm: "Study Enrollment Date"
+                        type: "nonrepeating",
+                        params: {
+                            type: "hours", // hours || day || dttm
+                            num_hours: 24, // number of hours when type is hours
+                            start_type: "dttm", // date || dttm
+                            start_dttm: "Hospital Presentation Datetime", // start date/datetime
+                            start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
+                            end_dttm: null, // end date/datetime when applicable
+                            end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                        },
+                        aggregate_defaults: {
+                            min: false,
+                            max: false,
+                            first: false,
+                            last: false,
+                            closest_start: false,
+                            closest_time: false,
+                            closest_timestamp: "08:00:00"
+                        },
+                        data: {
+                            labs_vitals: []
+                        }
                     }
                 },
                 {
                     text: "First 24 Hours of First ICU Admission",
                     value: {
                         instr_name: "First 24 Hours of First ICU Admission",
-                        event_type: "nonrepeating",
-                        num_instances: null,
-                        repeat_type: null,
-                        nonrepeat_type: "hours",
-                        num_hours: 24,
-                        start_type: "dttm",
-                        start_dttm: "First ICU Admission Datetime",
-                        start_based_dttm: "Study Enrollment Date",
-                        end_dttm: null,
-                        end_based_dttm: "Study Enrollment Date"
+                        type: "nonrepeating",
+                        params: {
+                            type: "hours", // hours || day || dttm
+                            num_hours: 24, // number of hours when type is hours
+                            start_type: "dttm", // date || dttm
+                            start_dttm: "First ICU Admission Datetime", // start date/datetime
+                            start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
+                            end_dttm: null, // end date/datetime when applicable
+                            end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                        },
+                        aggregate_defaults: {
+                            min: false,
+                            max: false,
+                            first: false,
+                            last: false,
+                            closest_start: false,
+                            closest_time: false,
+                            closest_timestamp: "08:00:00"
+                        },
+                        data: {
+                            labs_vitals: []
+                        }
                     }
                 },
                 {
                     text: "Inpatient Calendar Days",
                     value: {
                         instr_name: "Inpatient Calendar Days",
-                        event_type: "calculated_repeating",
-                        num_instances: null,
-                        repeat_type: "days",
-                        nonrepeat_type: null,
-                        num_hours: null,
-                        start_dttm: "Hospital Admission Datetime",
-                        start_based_dttm: "Study Enrollment Date",
-                        end_dttm: "Hospital Discharge Datetime",
-                        end_based_dttm: "Study Enrollment Date"
+                        type: "calculated_repeating",
+                        params: {
+                            type: "days", // hours || days
+                            num_hours: null, // number of hours when type is 'hours'
+                            start_dttm: "Hospital Admission Datetime", // start date/datetime
+                            start_based_dttm: "Study Enrollment Date", // required when end_dttm is based on a clinical date
+                            end_dttm: "Hospital Discharge Datetime", // end date/datetime when applicable
+                            end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                        },
+                        aggregate_defaults: {
+                            min: false,
+                            max: false,
+                            first: false,
+                            last: false,
+                            closest_start: false,
+                            closest_time: false,
+                            closest_timestamp: "08:00:00"
+                        },
+                        data: {
+                            labs_vitals: []
+                        }
                     }
                 },
                 {
                     text: "ICU Calendar Days",
                     value: {
                         instr_name: "ICU Calendar Days",
-                        event_type: "calculated_repeating",
-                        num_instances: null,
-                        repeat_type: "days",
-                        nonrepeat_type: "hours",
-                        num_hours: 24,
-                        start_dttm: "ICU Admission Datetime",
-                        start_based_dttm: "Study Enrollment Date",
-                        end_dttm: "ICU Discharge Datetime",
-                        end_based_dttm: "Study Enrollment Date"
+                        type: "calculated_repeating",
+                        params: {
+                            type: "days", // hours || days
+                            num_hours: null, // number of hours when type is 'hours'
+                            start_dttm: "First ICU Admission Datetime", // start date/datetime
+                            start_based_dttm: "Study Enrollment Date", // required when end_dttm is based on a clinical date
+                            end_dttm: "First ICU Discharge Datetime", // end date/datetime when applicable
+                            end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                        },
+                        aggregate_defaults: {
+                            min: false,
+                            max: false,
+                            first: false,
+                            last: false,
+                            closest_start: false,
+                            closest_time: false,
+                            closest_timestamp: "08:00:00"
+                        },
+                        data: {
+                            labs_vitals: []
+                        }
                     }
                 }
+            ],
+            review_id_headers: [
+                {text: 'Label', value: 'label', sortable: false},
+                {text: 'REDCap field name', value: 'redcap_field', sortable: false},
+                {text: 'Format', value: 'format', sortable: false}
+            ],
+            review_date_headers: [
+                {text: 'Label', value: 'label'},
+                {text: 'REDCap field name', value: 'redcap_field'},
+                {text: 'Format', value: 'format'}
+            ],
+            review_demo_headers: [
+                {text: 'Label', value: 'label'},
+                {text: 'REDCap field name', value: 'redcap_field'},
             ],
             rules: {
                 required: value => !!value || 'Required.',
@@ -1687,7 +1829,7 @@
             },
             toggleAllDemo() {
                 if(this.demographics.selected.length != this.demographics.options.length) {
-                    this.demographics.selected = this.demographics.options.map(value => value.redcap_field);
+                    this.demographics.selected = this.demographics.options;
                 } else {
                     this.demographics.selected = [];
                 }
@@ -1899,12 +2041,16 @@
                     this.alert_default_agg = true;
                 }
             },
+            setPreset(preset_choice) {
+              this.$refs.event_form.resetValidation();
+              this.new_event = JSON.parse(JSON.stringify(preset_choice));
+            },
             resetTiming() {
-                // this.$refs.event_form.reset();
+                this.$refs.event_form.reset();
                 // this.new_event_dialog = false;
-                this.new_event.instr_name = null;
-                this.new_event.type = null;
-                this.new_event.params = {};
+                //this.new_event.instr_name = null;
+               // this.new_event.type = null;
+              //  this.new_event.params = {};
             },
             canAggStart() {
                 return this.new_event.type == 'nonrepeating';
