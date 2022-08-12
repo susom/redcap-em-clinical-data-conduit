@@ -216,4 +216,3 @@ $odm_str .= "</Study>\n";
 $odm_str .= ODM::getOdmClosingTag();
 
 echo $odm_str;
-?>

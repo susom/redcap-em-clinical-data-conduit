@@ -4,9 +4,13 @@ namespace Stanford\Duster;
 
 use RedCapDB;
 
+require_once $module->getModulePath() . "classes/OdmXmlString.php";
+
+/*
 if(!isset($_POST['odm']) | !isset($_POST['app_title']) | !isset($_POST['purpose'])) {
     // TODO exit/return since we cannot create the project as intended without these parameters
 }
+*/
 /*
 $project_title = $purpose = $purpose_other = $project_notes = $is_longitudinal = $surveys_enabled = $record_autonumbering_enabled = "";
 $data_arr = array(
@@ -36,18 +40,59 @@ $purpose = $_POST['purpose'];
 unset($_POST['purpose']);
 */
 
-$odm = $_POST['odm'];
+// $odm = $_POST['odm'];
+
+/* get JSON from POST request */
+$json = file_get_contents('php://input');
+$data = json_decode($json);
+
+/* construct the ODM XML string */
+$odm = new OdmXmlString($data['app_title'], $data['purpose'], $data['purpose_other'], $data['project_notes']);
+$config = $data['config'];
+// Researcher-Provided Information
+if(array_key_exists("rp_info", $config)) {
+    $rp_form_name = "researcher_provided_information";
+    $rp_form_label = "Researcher-Provided Information";
+    $odm->addForm($rp_form_name, $rp_form_label);
+    // add fields for identifiers
+    $odm->addFields($rp_form_name, null, null, "Identifiers", $config["rp_info"]["rp_identifiers"]);
+    // add fields for dates
+    $odm->addFields($rp_form_name, null, null, "Dates", $config["rp_info"]["rp_dates"]);
+}
+// Demographics
+if(array_key_exists("demographics", $config)) {
+    $demo_form_name = "demographics";
+    $demo_form_label = "Demographics";
+    $odm->addForm($demo_form_name, $demo_form_label);
+    $odm->addFields($demo_form_name, null, null, "", $config["demographics"]);
+}
+// Clinical Windows
+if(array_key_exists("clinical_windows", $config)) {
+    foreach($config["clinical_windows"] as $clinical_window) {
+        // add form
+        $odm->addForm($clinical_window["form_name"], $clinical_window["label"]);
+        // add timing fields with its own section header
+        $timing_fields_arr = [$clinical_window["timing"]["start"], $clinical_window["timing"]["end"]];
+        $odm->addFields($clinical_window["form_name"], null, null, "Timing", $timing_fields_arr);
+        // add labs with its own section header
+        $odm->addFields($clinical_window["form_name"], null, null, "Labs", $clinical_window["data"]["labs"]);
+        // add vitals with its own section header
+        $odm->addFields($clinical_window["form_name"], null, null, "Vitals", $clinical_window["data"]["vitals"]);
+    }
+}
+
+$odm_str = $odm->getOdmXmlString();
 
 $data_arr = array(
-    'project_title' => $_POST['app_title'],
-    'purpose' => $_POST['purpose']
+    'project_title' => $data['app_title'],
+    'purpose' => $data['purpose']
 );
 
-if(isset($_POST['purpose_other'])) {
-    $data_arr['purpose_other'] = $_POST['purpose_other'];
+if(array_key_exists("purpose_other", $data)) {
+    $data_arr['purpose_other'] = $data['purpose_other'];
 }
-if(isset($_POST['project_notes'])) {
-    $data_arr['project_notes'] = $_POST['project_notes'];
+if(array_key_exists("purpose_other", $data)) {
+    $data_arr['project_notes'] = $data['project_notes'];
 }
 
 $data_json = json_encode(array($data_arr));
@@ -77,7 +122,7 @@ $fields = array(
 	'content' => 'project',
 	'format'  => 'json',
 	'data'    => $data_json,
-	'odm'     => $odm
+	'odm'     => $odm_str
 );
 
 $ch = curl_init();
@@ -110,17 +155,17 @@ $module->emDebug($project_id);
 $sql = "
         UPDATE redcap_projects
             SET
-                purpose = '{$_POST['purpose']}',
-                purpose_other = " .  checkNull($_POST['purpose_other']) . ",
-		        project_pi_firstname = " . ((!isset($_POST['project_pi_firstname']) || $_POST['project_pi_firstname'] == "") ? "NULL" : "'".db_escape($_POST['project_pi_firstname'])."'") . ",
-                project_pi_mi = " . ((!isset($_POST['project_pi_mi']) || $_POST['project_pi_mi'] == "") ? "NULL" : "'".db_escape($_POST['project_pi_mi'])."'") . ",
-                project_pi_lastname = " . ((!isset($_POST['project_pi_lastname']) || $_POST['project_pi_lastname'] == "") ? "NULL" : "'".db_escape($_POST['project_pi_lastname'])."'") . ",
-                project_pi_email = " . ((!isset($_POST['project_pi_email']) || $_POST['project_pi_email'] == "") ? "NULL" : "'".db_escape($_POST['project_pi_email'])."'") . ",
-                project_pi_alias = " . ((!isset($_POST['project_pi_alias']) || $_POST['project_pi_alias'] == "") ? "NULL" : "'".db_escape($_POST['project_pi_alias'])."'") . ",
-                project_pi_username = " . ((!isset($_POST['project_pi_username']) || $_POST['project_pi_username'] == "") ? "NULL" : "'".db_escape($_POST['project_pi_username'])."'") . ",
-                project_irb_number = " . ((!isset($_POST['project_irb_number']) || $_POST['project_irb_number'] == "") ? "NULL" : "'".db_escape($_POST['project_irb_number'])."'") . ",
-		        project_grant_number = " . ((!isset($_POST['project_grant_number']) || $_POST['project_grant_number'] == "") ? "NULL" : "'".db_escape($_POST['project_grant_number'])."'") . ",
-                project_note= " . checkNull(trim($_POST['project_note'])) . "
+                purpose = '{$data['purpose']}',
+                purpose_other = " .  checkNull($data['purpose_other']) . ",
+		        project_pi_firstname = " . ((!isset($data['project_pi_firstname']) || $data['project_pi_firstname'] == "") ? "NULL" : "'".db_escape($data['project_pi_firstname'])."'") . ",
+                project_pi_mi = " . ((!isset($data['project_pi_mi']) || $data['project_pi_mi'] == "") ? "NULL" : "'".db_escape($data['project_pi_mi'])."'") . ",
+                project_pi_lastname = " . ((!isset($data['project_pi_lastname']) || $data['project_pi_lastname'] == "") ? "NULL" : "'".db_escape($data['project_pi_lastname'])."'") . ",
+                project_pi_email = " . ((!isset($data['project_pi_email']) || $data['project_pi_email'] == "") ? "NULL" : "'".db_escape($data['project_pi_email'])."'") . ",
+                project_pi_alias = " . ((!isset($data['project_pi_alias']) || $data['project_pi_alias'] == "") ? "NULL" : "'".db_escape($data['project_pi_alias'])."'") . ",
+                project_pi_username = " . ((!isset($data['project_pi_username']) || $data['project_pi_username'] == "") ? "NULL" : "'".db_escape($data['project_pi_username'])."'") . ",
+                project_irb_number = " . ((!isset($data['project_irb_number']) || $data['project_irb_number'] == "") ? "NULL" : "'".db_escape($data['project_irb_number'])."'") . ",
+		        project_grant_number = " . ((!isset($data['project_grant_number']) || $data['project_grant_number'] == "") ? "NULL" : "'".db_escape($data['project_grant_number'])."'") . ",
+                project_note= " . checkNull(trim($data['project_note'])) . "
         WHERE project_id = {$project_id}
         ";
 $q = db_query($sql);
@@ -138,6 +183,51 @@ $module->enableModule($project_id, NULL);
 if($delete_token) {
     $db->deleteApiTokenSuper(USERID);
 }
+
+/* send POST request to DUSTER's config route in STARR-API */
+
+// Retrieve the data URL that is saved in the config file
+$config_url = $module->getSystemSetting("starrapi-config-url");
+
+// Retrieve the Vertx Token
+$token = false;
+try {
+    $tokenMgnt = \ExternalModules\ExternalModules::getModuleInstance('vertx_token_manager');
+    $token = $tokenMgnt->findValidToken('ddp');
+} catch (Exception $ex) {
+    $this->emError("Could not find a valid token for service ddp");
+}
+
+// set up the headers
+$headers = array(
+    // "Accept: application/json",
+    "Content-Type: application/json",
+    "Authorization: Bearer $token"
+);
+
+// set up the POST body as a JSON-encoded string
+$config_data = json_encode(array(
+    'redcap_project_id' => $project_id,
+    'config' => $data['config']
+));
+
+// Create a new cURL resource
+$ch = curl_init($config_url);
+
+// Attach JSON-encoded string to the POST fields
+curl_setopt($ch, CURLOPT_POSTFIELDS, $config_data);
+
+// Set the content type to application/json
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+// Return response instead of outputting
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+// Execute the POST request
+$result = curl_exec($ch);
+
+// Close cURL resource
+curl_close($ch);
 
 echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
 ?>

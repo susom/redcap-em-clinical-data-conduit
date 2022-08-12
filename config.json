@@ -58,7 +58,19 @@
 		},
         {
             "key": "starrapi-metadata-url",
-            "name": "STARRapi Metadata Webservice URL",
+            "name": "STARR-API Metadata Webservice URL",
+            "required": true,
+            "type": "text"
+        },
+        {
+            "key": "starrapi-config-url",
+            "name": "STARR-API Config Webservice URL",
+            "required": true,
+            "type": "text"
+        },
+        {
+            "key": "starrapi-data-url",
+            "name": "STARR-API Data Webservice URL",
             "required": true,
             "type": "text"
         }
