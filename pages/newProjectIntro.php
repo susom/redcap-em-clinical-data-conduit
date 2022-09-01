@@ -52,14 +52,16 @@ namespace Stanford\Duster;
                     Welcome to Stanford REDCap's DUSTER, a self-service tool to automatically import clinical data associated with research subjects in your study.
                 </p>
                 <p>
-                    DUSTER has both patient data and structured clinical data, which includes risk scores, lab results and medications as well as inpatient stay metrics such as
+                    DUSTER has both patient data and structured clinical data. Today you can get patient demographics and lab results;
+                    we plan to expand our structured clinical data offerings to also include risk scores, medications, and inpatient stay metrics such as
                     blood products, LDA, IO and ventilation.
                 </p>
                 <p>
-                    You can use DUSTER either to augment an existing REDCap or to populate a newly created REDCap project.
+                    You can use DUSTER to populate a newly created REDCap project.
+                    We plan to support adding DUSTER to an existing project in the future.
                 </p>
                 <p>
-                    Once you have specified the clinical variables of interest, DUSTER will automatically import all data for your cohort.
+                    Once you have specified the time frames and variable selection algorithms for the clinical variables of interest, DUSTER will automatically import all data for your cohort.
                 </p>
             </div>
             <div class="col-3"><img class="screenshot" src="<?php echo $module->getUrl("images/duster_infographic.png") ?>" height="200"  /></div>
