@@ -53,6 +53,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     public function getMetadata() {
         // build and send POST request to metadata webservice
         $metadata_url = $this->getSystemSetting("starrapi-metadata-url");
+        $metadata = [];
 
         try {
             $tokenMgnt = \ExternalModules\ExternalModules::getModuleInstance('vertx_token_manager');
@@ -84,6 +85,9 @@ class Duster extends \ExternalModules\AbstractExternalModule {
             $resp = curl_exec($curl);
             curl_close($curl);
             $resp_arr = json_decode($resp, true);
+            $metadata = $resp_arr;
+            // $metadata = $resp_arr["results"];
+            /*
             $fields_arr = $resp_arr["results"];
 
             $demographics_arr = [];
@@ -125,6 +129,8 @@ class Duster extends \ExternalModules\AbstractExternalModule {
             "scores" => $scores_arr,
             "oxygenation" => $oxygenation_arr
         );
+        */
+        }
         $this->emLog($metadata);
         return $metadata;
     }

@@ -15,7 +15,14 @@
 <!-- Our application root element -->
 <div id="app">
     <v-app>
-        <v-container>
+        <v-container
+            v-if="!metadata_loaded"
+        >
+            Retrieving metadata...
+        </v-container>
+        <v-container
+            v-if="metadata_loaded"
+        >
             <h1>DUSTER: Data Upload Service for Translational rEsearch on Redcap</h1>
 
             <v-stepper
@@ -164,7 +171,7 @@
                                             <v-row>
                                                 <v-col cols="12">
                                                     <v-text-field
-                                                        v-model="new_date.redcap_field"
+                                                        v-model="new_date.redcap_field_name"
                                                         :rules="[rules.required, checkRCFieldName]"
                                                         label="REDCap field name"
                                                         required
@@ -239,7 +246,7 @@
                                             <v-row>
                                                 <v-col cols="12">
                                                     <v-text-field
-                                                        v-model="edit_date.redcap_field"
+                                                        v-model="edit_date.redcap_field_name"
                                                         :rules="[rules.required, checkRCFieldNameEdit]"
                                                         label="REDCap field name"
                                                         required
@@ -321,6 +328,7 @@
 
                     </v-stepper-content>
 
+                    <!-- Demographics -->
                     <v-stepper-content step="2">
                             <v-card-text
                                 flat
@@ -431,7 +439,7 @@
                                                             cols="6"
                                                         >
                                                             <v-text-field
-                                                                v-model="window.instr_name"
+                                                                v-model="window.form_name"
                                                                 :rules="[rules.required, checkInstrName]"
                                                                 label="REDCap Instrument Name"
                                                                 required
@@ -501,7 +509,7 @@
 
                                                     <!-- When should this window start? -->
                                                     <v-radio-group
-                                                        v-model="window.params.start_type"
+                                                        v-model="window.timing.start_type"
                                                         label="When should this window start?"
                                                         v-show="window.type === 'nonrepeating'"
                                                     >
@@ -555,6 +563,8 @@
                                                                 v-model="window.params.start_dttm"
                                                                 :items="window_dates"
                                                                 label="Date/Datetime of Interest"
+                                                                item-text="label"
+                                                                item-value="label"
                                                                 v-show="window.type"
                                                             >
                                                             </v-select>
@@ -623,7 +633,7 @@
                                                             </template>
                                                         </v-radio>
                                                         <v-radio
-                                                            label="This window ends based on a specified date/datetime."
+                                                            label="This window ends on a specified date/datetime."
                                                             value="dttm"
                                                         >
                                                         </v-radio>
@@ -632,7 +642,7 @@
                                                     <!-- How should this data collection window be repeated? -->
                                                     <!-- Show only for repeating windows -->
                                                     <v-radio-group
-                                                        v-model="window.params.type"
+                                                        v-model="window.timing.type"
                                                         label="How should this data collection window be repeated?"
                                                         @change="resetRepeat(window)"
                                                         v-show="['finite_repeating', 'calculated_repeating'].includes(window.type)"
@@ -690,6 +700,8 @@
                                                                 v-model="window.params.end_dttm"
                                                                 :items="window_dates"
                                                                 label="End date/datetime"
+                                                                item-text="label"
+                                                                item-value="label"
                                                                 v-show="
                                                 (window.type === 'nonrepeating' && window.params.type === 'dttm')
                                                 || window.type === 'calculated_repeating'
@@ -1226,7 +1238,7 @@
                                     </v-expansion-panel-content>
                                 </v-expansion-panel>
                             </v-expansion-panels>
-                            <!-- Create a New Data Collection Window -->
+                            <!-- Create/Edit a Data Collection Window -->
                             <v-card
                                 v-show="!collection_windows.length || show_window_form == true"
                                 outlined
@@ -1271,7 +1283,7 @@
                                                     cols="6"
                                                 >
                                                     <v-text-field
-                                                        v-model="new_window.instr_name"
+                                                        v-model="window.form_name"
                                                         :rules="[rules.required, checkInstrName]"
                                                         label="REDCap Instrument Name"
                                                         required
@@ -1282,8 +1294,8 @@
 
                                             <!-- Is this data collection window repeatable (i.e., multiple instances)? -->
                                             <v-radio-group
-                                                v-model="new_window.type"
-                                                @change="resetWindowType(new_window)"
+                                                v-model="window.type"
+                                                @change="resetWindowType(window)"
                                                 :rules="[rules.required]"
                                                 required
                                                 label="Is this data collection window repeatable (i.e., multiple instances)?"
@@ -1313,9 +1325,9 @@
                                                                 cols="1"
                                                             >
                                                                 <v-text-field
-                                                                    v-model="new_window.params.num_instances"
-                                                                    :rules="new_window.type === 'finite_repeating' ? [rules.required, rules.num_instances] : []"
-                                                                    :required="new_window.type === 'finite_repeating'"
+                                                                    v-model="window.timing.num_instances"
+                                                                    :rules="window.type === 'finite_repeating' ? [rules.required, rules.num_instances] : []"
+                                                                    :required="window.type === 'finite_repeating'"
                                                                     dense
                                                                     type="number"
                                                                     min="2"
@@ -1341,9 +1353,9 @@
 
                                             <!-- When should this window start? -->
                                             <v-radio-group
-                                                v-model="new_window.params.start_type"
+                                                v-model="window.timing.start_type"
                                                 label="When should this window start?"
-                                                v-show="new_window.type === 'nonrepeating'"
+                                                v-if="window.type === 'nonrepeating'"
                                             >
                                                 <v-radio
                                                     value="dttm"
@@ -1392,21 +1404,26 @@
                                                     cols="4"
                                                 >
                                                     <v-select
-                                                        v-model="new_window.params.start_dttm"
+                                                        v-model="window.timing.start"
                                                         :items="window_dates"
+                                                        item-text="label"
+                                                        item-value="label"
+                                                        return-object
                                                         label="Date/Datetime of Interest"
-                                                        v-show="new_window.type"
+                                                        v-if="window.timing.start_type || ['finite_repeating', 'calculated_repeating'].includes(window.type)"
                                                     >
                                                     </v-select>
                                                 </v-col>
                                                 <v-col
                                                     cols="4"
-                                                    v-show="clinical_dates.includes(new_window.params.start_dttm)"
+                                                    v-if="clinical_dates.includes(window.timing.start)"
                                                 >
                                                     <v-select
-                                                        v-model="new_window.params.start_based_dttm"
+                                                        v-model="window.timing.start_based"
+                                                        :items="rp_dates"
+                                                        item-text="label"
+                                                        item-value="redcap_field_name"
                                                         label="based on"
-                                                        :items="rp_dates_arr"
                                                     >
                                                     </v-select>
                                                 </v-col>
@@ -1415,10 +1432,10 @@
                                             <!-- When should this window end? -->
                                             <!-- Show only for nonrepeating windows -->
                                             <v-radio-group
-                                                v-model="new_window.params.type"
+                                                v-model="window.timing.end_type"
                                                 label="When should this window end?"
-                                                @change="resetNonRepeatEnd(new_window)"
-                                                v-show="new_window.type === 'nonrepeating' && new_window.params.start_dttm"
+                                                @change="resetNonRepeatEnd(window)"
+                                                v-if="window.type === 'nonrepeating' && window.timing.start"
                                             >
                                                 <v-radio
                                                     value="hours"
@@ -1440,7 +1457,7 @@
                                                                 cols="1"
                                                             >
                                                                 <v-text-field
-                                                                    v-model="new_window.params.num_hours"
+                                                                    v-model="window.timing.num_hours"
                                                                     dense
                                                                     type="number"
                                                                     min="1"
@@ -1450,7 +1467,7 @@
                                                             <v-col
                                                                 cols="auto"
                                                             >
-                                                                hour(s) after the {{new_window.params.start_dttm}}.
+                                                                hour(s) after {{window.timing.start.label}}.
                                                             </v-col>
                                                         </v-row>
                                                     </template>
@@ -1459,11 +1476,11 @@
                                                     value="day"
                                                 >
                                                     <template v-slot:label>
-                                                        This window ends on 23:59 on the same calendar date of the {{new_window.params.start_dttm}}.
+                                                        This window ends on 23:59 on the same calendar date of {{window.timing.start.label}}.
                                                     </template>
                                                 </v-radio>
                                                 <v-radio
-                                                    label="This window ends based on a specified date/datetime."
+                                                    label="This window ends on a specified date/datetime."
                                                     value="dttm"
                                                 >
                                                 </v-radio>
@@ -1472,10 +1489,10 @@
                                             <!-- How should this data collection window be repeated? -->
                                             <!-- Show only for repeating windows -->
                                             <v-radio-group
-                                                v-model="new_window.params.type"
+                                                v-model="window.timing.type"
                                                 label="How should this data collection window be repeated?"
-                                                @change="resetRepeat(new_window)"
-                                                v-show="['finite_repeating', 'calculated_repeating'].includes(new_window.type)"
+                                                @change="resetRepeat(window)"
+                                                v-if="['finite_repeating', 'calculated_repeating'].includes(window.type)"
                                             >
                                                 <v-radio
                                                     value="hours"
@@ -1496,7 +1513,7 @@
                                                                 cols="1"
                                                             >
                                                                 <v-text-field
-                                                                    v-model="new_window.params.num_hours"
+                                                                    v-model="window.timing.num_hours"
                                                                     dense
                                                                     type="number"
                                                                     min="1"
@@ -1527,12 +1544,15 @@
                                                     cols="4"
                                                 >
                                                     <v-select
-                                                        v-model="new_window.params.end_dttm"
+                                                        v-model="window.timing.end"
                                                         :items="window_dates"
+                                                        item-text="label"
+                                                        item-value="label"
+                                                        return-object
                                                         label="End date/datetime"
-                                                        v-show="
-                                                (new_window.type === 'nonrepeating' && new_window.params.type === 'dttm')
-                                                || new_window.type === 'calculated_repeating'
+                                                        v-if="
+                                                (window.type === 'nonrepeating' && window.timing.end_type === 'dttm')
+                                                || window.type === 'calculated_repeating'
                                                "
                                                     >
                                                     </v-select>
@@ -1541,10 +1561,12 @@
                                                     cols="4"
                                                 >
                                                     <v-select
-                                                        v-model="new_window.params.end_based_dttm"
+                                                        v-model="window.timing.end_based"
                                                         label="based on"
-                                                        :items="rp_dates_arr"
-                                                        v-show="clinical_dates.includes(new_window.params.end_dttm)"
+                                                        item-text="label"
+                                                        item-value="redcap_field_name"
+                                                        :items="rp_dates"
+                                                        v-if="clinical_dates.includes(window.timing.end)"
                                                     >
                                                     </v-select>
                                                 </v-col>
@@ -1552,7 +1574,7 @@
                                         <v-btn
                                             color="error"
                                             type="reset"
-                                            @click="resetWindow(new_window, 'new_window_form')"
+                                            @click="resetWindow(window, 'window_form')"
                                         >
                                             Reset Timing
                                         </v-btn>
@@ -2141,12 +2163,14 @@
 <!-- Required scripts CDN -->
 <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js" crossorigin="anonymous"> </script>
 <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" crossorigin="anonymous"></script>
 
 <script>
     new Vue({
         el: '#app',
         vuetify: new Vuetify(),
         data: {
+            metadata_loaded: false,
             step: 1,
             edit_window_stepper: 1,
             review_window_stepper: 1,
@@ -2155,83 +2179,45 @@
             rp_identifier: [
                 {
                     label: "MRN",
-                    redcap_field: "mrn",
+                    redcap_field_name: "mrn",
                     format: "8-digit number (including leading zeros, e.g., '01234567')"
                 }
             ],
             rp_id_headers: [
                 {text: 'Label', value: 'label'},
-                {text: 'REDCap field name', value: 'redcap_field'},
+                {text: 'REDCap field name', value: 'redcap_field_name'},
                 {text: 'Format', value: 'format'}
             ],
             rp_dates: [
                 {
                     id: 0,
                     label: "Study Enrollment Date",
-                    redcap_field: "enroll_date",
+                    redcap_field_name: "enroll_date",
                     format: "date"
                 }
             ],
             rp_date_headers: [
                 {text: 'Label', value: 'label'},
-                {text: 'REDCap field name', value: 'redcap_field'},
+                {text: 'REDCap field name', value: 'redcap_field_name'},
                 {text: 'Format', value: 'format'},
                 {text: 'Actions', value: 'actions', sortable: false}
             ],
             new_date: {
                 id: null,
                 label: null,
-                redcap_field: null,
+                redcap_field_name: null,
                 format: null
             },
             edit_date: {
                 label: null,
-                redcap_field: null,
+                redcap_field_name: null,
                 format: null
             },
             demographics: {
-                options: [
-                    {
-                        label: "Date of Birth",
-                        redcap_field: "dob"
-                    },
-                    {
-                        label: "Year of Birth",
-                        redcap_field: "yob"
-                    },
-                    {
-                        label: "Age at Study Enrollment Date",
-                        redcap_field: "age_enroll"
-                    },
-                    {
-                        label: "Sex",
-                        redcap_field: "sex"
-                    },
-                    {
-                        label: "Race",
-                        redcap_field: "race"
-                    },
-                    {
-                        label: "Ethnicity",
-                        redcap_field: "ethnicity"
-                    },
-                    {
-                        label: "First Name",
-                        redcap_field: "fname"
-                    },
-                    {
-                        label: "Last Name",
-                        redcap_field: "lname"
-                    },
-                    {
-                        label: "Full Name",
-                        redcap_field: "name"
-                    }
-                ],
+                options: [],
                 selected: []
             },
-            collection_windows: [
-            ],
+            collection_windows: [],
             new_window: {
                 instr_name: null,
                 type: null, // nonrepeating || finite_repeating || calculated_repeating
@@ -2249,10 +2235,10 @@
                     labs_vitals: []
                 }
             },
-            new_window: {
-                instr_name: null,
+            window: {
+                form_name: null,
                 type: null, // nonrepeating || finite_repeating || calculated_repeating
-                params: {},  // params change depending on new_window's type
+                timing: {},  // changes depending on window's type
                 aggregate_defaults: {
                     min: false,
                     max: false,
@@ -2266,13 +2252,17 @@
                     labs_vitals: []
                 }
             },
+            labs: [],
+            vitals: [],
             lv_headers: [
                 {text: 'Label', value: 'label'},
                 {text: 'Aggregates', value: 'aggregates', sortable: false},
                 {text: 'Actions', value: 'actions', sortable: false}
             ],
             new_lv_obj : {
+                duster_field_name: null,
                 label: null,
+                category: null
             },
             new_date_dialog: false,
             edit_date_index: null,
@@ -2304,15 +2294,7 @@
             open_window_panel: null,
             show_window_form: false,
             delete_window_dialog: false,
-            clinical_dates: [
-                "ED Presentation Datetime",
-                "ED Discharge Datetime",
-                "Hospital Presentation Datetime",
-                "Hospital Admission Datetime",
-                "Hospital Discharge Datetime",
-                "First ICU Admission Datetime",
-                "First ICU Discharge Datetime"
-            ],
+            clinical_dates: [],
             preset_choice: null,
             preset_windows: [
                 {
@@ -2456,17 +2438,17 @@
             ],
             review_id_headers: [
                 {text: 'Label', value: 'label', sortable: false},
-                {text: 'REDCap field name', value: 'redcap_field', sortable: false},
+                {text: 'REDCap field name', value: 'redcap_field_name', sortable: false},
                 {text: 'Format', value: 'format', sortable: false}
             ],
             review_date_headers: [
                 {text: 'Label', value: 'label'},
-                {text: 'REDCap field name', value: 'redcap_field'},
+                {text: 'REDCap field name', value: 'redcap_field_name'},
                 {text: 'Format', value: 'format'}
             ],
             review_demo_headers: [
                 {text: 'Label', value: 'label'},
-                {text: 'REDCap field name', value: 'redcap_field'},
+                {text: 'REDCap field name', value: 'redcap_field_name'},
             ],
             rules: {
                 required: value => !!value || 'Required.',
@@ -2483,86 +2465,69 @@
             rp_dates_arr: function() {
                 return this.rp_dates.map(value => value.label);
             },
+            rp_dates_rcfields: function() {
+                return this.rp_dates.map(value => value.redcap_field_name);
+            },
             window_dates: function() {
-                let rp_dates_arr = this.rp_dates.map(value => value.label);
-                return this.clinical_dates.concat(rp_dates_arr);
-            },
-            labs: function() {
-              let labs_arr = [
-                  {
-                      label: "White Blood Count (WBC)"
-                  },
-                  {
-                      label: "Red Blood Cells (RBC)"
-                  },
-                  {
-                      label: "Lymphocyte Count"
-                  },
-                  {
-                      label: "Platelets"
-                  },
-                  {
-                      label: "Hematocrit (Hct)"
-                  },
-                  {
-                      label: "Hemoglobin (Hgb)"
-                  },
-                  {
-                      label: "Hemoglobin A1C (HbA1c)"
-                  },
-                  {
-                      label: "Glucose (Glu)"
-                  },
-                  {
-                      label: "Albumin"
-                  },
-                  {
-                      label: "Calcium (Ca)"
-                  },
-                  {
-                      label: "Sodium (Na)"
-                  },
-                  {
-                      label: "Creatinine (Cr)"
-                  },
-                  {
-                      label: "Potassium (K)"
-                  },
-                  {
-                      label: "Chloride (Cl)"
-                  },
-                  {
-                      label: "Blood Urea Nitrogen (BUN)"
-                  }
-              ];
-                labs_arr.sort((a, b) => {return a.label.localeCompare(b.label)});
-                return [{header: "Labs"}].concat(labs_arr);
-            },
-            vitals: function() {
-                let vitals_arr = [
-                    {
-                        label: "Heart Rate (beats per minute)"
-                    },
-                    {
-                        label: "Temperature (Celsius)"
-                    },
-                    {
-                        label: "Respiratory Rate (RR)"
-                    },
-                    {
-                        label: "Mean Arterial Pressure (MAP)"
-                    },
-                    {
-                        label: "Systolic Blood Pressure (SBP)"
-                    }
-                ];
-                vitals_arr.sort((a, b) => {return a.label.localeCompare(b.label)});
-                return [{header: "Vitals"}].concat(vitals_arr);
+                // let rp_dates_arr = this.rp_dates.map(value => value.label);
+                // return this.clinical_dates.concat(rp_dates_arr);
+                return this.clinical_dates.concat(this.rp_dates);
             },
             labs_vitals: function() {
-                let labs_vitals_arr = this.labs.concat([{divider: true}]);
-                return labs_vitals_arr.concat(this.vitals);
+                let labs_arr = this.labs;
+                labs_arr.sort((a, b) => {return a.label.localeCompare(b.label)});
+                labs_arr = [{header: "Labs"}].concat(labs_arr);
+
+                let vitals_arr = this.vitals;
+                vitals_arr.sort((a, b) => {return a.label.localeCompare(b.label)});
+                vitals_arr = [{header: "Labs"}].concat(vitals_arr);
+                let labs_vitals_arr = labs_arr.concat([{divider: true}]);
+                return labs_vitals_arr.concat(vitals_arr);
             }
+        },
+        mounted () {
+            // request metadata from STARR-API
+            axios.get("<?php echo $module->getUrl("services/callMetadata.php"); ?>").then(response => {
+                console.log(response.data);
+
+                // add demographics
+                for(const demographic of response.data.demographics) {
+                    this.demographics.options.push(
+                        {
+                            label: demographic.label,
+                            duster_field_name: demographic.duster_field_name,
+                            redcap_field_name: demographic.duster_field_name
+                        }
+                    );
+                }
+
+                // add clinical dates
+                this.clinical_dates = response.data.clinical_dates;
+
+                // add labs
+                for(const lab of response.data.labs) {
+                    this.labs.push(
+                        {
+                            duster_field_name: lab.duster_field_name,
+                            label: lab.label,
+                            category: lab.category
+                        }
+                    );
+                }
+
+                // add vitals
+                for(const vital of response.data.vitals) {
+                    this.vitals.push(
+                        {
+                            duster_field_name: vital.duster_field_name,
+                            label: vital.label,
+                            category: vital.category
+                        }
+                    );
+                }
+
+                this.metadata_loaded = true;
+            });
         },
         methods: {
             backStep() {
@@ -2588,7 +2553,7 @@
                 this.new_date = {
                     id: null,
                     label: null,
-                    redcap_field: null,
+                    redcap_field_name: null,
                     format: null
                 };
                 this.$refs.date_form.resetValidation();
@@ -2611,7 +2576,7 @@
                 this.edit_date = {
                     id: null,
                     label: null,
-                    redcap_field: null,
+                    redcap_field_name: null,
                     format: null
                 };
                 this.$refs.edit_date_form.resetValidation();
@@ -2645,7 +2610,31 @@
                 }
             },
             resetNonRepeat(window) {
-                window.params = {
+                window.timing = {
+                    start_type: null,
+                    start: null,
+                    start_based: this.rp_dates[0].redcap_field_name,
+                    end_type: null,
+                    num_hours: null,
+                    end: null,
+                    end_based: this.rp_dates[0].redcap_field_name
+                    /*
+                    start: {
+                        type: null, // || date || dttm
+                        duster_field_name: null,
+                        redcap_field_name: null,
+                        based_on: null,
+                        label: null
+                    },
+                    end: {
+                        type: null,
+                        num_hours: null,
+                        duster_field_name: null,
+                        redcap_field_name: null,
+                        based_on: null,
+                        label: null
+                    }
+                    /*
                     type: null, // hours || day || dttm
                     num_hours: null, // number of hours when type is hours
                     start_type: null, // dttm || date
@@ -2653,9 +2642,18 @@
                     start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
                     end_dttm: null, // end date/datetime when applicable
                     end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                    */
                 };
             },
             resetFiniteRepeat(window) {
+                window.timing = {
+                    type: null, // hours || days
+                    num_hours: null, // number of hours when type is 'hours'
+                    num_instances: null, // number of instances
+                    start: null,
+                    start_based: this.rp_dates[0].redcap_field_name
+                };
+                /*
                 window.params = {
                     type: null, // hours || days
                     num_hours: null, // number of hours when type is 'hours'
@@ -2663,28 +2661,60 @@
                     start_dttm: null, // start date/datetime
                     start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
                 }
+                */
             },
             resetCalculatedRepeat(window) {
-                window.params = {
+                window.timing = {
                     type: null, // hours || days
                     num_hours: null, // number of hours when type is 'hours'
+                    start: null,
+                    start_based: this.rp_dates[0].redcap_field_name,
+                    end: null,
+                    end_based: this.rp_dates[0].redcap_field_name
+                    /*
+                    num_hours: null, // number of hours when type is 'hours'
                     start_dttm: null, // start date/datetime
-                    start_based_dttm: "Study Enrollment Date", // required when end_dttm is based on a clinical date
+                    start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
                     end_dttm: null, // end date/datetime when applicable
                     end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
-                }
+                    */
+                };
             },
             resetNonRepeatEnd(window) {
+                window.timing.end = null;
+                window.timing.end_based = this.rp_dates[0].redcap_field_name;
+                if(window.timing.end_type !== 'hours') {
+                    window.timing.num_hours = null;
+                }
+                /*
+                    type: null,
+                    num_hours: null,
+                    duster_field_name: null,
+                    redcap_field_name: null,
+                    based_on: null,
+                    label: null
+                };
+                /*
                 window.params.num_hours = null;
                 window.params.end_dttm = null;
                 window.params.end_based_dttm = "Study Enrollment Date";
+                */
             },
             resetRepeat(window) {
+                if(window.timing.type !== 'hours') {
+                    window.timing.num_hours = null;
+                }
+                if(window.type !== 'calculated_repeating') {
+                    window.timing.end = null;
+                    window.timing.end_based = this.rp_dates[0].redcap_field_name;
+                }
+                /*
                 window.params.num_hours = null;
                 if (window.type === 'calculated_repeating') {
                     window.params.end_dttm = null;
                     window.params.end_based_dttm = "Study Enrollment Date";
                 }
+                */
             },
             // checks if the entered REDCap Label already exists
             checkRCLabel(label) {
@@ -2710,7 +2740,7 @@
                 if (!/^\w+$/.test(field)) {
                     return 'ONLY letters, numbers, and underscores.';
                 }
-                let fields_arr = this.rp_dates.map(value => value.redcap_field);
+                let fields_arr = this.rp_dates.map(value => value.redcap_field_name);
                 // TODO this needs to check all REDCap field names, not just what's in dates
                 if (fields_arr.includes(field)) {
                     return 'Enter another field name. This field name is already taken.';
@@ -2725,14 +2755,14 @@
                 }
                 let fields_arr = this.rp_dates.map(value => value.redcap_field);
                 // TODO this needs to check all REDCap field names, not just what's in dates
-                if (fields_arr.includes(field) && field !== this.rp_dates[this.edit_date_index].redcap_field) {
+                if (fields_arr.includes(field) && field !== this.rp_dates[this.edit_date_index].redcap_field_name) {
                     return 'Enter another field name. This field name is already taken.';
                 }
                 return true;
             },
             // checks if the entered REDCap instrument name already exists
             checkInstrName(name) {
-                let names_arr = this.collection_windows.map(value => value.instr_name);
+                let names_arr = this.collection_windows.map(value => value.form_name);
                 names_arr = names_arr.concat(['Identifiers', 'Researcher-Provided Info', 'Demographics'])
                 if (names_arr.includes(name)) {
                     return 'Enter another name. This name is already used by another data collection window or other REDCap Instrument DUSTER will create by default.';
@@ -2741,11 +2771,11 @@
             },
             isValidTiming() {
                 // this.$refs.date_form.validate();
-                if (this.new_window.type === 'nonrepeating') {
+                if (this.window.type === 'nonrepeating') {
                     return this.isValidNonRepeat();
-                } else if (this.new_window.type === 'finite_repeating') {
+                } else if (this.window.type === 'finite_repeating') {
                     return this.isValidFiniteRepeat();
-                } else if (this.new_window.type === 'calculated_repeating') {
+                } else if (this.window.type === 'calculated_repeating') {
                     return this.isValidCalcRepeat();
                 }
                 return false;
@@ -2754,21 +2784,21 @@
             // checks validity/completeness of a data collection window form's timing when type is 'nonrepeating'
             isValidNonRepeat() {
                 // verify type is 'nonrepeating'
-                if (this.new_window.type === 'nonrepeating') {
+                if (this.window.type === 'nonrepeating') {
                     // check if start_dttm is a clinical window and start_based_dttm is a researcher-provided date
                     // or if start_dttm is a researcher-provided date/datetime
-                    if ((this.clinical_dates.includes(this.new_window.params.start_dttm)
-                            && this.rp_dates_arr.includes(this.new_window.params.start_based_dttm))
-                        || this.rp_dates_arr.includes(this.new_window.params.start_dttm)) {
-
-                        // check this nonrepeating window's type and ending parameters
-                        if ((this.new_window.params.type === 'hours' && this.new_window.params.num_hours > 0)
-                            || this.new_window.params.type === 'day') {
+                    if (['date', 'dttm'].includes(this.window.timing.start_type)
+                        && ((this.clinical_dates.includes(this.window.timing.start)
+                                && this.rp_dates_rcfields.includes(this.window.timing.start_based))
+                            || this.rp_dates.includes(this.window.timing.start))) {
+                        // check this nonrepeating window's ending parameters
+                        if ((this.window.timing.end_type === 'hours' && this.window.timing.num_hours > 0)
+                            || this.window.timing.end_type === 'day') {
                             return true;
-                        } else if (this.new_window.params.type === 'dttm') {
-                            if ((this.clinical_dates.includes(this.new_window.params.end_dttm)
-                                    && this.rp_dates_arr.includes(this.new_window.params.end_based_dttm))
-                                || this.rp_dates_arr.includes(this.new_window.params.end_dttm)) {
+                        } else if (this.window.timing.end_type === 'dttm') {
+                            if ((this.clinical_dates.includes(this.window.timing.end)
+                                    && this.rp_dates_rcfields.includes(this.window.timing.end_based))
+                                || this.rp_dates.includes(this.window.timing.end)) {
                                 return true;
                             }
                         }
@@ -2780,17 +2810,17 @@
             // checks validity/completeness of a data collection window form's timing when type is 'finite_repeating'
             isValidFiniteRepeat() {
                 // verify type is 'finite_repeating'
-                if (this.new_window.type === 'finite_repeating') {
+                if (this.window.type === 'finite_repeating') {
                     // check number of instances > 1
-                    if (this.new_window.params.num_instances > 1) {
+                    if (this.window.timing.num_instances > 1) {
                         // check if start_dttm is a clinical window and start_based_dttm is a researcher-provided date
                         // or if start_dttm is a researcher-provided date/datetime
-                        if ((this.clinical_dates.includes(this.new_window.params.start_dttm)
-                                && this.rp_dates_arr.includes(this.new_window.params.start_based_dttm))
-                            || this.rp_dates_arr.includes(this.new_window.params.start_dttm)) {
+                        if ((this.clinical_dates.includes(this.window.timing.start)
+                                && this.rp_dates_rcfields.includes(this.window.timing.start_based))
+                            || this.rp_dates.includes(this.window.timing.start)) {
                             // check configuration for how instances will be repeated
-                            if ((this.new_window.params.type === 'hours' && this.new_window.params.num_hours > 0)
-                                || this.new_window.params.type === 'days') {
+                            if ((this.window.timing.type === 'hours' && this.window.timing.num_hours > 0)
+                                || this.window.timing.type === 'days') {
                                 return true;
                             }
                         }
@@ -2802,20 +2832,20 @@
             // checks validity/completeness of a data collection window form's timing when type is 'calculated_repeating'
             isValidCalcRepeat() {
                 // verify type is 'calculated_repeating'
-                if (this.new_window.type === 'calculated_repeating') {
+                if (this.window.type === 'calculated_repeating') {
                     // check if start_dttm is a clinical window and start_based_dttm is a researcher-provided date
                     // or if start_dttm is a researcher-provided date/datetime
-                    if ((this.clinical_dates.includes(this.new_window.params.start_dttm)
-                            && this.rp_dates_arr.includes(this.new_window.params.start_based_dttm))
-                        || this.rp_dates_arr.includes(this.new_window.params.start_dttm)) {
+                    if ((this.clinical_dates.includes(this.window.timing.start)
+                            && this.rp_dates_rcfields.includes(this.window.timing.start_based))
+                        || this.rp_dates.includes(this.window.timing.start)) {
                         // check if end_dttm is a clinical window and end_based_dttm is a researcher-provided date
                         // or if end_dttm is a researcher-provided date/datetime
-                        if ((this.clinical_dates.includes(this.new_window.params.end_dttm)
-                                && this.rp_dates_arr.includes(this.new_window.params.end_based_dttm))
-                            || this.rp_dates_arr.includes(this.new_window.params.end_dttm)) {
+                        if ((this.clinical_dates.includes(this.window.timing.end)
+                                && this.rp_dates_rcfields.includes(this.window.timing.end_based))
+                            || this.rp_dates.includes(this.window.timing.end)) {
                             // check configuration for how instances will be repeated
-                            if ((this.new_window.params.type === 'hours' && this.new_window.params.num_hours > 0)
-                                || this.new_window.params.type === 'days') {
+                            if ((this.window.timing.type === 'hours' && this.window.timing.num_hours > 0)
+                                || this.window.timing.type === 'days') {
                                 return true;
                             }
                         }
@@ -2858,9 +2888,9 @@
             },
             saveCollectionWindowForm() {
                 // check if default aggregates are set if needed
-                if (this.checkDefaultAgg(this.new_window)) {
-                    this.collection_windows.push(JSON.parse(JSON.stringify(this.new_window)));
-                    this.resetWindow('new_window', 'new_window_form');
+                if (this.checkDefaultAgg(this.nwindow)) {
+                    this.collection_windows.push(JSON.parse(JSON.stringify(this.window)));
+                    this.resetWindow('window', 'window_form');
                 } else {
                     this.alert_default_agg = true;
                 }
@@ -2872,9 +2902,9 @@
             },
             resetWindow(window, ref) {
                 this[window] = JSON.parse(JSON.stringify({
-                    instr_name: null,
+                    form_name: null,
                     type: null, // nonrepeating || finite_repeating || calculated_repeating
-                    params: {},  // params change depending on new_window's type
+                    timing: {},  // params change depending on new_window's type
                     aggregate_defaults: {
                         min: false,
                         max: false,
@@ -2891,7 +2921,6 @@
                 this.show_window_form = false;
                 this.window_stepper = 1;
                 this.$refs[ref].resetValidation();
-                console.log("reset ref");
             },
             canAggStart() {
                 return this.new_window.type == 'nonrepeating';
@@ -2905,7 +2934,9 @@
                 this.alert_lv_label = this.new_lv_obj.label;
                 if (!this.new_window.data.labs_vitals.map(value => value.label).includes(this.new_lv_obj.label)) {
                     this.new_window.data.labs_vitals.push(JSON.parse(JSON.stringify({
+                        duster_field_name: this.new_lv_obj.duster_field_name,
                         label: this.new_lv_obj.label,
+                        category: this.new_lv_obj.category,
                         aggregates: {
                             default: true,
                             min: false,
@@ -2922,7 +2953,9 @@
                     this.alert_lv_error = true;
                 }
                 this.new_lv_obj = {
-                    label: null
+                    duster_field_name: null,
+                    label: null,
+                    category: null
                 };
             },
             editLV(obj) {
@@ -2936,7 +2969,9 @@
                 }
                 this.edit_lv_index = null;
                 this.edit_lv_obj = {
+                    duster_field_name: null,
                     label: null,
+                    category: null,
                     aggregates: {
                         default: true,
                         min: false,
