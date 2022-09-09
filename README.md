@@ -56,12 +56,12 @@ To enable the EM on your local REDCap server:
 ### Required System-Level Configuration
 #### STARR-API Metadata Webservice URL
 Until DUSTER's STARR-API backend goes into production, this URL should point to your local STARR-API deployment's endpoint for getting DUSTER's metadata.
-The URL pathname is `/duster/api/v1/getMetadata`.
+The URL pathname is `/duster/api/v1/metadata`.
 >##### Example
 >My local STARR-API server listens at `http://127.0.0.1:8889` or `http://localhost:8889`.
-Therefore, the endpoint URL should be `http://127.0.0.1:8889/duster/api/v1/getMetadata` or `http://localhost:8889/duster/api/v1/getMetadata`.
+Therefore, the endpoint URL should be `http://127.0.0.1:8889/duster/api/v1/metadata` or `http://localhost:8889/duster/api/v1/metadata`.
 However, my local REDCap's server resides in a Docker container so `localhost` in the REDCap server's perspective refers to the Docker container, not the host machine.
-Thus, in order for my local REDCap server to correctly point to my local STARR-API server's metadata endpoint, I use `http://host.docker.internal:8889/duster/api/v1/getMetadata`.
+Thus, in order for my local REDCap server to correctly point to my local STARR-API server's metadata endpoint, I use `http://host.docker.internal:8889/duster/api/v1/metadata`.
 
 #### STARR-API Config Webservice URL
 Until DUSTER's STARR-API backend goes into production, this URL should point to your local STARR-API deployment's endpoint for saving a DUSTER project config in starrapi db.

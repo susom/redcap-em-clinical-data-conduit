@@ -51,7 +51,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     }
 
     public function getMetadata() {
-        // build and send POST request to metadata webservice
+        // build and send GET request to metadata webservice
         $metadata_url = $this->getSystemSetting("starrapi-metadata-url");
         $metadata = [];
 
@@ -65,23 +65,13 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         if($token !== false) {
             $curl = curl_init($metadata_url);
             curl_setopt($curl, CURLOPT_URL, $metadata_url);
-            curl_setopt($curl, CURLOPT_POST, true);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
             $headers = array(
                 "Accept: application/json",
                 "Content-Type: application/json",
                 "Authorization: Bearer " . $token
             );
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-
-            $data = <<<DATA
-                    {
-                    }
-                    DATA;
-
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-
             $resp = curl_exec($curl);
             curl_close($curl);
             $resp_arr = json_decode($resp, true);
