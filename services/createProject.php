@@ -197,7 +197,7 @@ if($delete_token) {
 }
 
 /* send POST request to DUSTER's config route in STARR-API */
-/*
+
 // Retrieve the data URL that is saved in the config file
 $config_url = $module->getSystemSetting("starrapi-config-url");
 
@@ -240,6 +240,6 @@ $result = curl_exec($ch);
 
 // Close cURL resource
 curl_close($ch);
-*/
+
 echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
 ?>

@@ -3257,6 +3257,7 @@
                 axios.post("<?php echo $module->getUrl("services/createProject.php"); ?>", formData)
                     .then(function(response){
                         console.log(response.data);
+                        window.location.href = response.data;
                     })
                     .catch(function(error) {
                         console.log(error);

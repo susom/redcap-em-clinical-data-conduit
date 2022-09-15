@@ -107,7 +107,7 @@ This is because REDCap projects using the DUSTER EM have their DUSTER configurat
 - Authorization: Bearer (using 'ddp' token via Vertx Token Lookup EM)
 - Content-Type: application/json
 - POST parameters
-  - `redcap_project_id` (string)
+  - `redcap_project_id` (integer)
     - The REDCap project ID (i.e., REDCap pid)
   - `cohort` (array of objects)
     - Contains the cohort information provided by the researcher in their REDCap project
@@ -125,7 +125,7 @@ This is because REDCap projects using the DUSTER EM have their DUSTER configurat
 ##### Example of JSON body sent as part of a data web service request
 ```
 {
-    "redcap_project_id":"1",
+    "redcap_project_id": 1,
     "cohort": [
         {
             "redcap_record_id": "1",
