@@ -1471,6 +1471,7 @@
                         <v-btn
                             color="secondary"
                             class="mb-4"
+                            @click="instruments = instruments.length > 0 ? [] : Array.from(Array(2 + config.collection_windows.length).keys())"
                         >
                             {{ instruments.length > 0 ? 'Collapse all instruments' : 'Expand all instruments'}}
                         </v-btn>
@@ -1626,6 +1627,7 @@
                 <v-btn
                     color="primary"
                     @click="nextStep"
+                    v-show="step < 4"
                 >
                     Next >
                 </v-btn>
@@ -1669,6 +1671,7 @@
             review_window_stepper: 1,
             window_stepper: 1,
             dialog: false,
+            instruments: [],
             rp_identifiers: [
                 {
                     label: "MRN",
@@ -2126,7 +2129,7 @@
             }
         },
         computed: {
-            //
+            /*
             instruments: {
                 get: function() {
                     return Array.from(Array(2 + this.config.collection_windows.length).keys());
@@ -2134,6 +2137,7 @@
                 set: function() {
                 }
             },
+             */
             config: {
                 get: function() {
                     let config = {
@@ -2492,7 +2496,7 @@
                 if (this.step < 4) {
                     this.step += 1;
                     if(this.step == 4) {
-                       // this.createConfigCollectionWindows();
+                        this.instruments = Array.from(Array(2 + this.config.collection_windows.length).keys());
                     }
                 }
 

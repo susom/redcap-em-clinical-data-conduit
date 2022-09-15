@@ -182,7 +182,7 @@ $sql = "
         ";
 $q = db_query($sql);
 // TODO consider revising error handling here when using createQuery() above
-if (!$q || db_affected_rows() != 1) {
+if (!$q) {
     print db_error();
     queryFail($sql);
 }
