@@ -121,7 +121,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         );
         */
         }
-        $this->emLog($metadata);
+        // $this->emLog($metadata);
         return $metadata;
     }
 

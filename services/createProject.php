@@ -43,12 +43,17 @@ unset($_POST['purpose']);
 // $odm = $_POST['odm'];
 
 /* get JSON from POST request */
-$json = file_get_contents('php://input');
-$data = json_decode($json);
+// $json = file_get_contents('php://input');
+$json = $_POST['data'];
+// $module->emLog($json);
+$data = json_decode($json, true);
+// $module->emLog($data);
 
 /* construct the ODM XML string */
-$odm = new OdmXmlString($data['app_title'], $data['purpose'], $data['purpose_other'], $data['project_notes']);
+$odm = new OdmXmlString($data['app_title'], $data['purpose'], $data['purpose_other'], $data['project_note']);
 $config = $data['config'];
+$module->emLog($config["rp_info"]["rp_identifiers"]);
+$module->emLog($config["rp_info"]["rp_dates"]);
 // Researcher-Provided Information
 if(array_key_exists("rp_info", $config)) {
     $rp_form_name = "researcher_provided_information";
@@ -57,8 +62,13 @@ if(array_key_exists("rp_info", $config)) {
     // add fields for identifiers
     $odm->addFields($rp_form_name, null, null, "Identifiers", $config["rp_info"]["rp_identifiers"]);
     // add fields for dates
-    $odm->addFields($rp_form_name, null, null, "Dates", $config["rp_info"]["rp_dates"]);
+    $dates_arr = [];
+    foreach($config["rp_info"]["rp_dates"] as $date) {
+        $dates_arr[] = $date;
+    }
+    $odm->addFields($rp_form_name, null, null, "Dates", $dates_arr);
 }
+
 // Demographics
 if(array_key_exists("demographics", $config)) {
     $demo_form_name = "demographics";
@@ -66,18 +76,20 @@ if(array_key_exists("demographics", $config)) {
     $odm->addForm($demo_form_name, $demo_form_label);
     $odm->addFields($demo_form_name, null, null, "", $config["demographics"]);
 }
+
 // Clinical Windows
-if(array_key_exists("clinical_windows", $config)) {
-    foreach($config["clinical_windows"] as $clinical_window) {
+if(array_key_exists("collection_windows", $config)) {
+    $module->emLog($config['collection_windows']);
+    foreach($config["collection_windows"] as $collection_window) {
         // add form
-        $odm->addForm($clinical_window["form_name"], $clinical_window["label"]);
+        $odm->addForm($collection_window["form_name"], $collection_window["label"]);
         // add timing fields with its own section header
-        $timing_fields_arr = [$clinical_window["timing"]["start"], $clinical_window["timing"]["end"]];
-        $odm->addFields($clinical_window["form_name"], null, null, "Timing", $timing_fields_arr);
+        $timing_fields_arr = [$collection_window["timing"]["start"], $collection_window["timing"]["end"]];
+        $odm->addFields($collection_window["form_name"], null, null, "Timing", $timing_fields_arr);
         // add labs with its own section header
-        $odm->addFields($clinical_window["form_name"], null, null, "Labs", $clinical_window["data"]["labs"]);
+        $odm->addFields($collection_window["form_name"], null, null, "Labs", $collection_window["data"]["labs"]);
         // add vitals with its own section header
-        $odm->addFields($clinical_window["form_name"], null, null, "Vitals", $clinical_window["data"]["vitals"]);
+        $odm->addFields($collection_window["form_name"], null, null, "Vitals", $collection_window["data"]["vitals"]);
     }
 }
 
@@ -185,7 +197,7 @@ if($delete_token) {
 }
 
 /* send POST request to DUSTER's config route in STARR-API */
-
+/*
 // Retrieve the data URL that is saved in the config file
 $config_url = $module->getSystemSetting("starrapi-config-url");
 
@@ -228,6 +240,6 @@ $result = curl_exec($ch);
 
 // Close cURL resource
 curl_close($ch);
-
+*/
 echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
 ?>

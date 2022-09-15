@@ -83,7 +83,7 @@ class OdmXmlString {
                 // add fields to the item group and its unique field name to the project's list of fields
                 foreach ($fields_arr as $field) {
                     if (!in_array($field["redcap_field_name"], $this->fields)) {
-                        $this->forms[$form_name]["item_groups"][$item_group_name]["items"] = $field;
+                        $this->forms[$form_name]["item_groups"][$item_group_name]["items"][] = $field;
                         $this->fields[] = $field["redcap_field_name"];
                     }
                 }
@@ -150,9 +150,9 @@ class OdmXmlString {
                     // add field to item def string
                     $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"text\"{$section_header}>\n"
                                . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
-                               .  "\t</ItemDef>\n";
+                               . "\t</ItemDef>\n";
                     // add field to item group string
-                    $item_group_def .= "\t<ItemRef ItemOID=\"{$field["redcap_field_name"]}\" Mandatory=\"No\" redcap:Variable=\"{$field["redcap_field_name"]}\"/>\n";
+                    $item_group_def .= "\t\t<ItemRef ItemOID=\"{$field["redcap_field_name"]}\" Mandatory=\"No\" redcap:Variable=\"{$field["redcap_field_name"]}\"/>\n";
                     $section_header = "";
                 }
                 // closing tag to item group string

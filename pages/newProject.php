@@ -24,6 +24,7 @@
             v-if="metadata_loaded"
         >
             <h1>DUSTER: Data Upload Service for Translational rEsearch on Redcap</h1>
+            </v-form>
 
             <v-stepper
                 v-model="step"
@@ -88,7 +89,7 @@
                             <v-card-subtitle><h1>Identifier</h1></v-card-subtitle>
                             <v-data-table
                                 :headers="rp_id_headers"
-                                :items="rp_identifier"
+                                :items="rp_identifiers"
                                 item-key="label"
                                 fixed-header
                                 dense
@@ -380,7 +381,7 @@
 
                         <v-card>
                             <v-card-subtitle
-                               v-show="collection_windows.length"
+                                v-show="collection_windows.length"
                             >
                                 <h1>Data Collection Windows</h1>
                             </v-card-subtitle>
@@ -394,792 +395,203 @@
                                     :key="i"
                                 >
                                     <v-expansion-panel-header>
-                                        {{window.instr_name}}
+                                        {{window.label}}
                                     </v-expansion-panel-header>
                                     <v-expansion-panel-content>
-                                        <v-card-subtitle><h1>Collection Window: {{edit_window_index === i ? 'Editing' : 'View-Only'}}</h1></v-card-subtitle>
 
-                                        <v-stepper
-                                            v-model="edit_window_stepper"
-                                            vertical
-                                        >
-                                            <v-stepper-step
-                                                :complete="edit_window_stepper > 1"
-                                                step="1"
-                                                editable
-                                            >
-                                                {{edit_window_index === i ? 'Set ' : ''}}Timing
-                                            </v-stepper-step>
+                                        <v-card outlined>
+                                            <v-row>
+                                                <v-col>
+                                                    <!-- Display timing -->
+                                                    <v-card outlined>
+                                                        <v-card-title>Timing</v-card-title>
 
-                                            <v-stepper-content step="1">
-
-                                                <v-form
-                                                    :ref="'edit_window_form_' + i"
-                                                    :readonly="edit_window_index !== i"
-                                                >
-                                                    <!-- Preset windows -->
-                                                    <v-row>
-                                                        <v-col
-                                                            cols="6"
+                                                        <!-- Display timing for nonrepeating data collection windows -->
+                                                        <v-card-text
+                                                            v-if="window.type === 'nonrepeating'"
                                                         >
-                                                            <v-select
-                                                                v-model="preset_choice"
-                                                                :items="preset_windows"
-                                                                @change="setPreset(preset_choice)"
-                                                                label="Presets"
-                                                                v-show="edit_window_index === i"
+
+                                                            <!-- Display starting parameter for nonrepeating data collection windows -->
+                                                            <p>
+                                                                Start: {{window.timing.start_type === 'date' ? 'At 00:00:00 on ' : ''}} {{window.timing.start.label}}
+                                                            </p>
+
+                                                            <!-- Display ending parameter for nonrepeating data collection windows -->
+                                                            <p
+                                                                v-if="window.timing.end_type === 'hours'"
                                                             >
-                                                            </v-select>
-                                                        </v-col>
-                                                    </v-row>
-
-                                                    <!-- REDCap Instrument Name -->
-                                                    <v-row>
-                                                        <v-col
-                                                            cols="6"
-                                                        >
-                                                            <v-text-field
-                                                                v-model="window.form_name"
-                                                                :rules="[rules.required, checkInstrName]"
-                                                                label="REDCap Instrument Name"
-                                                                required
+                                                                End: {{window.timing.num_hours}} hours after {{window.timing.start.label}}
+                                                            </p>
+                                                            <p
+                                                                v-else-if="window.timing.end_type === 'day'"
                                                             >
-                                                            </v-text-field>
-                                                        </v-col>
-                                                    </v-row>
-
-                                                    <!-- Is this data collection window repeatable (i.e., multiple instances)? -->
-                                                    <v-radio-group
-                                                        v-model="window.type"
-                                                        @change="resetWindowType(window)"
-                                                        :rules="[rules.required]"
-                                                        required
-                                                        label="Is this data collection window repeatable (i.e., multiple instances)?"
-                                                    >
-                                                        <v-radio
-                                                            label="No"
-                                                            value="nonrepeating"
-                                                        >
-                                                        </v-radio>
-                                                        <v-radio
-                                                            value="finite_repeating"
-                                                        >
-                                                            <template v-slot:label>
-                                                                <v-row
-                                                                    align="center"
-                                                                    no-gutters
-                                                                >
-                                                                    <v-col
-                                                                        class="pr-1"
-                                                                        cols="auto"
-                                                                    >
-                                                                        Yes, each record will have
-                                                                    </v-col>
-                                                                    <v-col
-                                                                        class="pr-1"
-                                                                        sm="1"
-                                                                        cols="1"
-                                                                    >
-                                                                        <v-text-field
-                                                                            v-model="window.params.num_instances"
-                                                                            :rules="window.type === 'finite_repeating' ? [rules.required, rules.num_instances] : []"
-                                                                            :required="window.type === 'finite_repeating'"
-                                                                            dense
-                                                                            type="number"
-                                                                            min="2"
-                                                                        >
-                                                                        </v-text-field>
-                                                                    </v-col>
-                                                                    <v-col
-                                                                        cols="auto"
-                                                                    >
-                                                                        consecutive instances of this data collection window.
-                                                                    </v-col>
-                                                                </v-row>
-                                                            </template>
-                                                        </v-radio>
-                                                        <v-radio
-                                                            value="calculated_repeating"
-                                                        >
-                                                            <template v-slot:label>
-                                                                <div>Yes, each record will have a calculated number of consecutive instances based on specified conditions below.</div>
-                                                            </template>
-                                                        </v-radio>
-                                                    </v-radio-group>
-
-                                                    <!-- When should this window start? -->
-                                                    <v-radio-group
-                                                        v-model="window.timing.start_type"
-                                                        label="When should this window start?"
-                                                        v-show="window.type === 'nonrepeating'"
-                                                    >
-                                                        <v-radio
-                                                            value="dttm"
-                                                        >
-                                                            <template v-slot:label>
-                                                                <v-row
-                                                                    align="center"
-                                                                    no-gutters
-                                                                >
-                                                                    <v-col
-                                                                        class="pr-1"
-                                                                        cols="auto"
-                                                                    >
-                                                                        At a specified Date/Datetime of Interest.
-                                                                    </v-col>
-                                                                    <v-col
-
-                                                                    >
-                                                                        <v-tooltip bottom>
-                                                                            <template v-slot:activator="{ on, attrs }">
-                                                                                <v-icon
-                                                                                    color="primary"
-                                                                                    dark
-                                                                                    v-bind="attrs"
-                                                                                    v-on="on"
-                                                                                >
-                                                                                    mdi-information-outline
-                                                                                </v-icon>
-                                                                            </template>
-                                                                            <span>If the specified Date of Interest is not a Datetime, 00:00 will be used.</span>
-                                                                        </v-tooltip>
-                                                                    </v-col>
-                                                                </v-row>
-                                                            </template>
-                                                        </v-radio>
-                                                        <v-radio
-                                                            label="At 00:00 on a specified Date/Datetime of Interest."
-                                                            value="date"
-                                                        >
-                                                        </v-radio>
-                                                    </v-radio-group>
-
-                                                    <!-- Start date/datetime input of data collection window -->
-                                                    <v-row>
-                                                        <v-col
-                                                            cols="4"
-                                                        >
-                                                            <v-select
-                                                                v-model="window.params.start_dttm"
-                                                                :items="window_dates"
-                                                                label="Date/Datetime of Interest"
-                                                                item-text="label"
-                                                                item-value="label"
-                                                                v-show="window.type"
+                                                                End: At 23:59:00 on {{window.timing.start.label}}
+                                                            </p>
+                                                            <p
+                                                                v-else-if="window.timing.end_type === 'dttm'"
                                                             >
-                                                            </v-select>
-                                                        </v-col>
-                                                        <v-col
-                                                            cols="4"
-                                                            v-show="clinical_dates.includes(window.params.start_dttm)"
+                                                                End: {{window.timing.end.label}}
+                                                            </p>
+                                                        </v-card-text>
+
+                                                        <!-- Display timing for finite repeating collection windows -->
+                                                        <v-card-text
+                                                            v-else-if="window.type === 'finite_repeating'"
                                                         >
-                                                            <v-select
-                                                                v-model="window.params.start_based_dttm"
-                                                                label="based on"
-                                                                :items="rp_dates_arr"
+                                                            <p>
+                                                                This data collection window repeats for {{window.timing.num_instances}} consecutive {{window.timing.type === 'hours' ? window.timing.num_hours + '-hour instances.' : 'calendar day instances.'}}<br>
+                                                                The first instance begins at {{window.timing.start.label}}.<br>
+                                                                Each instance ends {{window.timing.type === 'hours' ? window.timing.num_hours + ' hours after it begins.' : 'at 23:59:00 on the calendar day it begins.'}}<br>
+                                                            </p>
+
+                                                        </v-card-text>
+
+                                                        <!-- Display timing for calculated repeating collection windows -->
+                                                        <v-card-text
+                                                            v-else-if="window.type === 'calculated_repeating'"
+                                                        >
+                                                            <p>
+                                                                This data collection window repeats for consecutive {{window.timing.type === 'hours' ? '-hour instances.' : 'calendar day instances.'}}<br>
+                                                                The first instance begins at {{window.timing.start.label}}.<br>
+                                                                Each instance ends {{window.timing.type === 'hours' ? window.timing.num_hours + ' hours after it begins.' : 'at 23:59:00 on the calendar day it begins.'}}<br>
+                                                                The last instance ends at {{window.timing.end.label}}.<br>
+                                                            </p>
+                                                        </v-card-text>
+                                                    </v-card>
+                                                </v-col>
+                                            </v-row>
+                                            <v-row>
+                                                <v-col>
+                                                    <v-card outlined>
+                                                        <v-card-subtitle>Default Aggregates</v-card-subtitle>
+                                                        <v-card-text>
+                                                            <v-chip
+                                                                v-if="window.aggregate_defaults.min == true"
                                                             >
-                                                            </v-select>
-                                                        </v-col>
-                                                    </v-row>
-
-                                                    <!-- When should this window end? -->
-                                                    <!-- Show only for nonrepeating windows -->
-                                                    <v-radio-group
-                                                        v-model="window.params.type"
-                                                        label="When should this window end?"
-                                                        @change="resetNonRepeatEnd(window)"
-                                                        v-show="window.type === 'nonrepeating' && window.params.start_dttm"
-                                                    >
-                                                        <v-radio
-                                                            value="hours"
-                                                        >
-                                                            <template v-slot:label>
-                                                                <v-row
-                                                                    align="center"
-                                                                    no-gutters
-                                                                >
-                                                                    <v-col
-                                                                        class="pr-1"
-                                                                        cols="auto"
-                                                                    >
-                                                                        This window ends
-                                                                    </v-col>
-                                                                    <v-col
-                                                                        class="pr-1"
-                                                                        sm="1"
-                                                                        cols="1"
-                                                                    >
-                                                                        <v-text-field
-                                                                            v-model="window.params.num_hours"
-                                                                            dense
-                                                                            type="number"
-                                                                            min="1"
-                                                                        >
-                                                                        </v-text-field>
-                                                                    </v-col>
-                                                                    <v-col
-                                                                        cols="auto"
-                                                                    >
-                                                                        hour(s) after the {{window.params.start_dttm}}.
-                                                                    </v-col>
-                                                                </v-row>
-                                                            </template>
-                                                        </v-radio>
-                                                        <v-radio
-                                                            value="day"
-                                                        >
-                                                            <template v-slot:label>
-                                                                This window ends on 23:59 on the same calendar date of the {{window.params.start_dttm}}.
-                                                            </template>
-                                                        </v-radio>
-                                                        <v-radio
-                                                            label="This window ends on a specified date/datetime."
-                                                            value="dttm"
-                                                        >
-                                                        </v-radio>
-                                                    </v-radio-group>
-
-                                                    <!-- How should this data collection window be repeated? -->
-                                                    <!-- Show only for repeating windows -->
-                                                    <v-radio-group
-                                                        v-model="window.timing.type"
-                                                        label="How should this data collection window be repeated?"
-                                                        @change="resetRepeat(window)"
-                                                        v-show="['finite_repeating', 'calculated_repeating'].includes(window.type)"
-                                                    >
-                                                        <v-radio
-                                                            value="hours"
-                                                        >
-                                                            <template v-slot:label>
-                                                                <v-row
-                                                                    align="center"
-                                                                    no-guters
-                                                                >
-                                                                    <v-col
-                                                                        class="pr-1"
-                                                                        cols="auto"
-                                                                    >
-                                                                        Each instance ends
-                                                                    </v-col>
-                                                                    <v-col
-                                                                        class="pr-1"
-                                                                        cols="1"
-                                                                    >
-                                                                        <v-text-field
-                                                                            v-model="window.params.num_hours"
-                                                                            dense
-                                                                            type="number"
-                                                                            min="1"
-                                                                        >
-                                                                        </v-text-field>
-                                                                    </v-col>
-                                                                    <v-col
-                                                                        cols="auto"
-                                                                    >
-                                                                        hour(s) after its respective start datetime.
-                                                                    </v-col>
-                                                                </v-row>
-                                                            </template>
-                                                        </v-radio>
-                                                        <v-radio
-                                                            value="days"
-                                                        >
-                                                            <template v-slot:label>
-                                                                <div>Calendar day intervals (e.g., every day of an inpatient admission)</div>
-                                                            </template>
-                                                        </v-radio>
-                                                    </v-radio-group>
-
-                                                    <!-- End date/datetime input of data collection window -->
-                                                    <!-- Configure only for non-repeating or calculated repeating windows -->
-                                                    <v-row>
-                                                        <v-col
-                                                            cols="4"
-                                                        >
-                                                            <v-select
-                                                                v-model="window.params.end_dttm"
-                                                                :items="window_dates"
-                                                                label="End date/datetime"
-                                                                item-text="label"
-                                                                item-value="label"
-                                                                v-show="
-                                                (window.type === 'nonrepeating' && window.params.type === 'dttm')
-                                                || window.type === 'calculated_repeating'
-                                               "
+                                                                Min
+                                                            </v-chip>
+                                                            <v-chip
+                                                                v-if="window.aggregate_defaults.max == true"
                                                             >
-                                                            </v-select>
-                                                        </v-col>
-                                                        <v-col
-                                                            cols="4"
+                                                                Max
+                                                            </v-chip>
+                                                            <v-chip
+                                                                v-if="window.aggregate_defaults.first == true"
+                                                            >
+                                                                First
+                                                            </v-chip>
+                                                            <v-chip
+                                                                v-if="window.aggregate_defaults.last == true"
+                                                            >
+                                                                Last
+                                                            </v-chip>
+                                                            <v-chip
+                                                                v-if="window.aggregate_defaults.closest_start == true"
+                                                            >
+                                                                Closest to {{window.timing.start.label}}
+                                                            </v-chip>
+                                                            <v-chip
+                                                                v-if="window.aggregate_defaults.closest_time == true"
+                                                            >
+                                                                Closest to {{window.aggregates.closest_timestamp}}
+                                                            </v-chip>
+                                                        </v-card-text>
+                                                    </v-card>
+                                                </v-col>
+                                            </v-row>
+                                            <v-row>
+                                                <v-col>
+                                                    <v-card outlined>
+                                                        <v-tabs
+                                                            background-color="primary"
+                                                            dark
                                                         >
-                                                            <v-select
-                                                                v-model="window.params.end_based_dttm"
-                                                                label="based on"
-                                                                :items="rp_dates_arr"
-                                                                v-show="clinical_dates.includes(window.params.end_dttm)"
+                                                            <v-tab>Labs & Vitals</v-tab>
+                                                            <v-tab>Medications</v-tab>
+                                                            <v-tab>Outcomes</v-tab>
+                                                            <v-tab>Oxygen</v-tab>
+                                                            <v-tab>Scores</v-tab>
+
+                                                            <v-tab-item
                                                             >
-                                                            </v-select>
-                                                        </v-col>
-                                                    </v-row>
-                                                    <v-btn
-                                                        v-show="edit_window_index === i"
-                                                        color="error"
-                                                        type="reset"
-                                                        @click="resetWindow(collection_windows[i], 'edit_window_form_' + i)"
-                                                    >
-                                                        Reset Timing
-                                                    </v-btn>
-                                                </v-form>
-                                            </v-stepper-content>
-
-                                            <v-stepper-step
-                                                step="2"
-                                                editable
-                                            >
-                                                {{edit_window_index === i ? 'Add ' : ''}}Clinical Data
-                                            </v-stepper-step>
-
-                                            <v-stepper-content step="2">
-                                                <!-- aggregate defaults -->
-                                                <v-row>
-                                                    <v-col>
-                                                        <v-card outlined>
-                                                            <v-card-title>Set Default Aggregates</v-card-title>
-                                                            <v-card-text>
-                                                                <p>
-                                                                    Clinical variables that are added and require aggregation will default to the given settings here for convenience.
-                                                                    <br>
-                                                                    Such variables may have their settings individually changed after being added.
-                                                                </p>
-                                                                <v-row
-                                                                    no-gutters
-                                                                >
-                                                                    <v-col
-                                                                        cols="1"
+                                                                <v-card>
+                                                                    <v-data-table
+                                                                        :headers="lv_headers_viewonly"
+                                                                        :items="window.data.labs_vitals"
+                                                                        :items-per-page="10"
+                                                                        fixed-header
+                                                                        no-data-text="Use search bar above to start adding labs and vitals."
                                                                     >
-                                                                        <v-checkbox
-                                                                            v-model="window.aggregate_defaults.min"
-                                                                            dense
-                                                                            label="Min"
-                                                                        >
-                                                                        </v-checkbox>
-                                                                    </v-col>
-                                                                    <v-col
-                                                                        cols="1"
-                                                                    >
-                                                                        <v-checkbox
-                                                                            v-model="window.aggregate_defaults.max"
-                                                                            dense
-                                                                            label="Max"
-                                                                        >
-                                                                        </v-checkbox>
-                                                                    </v-col>
-                                                                    <v-col
-                                                                        cols="1"
-                                                                    >
-                                                                        <v-checkbox
-                                                                            v-model="window.aggregate_defaults.first"
-                                                                            dense
-                                                                            label="First"
-                                                                        >
-                                                                        </v-checkbox>
-                                                                    </v-col>
-                                                                    <v-col
-                                                                        cols="1"
-                                                                    >
-                                                                        <v-checkbox
-                                                                            v-model="window.aggregate_defaults.last"
-                                                                            dense
-                                                                            label="Last"
-                                                                        >
-                                                                        </v-checkbox>
-                                                                    </v-col>
-                                                                </v-row>
-                                                                <v-row
-                                                                    no-gutters
-                                                                >
-                                                                    <v-col
-                                                                        cols="4"
-                                                                    >
-                                                                        <v-checkbox
-                                                                            v-model="window.aggregate_defaults.closest_start"
-                                                                            dense
-                                                                            :label="`Closest to ${window.params.start_dttm}`"
-                                                                            v-show="canAggStart()"
-                                                                        >
-                                                                        </v-checkbox>
-                                                                    </v-col>
-                                                                </v-row>
-                                                                <v-row
-                                                                    no-gutters
-                                                                >
-                                                                    <v-col
-                                                                        cols="4"
-                                                                    >
-                                                                        <v-checkbox
-                                                                            v-model="window.aggregate_defaults.closest_time"
-                                                                            dense
-                                                                            v-show="canAggTime()"
-                                                                        >
-                                                                            <template v-slot:label>
-                                                                                <v-row
-                                                                                    align="center"
-                                                                                    no-gutters
-                                                                                >
-                                                                                    <v-col
-                                                                                        cols="auto"
-                                                                                        class="pr-1"
-                                                                                    >
-                                                                                        Closest to
-                                                                                    </v-col>
-                                                                                    <v-col
-                                                                                        cols="auto"
-                                                                                    >
-                                                                                        <v-text-field
-                                                                                            v-model="window.aggregate_defaults.closest_timestamp"
-                                                                                            type="time"
-                                                                                            value="08:00:00"
-                                                                                            dense
-                                                                                        ></v-text-field>
-                                                                                    </v-col>
-                                                                                </v-row>
-                                                                            </template>
-                                                                        </v-checkbox>
-                                                                    </v-col>
-                                                                </v-row>
-                                                            </v-card-text>
-                                                        </v-card>
-                                                    </v-col>
-                                                </v-row>
-                                                <v-row>
-                                                    <v-col>
-                                                        <v-card outlined>
-                                                            <v-tabs
-                                                                background-color="primary"
-                                                                dark
+                                                                        <template v-slot:item.aggregates="{ item }">
+                                                                            <v-chip
+                                                                                v-show="item.aggregates.default == true"
+                                                                            >
+                                                                                Using Default Aggregates
+                                                                            </v-chip>
+                                                                            <v-chip
+                                                                                v-show="item.aggregates.default == false && item.aggregates.min == true"
+                                                                            >
+                                                                                Min
+                                                                            </v-chip>
+                                                                            <v-chip
+                                                                                v-show="item.aggregates.default == false && item.aggregates.max == true"
+                                                                            >
+                                                                                Max
+                                                                            </v-chip>
+                                                                            <v-chip
+                                                                                v-show="item.aggregates.default == false && item.aggregates.first == true"
+                                                                            >
+                                                                                First
+                                                                            </v-chip>
+                                                                            <v-chip
+                                                                                v-show="item.aggregates.default == false && item.aggregates.last == true"
+                                                                            >
+                                                                                Last
+                                                                            </v-chip>
+                                                                            <v-chip
+                                                                                v-show="item.aggregates.default == false && item.aggregates.closest_start == true"
+                                                                            >
+                                                                                Closest to {{window.timing.start.label}}
+                                                                            </v-chip>
+                                                                            <v-chip
+                                                                                v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
+                                                                            >
+                                                                                Closest to {{item.aggregates.closest_timestamp}}
+                                                                            </v-chip>
+                                                                        </template>
+                                                                    </v-data-table>
+                                                                </v-card>
+                                                            </v-tab-item>
+                                                            <v-tab-item
                                                             >
-                                                                <v-tab>Labs & Vitals</v-tab>
-                                                                <v-tab>Medications</v-tab>
-                                                                <v-tab>Outcomes</v-tab>
-                                                                <v-tab>Oxygen</v-tab>
-                                                                <v-tab>Scores</v-tab>
+                                                                <v-card>
+                                                                    <v-card-text>Medications</v-card-text>
+                                                                </v-card>
+                                                            </v-tab-item>
+                                                            <v-tab-item
+                                                            >
+                                                                <v-card>
+                                                                    <v-card-text>Outcomes</v-card-text>
+                                                                </v-card>
+                                                            </v-tab-item>
+                                                            <v-tab-item
+                                                            >
+                                                                <v-card>
+                                                                    <v-card-text>Oxygen</v-card-text>
+                                                                </v-card>
+                                                            </v-tab-item>
+                                                            <v-tab-item
+                                                            >
+                                                                <v-card>
+                                                                    <v-card-text>Scores</v-card-text>
+                                                                </v-card>
+                                                            </v-tab-item>
+                                                        </v-tabs>
 
-                                                                <v-tab-item
-                                                                >
-                                                                    <v-card>
-                                                                        <v-autocomplete
-                                                                            v-model="new_lv_obj"
-                                                                            :items="labs_vitals"
-                                                                            color="white"
-                                                                            auto-select-first
-                                                                            hide-no-data
-                                                                            placeholder="Search for labs and vitals to add..."
-                                                                            prepend-icon="mdi-magnify"
-                                                                            item-text="label"
-                                                                            return-object
-                                                                            @change="addLV"
-                                                                        ></v-autocomplete>
-                                                                        <v-dialog
-                                                                            v-model="edit_lv_dialog"
-                                                                            persistent
-                                                                            max-width="600px"
-                                                                        >
-                                                                            <v-card>
-                                                                                <v-card-title
-                                                                                    class="justify-center"
-                                                                                >
-                                                                                    Edit aggregates for this clinical variable
-                                                                                </v-card-title>
-                                                                                <v-radio-group
-                                                                                    v-model="edit_lv_obj.aggregates.default"
-                                                                                    column
-                                                                                >
-                                                                                    <v-radio
-                                                                                        label="Use default aggregates"
-                                                                                        :value="true"
-                                                                                    ></v-radio>
-                                                                                    <v-radio
-                                                                                        label="Set custom aggregates"
-                                                                                        :value="false"
-                                                                                    ></v-radio>
-                                                                                </v-radio-group>
-                                                                                <v-card
-                                                                                    flat
-                                                                                    v-show="!edit_lv_obj.aggregates.default"
-                                                                                >
-                                                                                    <v-row
-                                                                                        no-gutters
-                                                                                    >
-                                                                                        <v-col
-                                                                                            cols="2"
-                                                                                        >
-                                                                                            <v-checkbox
-                                                                                                v-model="edit_lv_obj.aggregates.min"
-                                                                                                dense
-                                                                                                label="Min"
-                                                                                            >
-                                                                                            </v-checkbox>
-                                                                                        </v-col>
-                                                                                        <v-col
-                                                                                            cols="2"
-                                                                                        >
-                                                                                            <v-checkbox
-                                                                                                v-model="edit_lv_obj.aggregates.max"
-                                                                                                dense
-                                                                                                label="Max"
-                                                                                            >
-                                                                                            </v-checkbox>
-                                                                                        </v-col>
-                                                                                        <v-col
-                                                                                            cols="2"
-                                                                                        >
-                                                                                            <v-checkbox
-                                                                                                v-model="edit_lv_obj.aggregates.first"
-                                                                                                dense
-                                                                                                label="First"
-                                                                                            >
-                                                                                            </v-checkbox>
-                                                                                        </v-col>
-                                                                                        <v-col
-                                                                                            cols="2"
-                                                                                        >
-                                                                                            <v-checkbox
-                                                                                                v-model="edit_lv_obj.aggregates.last"
-                                                                                                dense
-                                                                                                label="Last"
-                                                                                            >
-                                                                                            </v-checkbox>
-                                                                                        </v-col>
-                                                                                    </v-row>
-                                                                                    <v-row
-                                                                                        no-gutters
-                                                                                    >
-                                                                                        <v-col
-                                                                                            cols="8"
-                                                                                        >
-                                                                                            <v-checkbox
-                                                                                                v-model="edit_lv_obj.aggregates.closest_start"
-                                                                                                dense
-                                                                                                :label="`Closest to ${window.params.start_dttm}`"
-                                                                                                v-show="canAggStart()"
-                                                                                            >
-                                                                                            </v-checkbox>
-                                                                                        </v-col>
-                                                                                    </v-row>
-                                                                                    <v-row
-                                                                                        no-gutters
-                                                                                    >
-                                                                                        <v-col
-                                                                                            cols="8"
-                                                                                        >
-                                                                                            <v-checkbox
-                                                                                                v-model="edit_lv_obj.aggregates.closest_time"
-                                                                                                dense
-                                                                                                v-show="canAggTime()"
-                                                                                            >
-                                                                                                <template v-slot:label>
-                                                                                                    <v-row
-                                                                                                        align="center"
-                                                                                                        no-gutters
-                                                                                                    >
-                                                                                                        <v-col
-                                                                                                            cols="auto"
-                                                                                                            class="pr-1"
-                                                                                                        >
-                                                                                                            Closest to
-                                                                                                        </v-col>
-                                                                                                        <v-col
-                                                                                                            cols="auto"
-                                                                                                        >
-                                                                                                            <v-text-field
-                                                                                                                v-model="edit_lv_obj.aggregates.closest_timestamp"
-                                                                                                                type="time"
-                                                                                                                value="08:00:00"
-                                                                                                                dense
-                                                                                                            ></v-text-field>
-                                                                                                        </v-col>
-                                                                                                    </v-row>
-                                                                                                </template>
-                                                                                            </v-checkbox>
-                                                                                        </v-col>
-                                                                                    </v-row>
-                                                                                </v-card>
-                                                                                <v-card-actions>
-                                                                                    <v-spacer></v-spacer>
-                                                                                    <v-btn
-                                                                                        color="primary"
-                                                                                        @click="confirmEditLV"
-                                                                                    >
-                                                                                        Save
-                                                                                    </v-btn>
-                                                                                    <v-btn
-                                                                                        color="secondary"
-                                                                                        @click="closeEditLV"
-                                                                                    >
-                                                                                        Cancel
-                                                                                    </v-btn>
-                                                                                    <v-spacer></v-spacer>
-                                                                                </v-card-actions>
-                                                                            </v-card>
-                                                                        </v-dialog>
-                                                                        <v-dialog
-                                                                            v-model="delete_lv_dialog"
-                                                                            persistent
-                                                                            max-width="600px"
-                                                                        >
-                                                                            <v-card>
-                                                                                <v-card-title
-                                                                                    class="justify-center"
-                                                                                >
-                                                                                    Are you sure you want to delete this clinical variable?
-                                                                                </v-card-title>
-                                                                                <v-card-actions>
-                                                                                    <v-spacer></v-spacer>
-                                                                                    <v-btn
-                                                                                        color="error"
-                                                                                        @click="confirmDeleteLV"
-                                                                                    >
-                                                                                        Yes
-                                                                                    </v-btn>
-                                                                                    <v-btn
-                                                                                        color="secondary"
-                                                                                        @click="closeDeleteLV"
-                                                                                    >
-                                                                                        Cancel
-                                                                                    </v-btn>
-                                                                                    <v-spacer></v-spacer>
-                                                                                </v-card-actions>
-                                                                            </v-card>
-                                                                        </v-dialog>
-
-                                                                        <v-snackbar
-                                                                            v-model="alert_lv_success"
-                                                                            color="success"
-                                                                            outlined
-                                                                            timeout=1000
-                                                                        >
-                                                                            {{alert_lv_label}} added.
-                                                                        </v-snackbar>
-                                                                        <v-snackbar
-                                                                            v-model="alert_lv_error"
-                                                                            color="error"
-                                                                            outlined
-                                                                            timeout=1000
-                                                                        >
-                                                                            {{alert_lv_label}} was already added.
-                                                                        </v-snackbar>
-                                                                        <v-data-table
-                                                                            :headers="lv_headers"
-                                                                            :items="window.data.labs_vitals"
-                                                                            :items-per-page="10"
-                                                                            fixed-header
-                                                                            no-data-text="Use search bar above to start adding labs and vitals."
-                                                                        >
-                                                                            <template v-slot:item.aggregates="{ item }">
-                                                                                <v-chip
-                                                                                    v-show="item.aggregates.default == true"
-                                                                                >
-                                                                                    Using Default Aggregates
-                                                                                </v-chip>
-                                                                                <v-chip
-                                                                                    v-show="item.aggregates.default == false && item.aggregates.min == true"
-                                                                                >
-                                                                                    Min
-                                                                                </v-chip>
-                                                                                <v-chip
-                                                                                    v-show="item.aggregates.default == false && item.aggregates.max == true"
-                                                                                >
-                                                                                    Max
-                                                                                </v-chip>
-                                                                                <v-chip
-                                                                                    v-show="item.aggregates.default == false && item.aggregates.first == true"
-                                                                                >
-                                                                                    First
-                                                                                </v-chip>
-                                                                                <v-chip
-                                                                                    v-show="item.aggregates.default == false && item.aggregates.last == true"
-                                                                                >
-                                                                                    Last
-                                                                                </v-chip>
-                                                                                <v-chip
-                                                                                    v-show="item.aggregates.default == false && item.aggregates.closest_start == true"
-                                                                                >
-                                                                                    Closest to {{new_window.params.start_dttm}}
-                                                                                </v-chip>
-                                                                                <v-chip
-                                                                                    v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
-                                                                                >
-                                                                                    Closest to {{item.aggregates.closest_timestamp}}
-                                                                                </v-chip>
-                                                                            </template>
-                                                                            <template v-slot:item.actions="{ item }">
-                                                                                <v-icon
-                                                                                    small
-                                                                                    class="mr-2"
-                                                                                    @click="editLV(item)"
-                                                                                >
-                                                                                    mdi-pencil
-                                                                                </v-icon>
-                                                                                <v-icon
-                                                                                    small
-                                                                                    @click="deleteLV(item)"
-                                                                                >
-                                                                                    mdi-delete
-                                                                                </v-icon>
-                                                                            </template>
-                                                                        </v-data-table>
-                                                                    </v-card>
-                                                                </v-tab-item>
-                                                                <v-tab-item
-                                                                >
-                                                                    <v-card>
-                                                                        <v-card-text>Medications</v-card-text>
-                                                                    </v-card>
-                                                                </v-tab-item>
-                                                                <v-tab-item
-                                                                >
-                                                                    <v-card>
-                                                                        <v-card-text>Outcomes</v-card-text>
-                                                                    </v-card>
-                                                                </v-tab-item>
-                                                                <v-tab-item
-                                                                >
-                                                                    <v-card>
-                                                                        <v-card-text>Oxygen</v-card-text>
-                                                                    </v-card>
-                                                                </v-tab-item>
-                                                                <v-tab-item
-                                                                >
-                                                                    <v-card>
-                                                                        <v-card-text>Scores</v-card-text>
-                                                                    </v-card>
-                                                                </v-tab-item>
-                                                            </v-tabs>
-
-                                                        </v-card>
-                                                    </v-col>
-                                                </v-row>
-                                                <v-card-actions>
-                                                    <v-btn
-                                                        color="primary"
-                                                        @click="saveEditWindow()"
-                                                    >
-                                                        Save Edit
-                                                    </v-btn>
-                                                </v-card-actions>
-
-                                                <v-alert
-                                                    v-model="alert_default_agg"
-                                                    type="error"
-                                                    dismissible
-                                                >
-                                                    One or more clinical variables that you added are using default aggregates, but you did not set them.
-                                                    Set default aggregates in order to continue.
-                                                </v-alert>
-
-                                            </v-stepper-content>
-
-                                        </v-stepper>
+                                                    </v-card>
+                                                </v-col>
+                                            </v-row>
+                                        </v-card>
 
                                         <v-card-actions
                                             class="mt-4"
@@ -1238,6 +650,7 @@
                                     </v-expansion-panel-content>
                                 </v-expansion-panel>
                             </v-expansion-panels>
+
                             <!-- Create/Edit a Data Collection Window -->
                             <v-card
                                 v-show="!collection_windows.length || show_window_form == true"
@@ -1283,7 +696,7 @@
                                                     cols="6"
                                                 >
                                                     <v-text-field
-                                                        v-model="window.form_name"
+                                                        v-model="window.label"
                                                         :rules="[rules.required, checkInstrName]"
                                                         label="REDCap Instrument Name"
                                                         required
@@ -1607,7 +1020,7 @@
                                                                 cols="1"
                                                             >
                                                                 <v-checkbox
-                                                                    v-model="new_window.aggregate_defaults.min"
+                                                                    v-model="window.aggregate_defaults.min"
                                                                     dense
                                                                     label="Min"
                                                                 >
@@ -1617,7 +1030,7 @@
                                                                 cols="1"
                                                             >
                                                                 <v-checkbox
-                                                                    v-model="new_window.aggregate_defaults.max"
+                                                                    v-model="window.aggregate_defaults.max"
                                                                     dense
                                                                     label="Max"
                                                                 >
@@ -1627,7 +1040,7 @@
                                                                 cols="1"
                                                             >
                                                                 <v-checkbox
-                                                                    v-model="new_window.aggregate_defaults.first"
+                                                                    v-model="window.aggregate_defaults.first"
                                                                     dense
                                                                     label="First"
                                                                 >
@@ -1637,7 +1050,7 @@
                                                                 cols="1"
                                                             >
                                                                 <v-checkbox
-                                                                    v-model="new_window.aggregate_defaults.last"
+                                                                    v-model="window.aggregate_defaults.last"
                                                                     dense
                                                                     label="Last"
                                                                 >
@@ -1649,12 +1062,12 @@
                                                         >
                                                             <v-col
                                                                 cols="4"
+                                                                v-if="canAggStart()"
                                                             >
                                                                 <v-checkbox
-                                                                    v-model="new_window.aggregate_defaults.closest_start"
+                                                                    v-model="window.aggregate_defaults.closest_start"
                                                                     dense
-                                                                    :label="`Closest to ${new_window.params.start_dttm}`"
-                                                                    v-show="canAggStart()"
+                                                                    :label="`Closest to ${window.timing.start.label}`"
                                                                 >
                                                                 </v-checkbox>
                                                             </v-col>
@@ -1666,9 +1079,9 @@
                                                                 cols="4"
                                                             >
                                                                 <v-checkbox
-                                                                    v-model="new_window.aggregate_defaults.closest_time"
+                                                                    v-model="window.aggregate_defaults.closest_time"
                                                                     dense
-                                                                    v-show="canAggTime()"
+                                                                    v-if="canAggTime()"
                                                                 >
                                                                     <template v-slot:label>
                                                                         <v-row
@@ -1685,7 +1098,7 @@
                                                                                 cols="auto"
                                                                             >
                                                                                 <v-text-field
-                                                                                    v-model="new_window.aggregate_defaults.closest_timestamp"
+                                                                                    v-model="window.aggregate_defaults.closest_timestamp"
                                                                                     type="time"
                                                                                     value="08:00:00"
                                                                                     dense
@@ -1809,8 +1222,8 @@
                                                                                     <v-checkbox
                                                                                         v-model="edit_lv_obj.aggregates.closest_start"
                                                                                         dense
-                                                                                        :label="`Closest to ${new_window.params.start_dttm}`"
-                                                                                        v-show="canAggStart()"
+                                                                                        :label="`Closest to ${window.timing.start.label}`"
+                                                                                        v-if="canAggStart()"
                                                                                     >
                                                                                     </v-checkbox>
                                                                                 </v-col>
@@ -1824,7 +1237,7 @@
                                                                                     <v-checkbox
                                                                                         v-model="edit_lv_obj.aggregates.closest_time"
                                                                                         dense
-                                                                                        v-show="canAggTime()"
+                                                                                        v-if="canAggTime()"
                                                                                     >
                                                                                         <template v-slot:label>
                                                                                             <v-row
@@ -1919,7 +1332,7 @@
                                                                 </v-snackbar>
                                                                 <v-data-table
                                                                     :headers="lv_headers"
-                                                                    :items="new_window.data.labs_vitals"
+                                                                    :items="window.data.labs_vitals"
                                                                     :items-per-page="10"
                                                                     fixed-header
                                                                     no-data-text="Use search bar above to start adding labs and vitals."
@@ -1953,7 +1366,7 @@
                                                                         <v-chip
                                                                             v-show="item.aggregates.default == false && item.aggregates.closest_start == true"
                                                                         >
-                                                                            Closest to {{new_window.params.start_dttm}}
+                                                                            Closest to {{window.timing.start.label}}
                                                                         </v-chip>
                                                                         <v-chip
                                                                             v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
@@ -2036,7 +1449,7 @@
                                 >
                                     <v-btn
                                         color="secondary"
-                                        @click="show_window_form = false, resetWindow(new_window, 'new_window_form')"
+                                        @click="show_window_form = false, resetWindow(window, 'window_form')"
                                     >
                                         Cancel
                                     </v-btn>
@@ -2044,14 +1457,12 @@
                             </v-card>
                             <v-btn
                                 color="primary"
-                                @click="open_window_panel = null, show_window_form = true"
+                                @click="show_window_form = true"
                                 v-show="!show_window_form && collection_windows.length > 0 && edit_window_index === -1"
                             >
                                 Add New Data Collection Window
                             </v-btn>
                         </v-card>
-
-
 
 
                     </v-stepper-content>
@@ -2062,7 +1473,6 @@
                             class="mb-4"
                         >
                             {{ instruments.length > 0 ? 'Collapse all instruments' : 'Expand all instruments'}}
-
                         </v-btn>
 
                         <v-expansion-panels
@@ -2081,12 +1491,17 @@
                                     <v-card-subtitle><h2>Identifier</h2></v-card-subtitle>
                                     <v-data-table
                                         :headers="review_id_headers"
-                                        :items="rp_identifier"
+                                        :items="config.rp_info.rp_identifiers"
                                         item-key="label"
                                         fixed-header
                                         dense
                                         hide-default-footer
-                                    ></v-data-table>
+                                    >
+                                        <template v-slot:item.format="{ item }">
+                                            <span>8-digit number (including leading zeros, e.g., '01234567')</span>
+                                        </template>
+                                    </v-data-table>
+
                                 </v-card>
                                 <v-card
                                     outlined
@@ -2095,7 +1510,7 @@
                                     <v-card-subtitle><h2>Dates</h2></v-card-subtitle>
                                     <v-data-table
                                         :headers="review_date_headers"
-                                        :items="rp_dates"
+                                        :items="Object.values(config.rp_info.rp_dates)"
                                         item-key="label"
                                         fixed-header
                                         dense
@@ -2118,7 +1533,7 @@
                                 >
                                     <v-data-table
                                         :headers="review_demo_headers"
-                                        :items="demographics.selected"
+                                        :items="config.demographics"
                                         item-key="label"
                                         no-data-text="No demographics have been selected."
                                         fixed-header
@@ -2131,12 +1546,72 @@
 
 
                             <!-- Clinical Data -->
-
-                            <h1>Clinical Data</h1>
-                            Clinical data goes here
-
+                            <v-expansion-panel
+                                v-for="cw in config.collection_windows"
+                            >
+                                <v-expansion-panel-header>Instrument: {{cw.label}} ({{cw.form_name}})</v-expansion-panel-header>
+                                <v-expansion-panel-content>
+                                    <v-card
+                                        outlined
+                                        class="mb-4"
+                                    >
+                                        <v-card-subtitle><h2>Timing</h2></v-card-subtitle>
+                                        <v-list-item three-line>
+                                            <v-list-item-content>
+                                                <v-list-item-title>Start</v-list-item-title>
+                                                <v-list-item-subtitle>Label: {{cw.timing.start.label}}</v-list-item-subtitle>
+                                                <v-list-item-subtitle>REDCap field name: {{cw.timing.start.redcap_field_name}}</v-list-item-subtitle>
+                                            </v-list-item-content>
+                                        </v-list-item>
+                                        <v-list-item three-line>
+                                            <v-list-item-content>
+                                                <v-list-item-title>End</v-list-item-title>
+                                                <v-list-item-subtitle>Label: {{cw.timing.end.label}}</v-list-item-subtitle>
+                                                <v-list-item-subtitle>REDCap field name: {{cw.timing.end.redcap_field_name}}</v-list-item-subtitle>
+                                            </v-list-item-content>
+                                        </v-list-item>
+                                    </v-card>
+                                    <v-card
+                                        outlined
+                                        class="mb-4"
+                                    >
+                                        <v-card-subtitle><h2>Labs</h2></v-card-subtitle>
+                                        <v-data-table
+                                            :headers="review_cw_headers"
+                                            :items="cw.data.labs"
+                                            item-key="label"
+                                            no-data-text="No labs have been selected."
+                                            fixed-header
+                                            dense
+                                            hide-default-footer
+                                        ></v-data-table>
+                                    </v-card>
+                                    <v-card
+                                        outlined
+                                        class="mb-4"
+                                    >
+                                        <v-card-subtitle><h2>Vitals</h2></v-card-subtitle>
+                                        <v-data-table
+                                            :headers="review_cw_headers"
+                                            :items="cw.data.vitals"
+                                            item-key="label"
+                                            no-data-text="No vitals have been selected."
+                                            fixed-header
+                                            dense
+                                            hide-default-footer
+                                        ></v-data-table>
+                                    </v-card>
+                                </v-expansion-panel-content>
+                            </v-expansion-panel>
                         </v-expansion-panels>
 
+                        <v-btn
+                            color="primary"
+                            class="mt-4"
+                            @click="createProject"
+                        >
+                            Create Project
+                        </v-btn>
                     </v-stepper-content>
                 </v-stepper-items>
             </v-stepper>
@@ -2164,19 +1639,37 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js" crossorigin="anonymous"> </script>
 <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/md5-js-tools@1.0.2/lib/md5.min.js" crossorigin="anonymous"></script>
 
 <script>
     new Vue({
         el: '#app',
         vuetify: new Vuetify(),
         data: {
+            surveys_enabled: "",
+            repeatforms: "",
+            scheduling: "",
+            randomization: "",
+            app_title: "",
+            purpose: "",
+            project_pi_firstname: "",
+            project_pi_mi: "",
+            project_pi_lastname: "",
+            project_pi_email: "",
+            project_pi_alias: "",
+            project_irb_number: "",
+            purpose_other: "",
+            project_note: "",
+            projecttype: "",
+            repeatforms_chk: "",
+            project_template_radio: "",
             metadata_loaded: false,
             step: 1,
             edit_window_stepper: 1,
             review_window_stepper: 1,
             window_stepper: 1,
             dialog: false,
-            rp_identifier: [
+            rp_identifiers: [
                 {
                     label: "MRN",
                     redcap_field_name: "mrn",
@@ -2217,26 +1710,195 @@
                 options: [],
                 selected: []
             },
-            collection_windows: [],
-            new_window: {
-                instr_name: null,
-                type: null, // nonrepeating || finite_repeating || calculated_repeating
-                params: {},  // params change depending on new_window's type
-                aggregate_defaults: {
-                    min: false,
-                    max: false,
-                    first: false,
-                    last: false,
-                    closest_start: false,
-                    closest_time: false,
-                    closest_timestamp: "08:00:00"
+            collection_windows: [
+                {
+                    label: "Hospital Admission",
+                    type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
+                    timing: {
+                        start_type: "dttm",
+                        start: {
+                            category: "dates",
+                            duster_field_name: "hospital_admit_dttm",
+                            label: "Hospital Admission Datetime"
+                        },
+                        start_based: "enroll_date",
+                        end_type: "dttm",
+                        num_hours: null,
+                        end: {
+                            category: "dates",
+                            duster_field_name: "hospital_discharge_dttm",
+                            label: "Hospital Discharge Datetime"
+                        },
+                        end_based: "enroll_date"
+                    },
+                    aggregate_defaults: {
+                        min: true,
+                        max: true,
+                        first: true,
+                        last: true,
+                        closest_start: true,
+                        closest_time: false,
+                        closest_timestamp: "08:00:00"
+                    },
+                    data: {
+                        labs_vitals: [
+                            {
+                                category: "labs",
+                                duster_field_name: "k",
+                                label: "Potassium (K)",
+                                aggregates: {
+                                    default: true,
+                                    min: false,
+                                    max: false,
+                                    first: false,
+                                    last: false,
+                                    closest_start: false,
+                                    closest_time: false,
+                                    closest_timestamp: "08:00:00"
+                                }
+                            },
+                            {
+                                category: "labs",
+                                duster_field_name: "na",
+                                label: "Sodium (Na)",
+                                aggregates: {
+                                    default: false,
+                                    min: false,
+                                    max: true,
+                                    first: true,
+                                    last: false,
+                                    closest_start: true,
+                                    closest_time: false,
+                                    closest_timestamp: "08:00:00"
+                                }
+                            }
+                        ]
+                    }
                 },
-                data: {
-                    labs_vitals: []
+                {
+                    label: "First 24 Hours of Hospital Admission",
+                    type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
+                    timing: {
+                        start_type: "dttm",
+                        start: {
+                            category: "dates",
+                            duster_field_name: "hospital_admit_dttm",
+                            label: "Hospital Admission Datetime"
+                        },
+                        start_based: "enroll_date",
+                        end_type: "hours",
+                        num_hours: 24,
+                        end: null,
+                        end_based: "enroll_date"
+                    },
+                    aggregate_defaults: {
+                        min: true,
+                        max: true,
+                        first: true,
+                        last: true,
+                        closest_start: true,
+                        closest_time: false,
+                        closest_timestamp: "08:00:00"
+                    },
+                    data: {
+                        labs_vitals: [
+                            {
+                                category: "labs",
+                                duster_field_name: "k",
+                                label: "Potassium (K)",
+                                aggregates: {
+                                    default: true,
+                                    min: false,
+                                    max: false,
+                                    first: false,
+                                    last: false,
+                                    closest_start: false,
+                                    closest_time: false,
+                                    closest_timestamp: "08:00:00"
+                                }
+                            },
+                            {
+                                category: "labs",
+                                duster_field_name: "na",
+                                label: "Sodium (Na)",
+                                aggregates: {
+                                    default: false,
+                                    min: false,
+                                    max: true,
+                                    first: true,
+                                    last: false,
+                                    closest_start: true,
+                                    closest_time: false,
+                                    closest_timestamp: "08:00:00"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    label: "Study Enrollment Day",
+                    type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
+                    timing: {
+                        start_type: "date",
+                        start: {
+                            format: "date",
+                            id: 0,
+                            label: "Study Enrollment Date",
+                            redcap_field_name: "enroll_date"
+                        },
+                        start_based: "enroll_date",
+                        end_type: "day",
+                        num_hours: null,
+                        end: null,
+                        end_based: "enroll_date"
+                    },
+                    aggregate_defaults: {
+                        min: true,
+                        max: true,
+                        first: true,
+                        last: true,
+                        closest_start: true,
+                        closest_time: false,
+                        closest_timestamp: "08:00:00"
+                    },
+                    data: {
+                        labs_vitals: [
+                            {
+                                category: "labs",
+                                duster_field_name: "k",
+                                label: "Potassium (K)",
+                                aggregates: {
+                                    default: true,
+                                    min: false,
+                                    max: false,
+                                    first: false,
+                                    last: false,
+                                    closest_start: false,
+                                    closest_time: false,
+                                    closest_timestamp: "08:00:00"
+                                }
+                            },
+                            {
+                                category: "labs",
+                                duster_field_name: "na",
+                                label: "Sodium (Na)",
+                                aggregates: {
+                                    default: false,
+                                    min: false,
+                                    max: true,
+                                    first: true,
+                                    last: false,
+                                    closest_start: true,
+                                    closest_time: false,
+                                    closest_timestamp: "08:00:00"
+                                }
+                            }
+                        ]
+                    }
                 }
-            },
+            ],
             window: {
-                form_name: null,
+                label: null,
                 type: null, // nonrepeating || finite_repeating || calculated_repeating
                 timing: {},  // changes depending on window's type
                 aggregate_defaults: {
@@ -2258,6 +1920,10 @@
                 {text: 'Label', value: 'label'},
                 {text: 'Aggregates', value: 'aggregates', sortable: false},
                 {text: 'Actions', value: 'actions', sortable: false}
+            ],
+            lv_headers_viewonly :[
+                {text: 'Label', value: 'label'},
+                {text: 'Aggregates', value: 'aggregates', sortable: false}
             ],
             new_lv_obj : {
                 duster_field_name: null,
@@ -2450,6 +2116,10 @@
                 {text: 'Label', value: 'label'},
                 {text: 'REDCap field name', value: 'redcap_field_name'},
             ],
+            review_cw_headers: [
+                {text: 'Label', value: 'label'},
+                {text: 'REDCap field name', value: 'redcap_field_name'}
+            ],
             rules: {
                 required: value => !!value || 'Required.',
                 num_instances: value => value > 1 || 'Number of instances must be greater than 1.'
@@ -2457,10 +2127,272 @@
         },
         computed: {
             //
-            instruments: function() {
-                let instr_arr = [0, 1];
-                // TODO indexes for clinical data instruments
-                return instr_arr;
+            instruments: {
+                get: function() {
+                    return Array.from(Array(2 + this.config.collection_windows.length).keys());
+                },
+                set: function() {
+                }
+            },
+            config: {
+                get: function() {
+                    let config = {
+                        rp_info: {
+                            rp_identifiers: [
+                                {
+                                    redcap_field_name: "mrn",
+                                    label: "Medical Record Number (MRN)",
+                                    format: "text"
+                                }
+                            ],
+                            rp_dates: {}
+                        },
+                        demographics: [],
+                        collection_windows: []
+                    };
+
+                    // Researcher-Provided Dates
+                    let datesArr = [];
+                    this.rp_dates.forEach((date) => {
+                        datesArr.push([date.redcap_field_name, {
+                                redcap_field_name: date.redcap_field_name,
+                                label: date.label,
+                                format: date.format
+                        }]);
+                    });
+                    config.rp_info.rp_dates = Object.fromEntries(datesArr);
+
+                    // demographics
+                    this.demographics.selected.forEach((demographic) => {
+                       config.demographics.push({
+                           duster_field_name: demographic.duster_field_name,
+                           redcap_field_name: demographic.redcap_field_name,
+                           label: demographic.label,
+                           format: "text"
+                       });
+                    });
+
+                    // data collection windows
+                    let cwArr = [];
+                    this.collection_windows.forEach((window, index) => {
+                        let newCW = {
+                            label: window.label,
+                            form_name: this.getFormName(window.label, cwArr.map(value => value.form_name)),
+                            type: window.type,
+                            timing: {
+                            },
+                            data: {
+                                labs: [],
+                                vitals: []
+                            }
+                        };
+
+                        let timing = window.timing;
+                        if(window.type === "nonrepeating") {
+
+                            // get the REDCap field name for the start and end parameters for timing
+                            let startRCField = 'cw' + index + '_start_dttm';
+                            /*
+                            let suffixNum;
+                            if(this.checkRCFieldExists(startRCField)) {
+                                suffixNum = 0;
+                                while(this.checkRCFieldExists(startRCField + '_' + suffixNum)) {
+                                    suffixNum++;
+                                }
+                                startRCField = startRCField + '_' + suffixNum;
+                            }
+                            // console.log(startRCField);
+                             */
+
+                            // get the REDCap label for the start parameter for timing
+                            let startLabel = timing.start.label;
+                            if(timing.start_type === 'date' || timing.start.format === 'date') {
+                                startLabel = '00:00:00 on the Calendar Day of ' + timing.start.label;
+                            }
+
+                            // get the DUSTER field name for the end parameter for timing
+                            let endDusterField = null;
+                            endDusterField = timing.end_type === "dttm" ? timing.end.duster_field_name : null;
+
+                            // get the REDCap field name for the end parameter for timing
+                            let endRCField = 'cw' + index + '_end_dttm';
+                            /*
+                            if(this.checkRCFieldExists(endRCField)) {
+                                suffixNum = 0;
+                                while(this.checkRCFieldExists(endRCField + '_' + suffixNum)) {
+                                    suffixNum++;
+                                }
+                                endRCField = endRCField + '_' + suffixNum;
+                            }
+                            // console.log(endRCField);
+                             */
+
+                            // get the REDCap label for the end parameter for timing
+                            let endLabel = "";
+                            if(timing.end_type === 'dttm') {
+                                if(timing.end.format === 'date') {
+                                    endLabel = 'Midnight on the Calendar Day of ' + timing.end.label;
+                                } else {
+                                    endLabel = timing.end.label;
+                                }
+                            } else if(timing.end_type === 'day') {
+                                endLabel = 'Midnight on the Calendar Day of ' + timing.start.label;
+                            } else if(timing.end_type === 'hours') {
+                                endLabel = timing.num_hours + ' hours after ' + startLabel;
+                            }
+
+                            let timingObj = {
+                                start: {
+                                    type: timing.start_type,
+                                    duster_field_name: timing.start.duster_field_name,
+                                    redcap_field_name: startRCField,
+                                    based_on: timing.start_based,
+                                    label: timing.start.label
+                                },
+                                end: {
+                                    type: timing.end_type,
+                                    num_hours: timing.num_hours,
+                                    duster_field_name: endDusterField,
+                                    redcap_field_name: endRCField,
+                                    based_on: timing.end_based,
+                                    label: endLabel
+                                }
+                            };
+                            newCW.timing = timingObj;
+                        }
+
+                        // labs and vitals
+                        let lvArr = window.data.labs_vitals;
+                        lvArr.forEach((item) => {
+                            // create a new field for each aggregate
+                            let itemArr = [];
+                            let rcField = '';
+                            // let suffixNum = 0;
+                            let aggregates = window.aggregate_defaults;
+                            if(item.aggregates.default === false) {
+                                aggregates = item.aggregates;
+                            }
+
+                            // minimum aggregate
+                            if(aggregates.min === true) {
+                                rcField = item.duster_field_name + '_min_' + index;
+                                /*
+                                if(this.checkRCFieldExists(rcField)) {
+                                    suffixNum = 0;
+                                    while(this.checkRCFieldExists(rcField + '_' + suffixNum)) {
+                                        suffixNum++;
+                                    }
+                                    rcField = rcField + '_' + suffixNum;
+                                }
+                                // console.log(rcField);
+                                 */
+
+                                itemArr.push({
+                                    duster_field_name: item.duster_field_name,
+                                    redcap_field_name: rcField,
+                                    label: 'Minimum ' + item.label,
+                                    format: "text",
+                                    aggregate: "min_agg"
+                                });
+                            }
+
+                            // maximum aggregate
+                            if(aggregates.max === true) {
+                                rcField = item.duster_field_name + '_max_' + index;
+                                /*
+                                if(this.checkRCFieldExists(rcField)) {
+                                    suffixNum = 0;
+                                    while(this.checkRCFieldExists(rcField + '_' + suffixNum)) {
+                                        suffixNum++;
+                                    }
+                                    rcField = rcField + '_' + suffixNum;
+                                }
+                                // console.log(rcField);
+                                 */
+
+                                itemArr.push({
+                                    duster_field_name: item.duster_field_name,
+                                    redcap_field_name: rcField,
+                                    label: 'Maximum ' + item.label,
+                                    format: "text",
+                                    aggregate: "max_agg"
+                                });
+                            }
+
+                            // first aggregate
+                            if(aggregates.first === true) {
+                                rcField = item.duster_field_name + '_first_' + index;
+                                /*
+                                if(this.checkRCFieldExists(rcField)) {
+                                    suffixNum = 0;
+                                    while(this.checkRCFieldExists(rcField + '_' + suffixNum)) {
+                                        suffixNum++;
+                                    }
+                                    rcField = rcField + '_' + suffixNum;
+                                }
+                                // console.log(rcField);
+                                 */
+
+                                itemArr.push({
+                                    duster_field_name: item.duster_field_name,
+                                    redcap_field_name: rcField,
+                                    label: 'First ' + item.label,
+                                    format: "text",
+                                    aggregate: "first_agg"
+                                });
+                            }
+
+                            // last aggregate
+                            if(aggregates.last === true) {
+                                rcField = item.duster_field_name + '_last_' + index;
+                                /*
+                                if(this.checkRCFieldExists(rcField)) {
+                                    suffixNum = 0;
+                                    while(this.checkRCFieldExists(rcField + '_' + suffixNum)) {
+                                        suffixNum++;
+                                    }
+                                    rcField = rcField + '_' + suffixNum;
+                                }
+                                // console.log(rcField);
+                                */
+
+
+                                itemArr.push({
+                                    duster_field_name: item.duster_field_name,
+                                    redcap_field_name: rcField,
+                                    label: 'Last ' + item.label,
+                                    format: "text",
+                                    aggregate: "last_agg"
+                                });
+                            }
+
+                            // closest to start datetime aggregate
+                            if(aggregates.closest_start === true) {
+                                // TODO
+                            }
+
+                            // closest to a specific time aggregate
+                            if(aggregates.closest_time === true) {
+                                // TODO
+                            }
+
+
+                            if(item.category === 'labs') {
+                                newCW.data.labs.push(...itemArr);
+                            } else {
+                                newCW.data.vitals.push(...itemArr);
+                            }
+
+                        });
+
+//                        console.log(newCW);
+                        cwArr.push(newCW);
+                    });
+
+                    // set cwArr to this.config's collection windows
+                    config.collection_windows = cwArr;
+                    return config;
+                }
             },
             rp_dates_arr: function() {
                 return this.rp_dates.map(value => value.label);
@@ -2480,12 +2412,31 @@
 
                 let vitals_arr = this.vitals;
                 vitals_arr.sort((a, b) => {return a.label.localeCompare(b.label)});
-                vitals_arr = [{header: "Labs"}].concat(vitals_arr);
+                vitals_arr = [{header: "Vitals"}].concat(vitals_arr);
                 let labs_vitals_arr = labs_arr.concat([{divider: true}]);
                 return labs_vitals_arr.concat(vitals_arr);
             }
         },
         mounted () {
+            // form data initially entered by user on initial create new project page (/index.php?action=create)
+            this.surveys_enabled = "<?php echo $_POST["surveys_enabled"]; ?>";
+            this.repeatforms = "<?php echo $_POST["repeatforms"]; ?>";
+            this.scheduling = "<?php echo $_POST["scheduling"]; ?>";
+            this.randomization = "<?php echo $_POST["randomization"]; ?>";
+            this.app_title = "<?php echo $_POST["app_title"]; ?>";
+            this.purpose = "<?php echo $_POST["purpose"] ?>";
+            this.project_pi_firstname = "<?php echo $_POST["project_pi_firstname"] ?>";
+            this.project_pi_mi = "<?php echo $_POST["project_pi_mi"] ?>";
+            this.project_pi_lastname = "<?php echo $_POST["project_pi_lastname"] ?>";
+            this.project_pi_email = "<?php echo $_POST["project_pi_email"] ?>";
+            this.project_pi_alias = "<?php echo $_POST["project_pi_alias"] ?>";
+            this.project_irb_number = "<?php echo $_POST["project_irb_number"] ?>";
+            this.purpose_other = "<?php echo $_POST["purpose_other"] ?>";
+            this.project_note = "<?php echo $_POST["project_note"] ?>";
+            this.projecttype = "<?php echo $_POST["projecttype"] ?>";
+            this.repeatforms_chk = "<?php echo $_POST["repeatforms_chk"] ?>";
+            this.project_template_radio = "<?php echo $_POST["project_template_radio"] ?>";
+
             // request metadata from STARR-API
             axios.get("<?php echo $module->getUrl("services/callMetadata.php"); ?>").then(response => {
                 console.log(response.data);
@@ -2540,7 +2491,11 @@
             nextStep() {
                 if (this.step < 4) {
                     this.step += 1;
+                    if(this.step == 4) {
+                       // this.createConfigCollectionWindows();
+                    }
                 }
+
             },
             saveDateForm() {
                 this.$refs.date_form.validate();
@@ -2559,8 +2514,8 @@
                 this.$refs.date_form.resetValidation();
             },
             editRPDate(id) {
-                console.log(id);
-                console.log(this.rp_dates.length);
+                // console.log(id);
+                // console.log(this.rp_dates.length);
                 this.edit_date_index = this.rp_dates.findIndex((element) => element.id === id);
                 this.edit_date = JSON.parse(JSON.stringify(this.rp_dates[this.edit_date_index]));
                 this.edit_date_dialog = true;
@@ -2618,31 +2573,6 @@
                     num_hours: null,
                     end: null,
                     end_based: this.rp_dates[0].redcap_field_name
-                    /*
-                    start: {
-                        type: null, // || date || dttm
-                        duster_field_name: null,
-                        redcap_field_name: null,
-                        based_on: null,
-                        label: null
-                    },
-                    end: {
-                        type: null,
-                        num_hours: null,
-                        duster_field_name: null,
-                        redcap_field_name: null,
-                        based_on: null,
-                        label: null
-                    }
-                    /*
-                    type: null, // hours || day || dttm
-                    num_hours: null, // number of hours when type is hours
-                    start_type: null, // dttm || date
-                    start_dttm: null, // start date/datetime
-                    start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
-                    end_dttm: null, // end date/datetime when applicable
-                    end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
-                    */
                 };
             },
             resetFiniteRepeat(window) {
@@ -2653,15 +2583,6 @@
                     start: null,
                     start_based: this.rp_dates[0].redcap_field_name
                 };
-                /*
-                window.params = {
-                    type: null, // hours || days
-                    num_hours: null, // number of hours when type is 'hours'
-                    num_instances: null, // number of instances when window_type = 'finite_repeating'
-                    start_dttm: null, // start date/datetime
-                    start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
-                }
-                */
             },
             resetCalculatedRepeat(window) {
                 window.timing = {
@@ -2686,19 +2607,6 @@
                 if(window.timing.end_type !== 'hours') {
                     window.timing.num_hours = null;
                 }
-                /*
-                    type: null,
-                    num_hours: null,
-                    duster_field_name: null,
-                    redcap_field_name: null,
-                    based_on: null,
-                    label: null
-                };
-                /*
-                window.params.num_hours = null;
-                window.params.end_dttm = null;
-                window.params.end_based_dttm = "Study Enrollment Date";
-                */
             },
             resetRepeat(window) {
                 if(window.timing.type !== 'hours') {
@@ -2708,13 +2616,6 @@
                     window.timing.end = null;
                     window.timing.end_based = this.rp_dates[0].redcap_field_name;
                 }
-                /*
-                window.params.num_hours = null;
-                if (window.type === 'calculated_repeating') {
-                    window.params.end_dttm = null;
-                    window.params.end_based_dttm = "Study Enrollment Date";
-                }
-                */
             },
             // checks if the entered REDCap Label already exists
             checkRCLabel(label) {
@@ -2762,8 +2663,8 @@
             },
             // checks if the entered REDCap instrument name already exists
             checkInstrName(name) {
-                let names_arr = this.collection_windows.map(value => value.form_name);
-                names_arr = names_arr.concat(['Identifiers', 'Researcher-Provided Info', 'Demographics'])
+                let names_arr = this.collection_windows.map(value => value.label);
+                names_arr = names_arr.concat(['Researcher-Provided Info', 'Demographics'])
                 if (names_arr.includes(name)) {
                     return 'Enter another name. This name is already used by another data collection window or other REDCap Instrument DUSTER will create by default.';
                 }
@@ -2888,7 +2789,7 @@
             },
             saveCollectionWindowForm() {
                 // check if default aggregates are set if needed
-                if (this.checkDefaultAgg(this.nwindow)) {
+                if (this.checkDefaultAgg(this.window)) {
                     this.collection_windows.push(JSON.parse(JSON.stringify(this.window)));
                     this.resetWindow('window', 'window_form');
                 } else {
@@ -2897,14 +2798,14 @@
             },
             setPreset(preset_choice) {
                 this.$refs.window_form.resetValidation();
-                this.new_window = JSON.parse(JSON.stringify(preset_choice));
+                this.window = JSON.parse(JSON.stringify(preset_choice));
                 this.preset_choice = null;
             },
             resetWindow(window, ref) {
                 this[window] = JSON.parse(JSON.stringify({
-                    form_name: null,
+                    label: null,
                     type: null, // nonrepeating || finite_repeating || calculated_repeating
-                    timing: {},  // params change depending on new_window's type
+                    timing: {},  // changes depending on window's type
                     aggregate_defaults: {
                         min: false,
                         max: false,
@@ -2923,17 +2824,21 @@
                 this.$refs[ref].resetValidation();
             },
             canAggStart() {
-                return this.new_window.type == 'nonrepeating';
+                if(this.window.type && this.window.timing.start) {
+                    return this.window.type == 'nonrepeating';
+                }
+                return false;
             },
             canAggTime() {
-                return (this.new_window.type === 'nonrepeating' && this.new_window.params.type === 'day') ||
-                    ((this.new_window.type === 'finite_repeating' || this.new_window.params.type === 'calculated_repeating') &&
-                        (this.new_window.params.type === 'day'));
+                return this.window.start &&
+                    ((this.window.type === 'nonrepeating' && this.window.timing.type === 'day') ||
+                    ((this.window.type === 'finite_repeating' || this.window.timing.type === 'calculated_repeating') &&
+                        (this.window.timing.type === 'day')));
             },
             addLV() {
                 this.alert_lv_label = this.new_lv_obj.label;
-                if (!this.new_window.data.labs_vitals.map(value => value.label).includes(this.new_lv_obj.label)) {
-                    this.new_window.data.labs_vitals.push(JSON.parse(JSON.stringify({
+                if (!this.window.data.labs_vitals.map(value => value.label).includes(this.new_lv_obj.label)) {
+                    this.window.data.labs_vitals.push(JSON.parse(JSON.stringify({
                         duster_field_name: this.new_lv_obj.duster_field_name,
                         label: this.new_lv_obj.label,
                         category: this.new_lv_obj.category,
@@ -2959,13 +2864,13 @@
                 };
             },
             editLV(obj) {
-                this.edit_lv_index = this.new_window.data.labs_vitals.indexOf(obj);
+                this.edit_lv_index = this.window.data.labs_vitals.indexOf(obj);
                 this.edit_lv_obj = JSON.parse(JSON.stringify(obj));
                 this.edit_lv_dialog = true;
             },
             confirmEditLV() {
                 if (this.edit_lv_index !== null) {
-                    Object.assign(this.new_window.data.labs_vitals[this.edit_lv_index], this.edit_lv_obj);
+                    Object.assign(this.window.data.labs_vitals[this.edit_lv_index], this.edit_lv_obj);
                 }
                 this.edit_lv_index = null;
                 this.edit_lv_obj = {
@@ -2989,11 +2894,11 @@
                 this.edit_lv_dialog = false;
             },
             deleteLV(obj) {
-                this.edit_lv_index = this.new_window.data.labs_vitals.indexOf(obj);
+                this.edit_lv_index = this.window.data.labs_vitals.indexOf(obj);
                 this.delete_lv_dialog = true;
             },
             confirmDeleteLV() {
-                this.new_window.data.labs_vitals.splice(this.edit_lv_index, 1);
+                this.window.data.labs_vitals.splice(this.edit_lv_index, 1);
                 this.edit_lv_index = null;
                 this.closeDeleteLV();
             },
@@ -3003,6 +2908,359 @@
             deleteWindow(i) {
                 this.collection_windows.splice(i, 1);
                 this.delete_window_dialog = false;
+            },
+            createConfigCollectionWindows() {
+                let cwArr = [];
+                this.collection_windows.forEach((window, index) => {
+                    let newCW = {
+                        label: window.label,
+                        form_name: this.getFormName(window.label),
+                        type: window.type,
+                        timing: {
+                        },
+                        data: {
+                            labs: [],
+                            vitals: []
+                        }
+                    };
+
+                    let timing = window.timing;
+                    if(window.type === "nonrepeating") {
+
+                        // get the REDCap field name for the start and end parameters for timing
+                        let startRCField = 'cw' + index + '_start_dttm';
+                        let suffixNum;
+                        if(this.checkRCFieldExists(startRCField)) {
+                            suffixNum = 0;
+                            while(this.checkRCFieldExists(startRCField + '_' + suffixNum)) {
+                                suffixNum++;
+                            }
+                            startRCField = startRCField + '_' + suffixNum;
+                        }
+                        // console.log(startRCField);
+
+                        // get the REDCap label for the start parameter for timing
+                        let startLabel = timing.start.label;
+                        if(timing.start_type === 'date' || timing.start.format === 'date') {
+                            startLabel = '00:00:00 on the Calendar Day of ' + timing.start.label;
+                        }
+
+                        // get the DUSTER field name for the end parameter for timing
+                        let endDusterField = null;
+                        endDusterField = timing.end_type === "dttm" ? timing.end.duster_field_name : null;
+
+                        // get the REDCap field name for the end parameter for timing
+                        let endRCField = 'cw' + index + '_end_dttm';
+                        if(this.checkRCFieldExists(endRCField)) {
+                            suffixNum = 0;
+                            while(this.checkRCFieldExists(endRCField + '_' + suffixNum)) {
+                                suffixNum++;
+                            }
+                            endRCField = endRCField + '_' + suffixNum;
+                        }
+                        // console.log(endRCField);
+
+                        // get the REDCap label for the end parameter for timing
+                        let endLabel = "";
+                        if(timing.end_type === 'dttm') {
+                            if(timing.end.format === 'date') {
+                                endLabel = 'Midnight on the Calendar Day of ' + timing.end.label;
+                            } else {
+                                endLabel = timing.end.label;
+                            }
+                        } else if(timing.end_type === 'day') {
+                            endLabel = 'Midnight on the Calendar Day of ' + timing.start.label;
+                        } else if(timing.end_type === 'hours') {
+                            endLabel = timing.num_hours + ' hours after ' + startLabel;
+                        }
+
+                        let timingObj = {
+                            start: {
+                                type: timing.start_type,
+                                duster_field_name: timing.start.duster_field_name,
+                                redcap_field_name: startRCField,
+                                based_on: timing.start_based,
+                                label: timing.start.label
+                            },
+                            end: {
+                                type: timing.end_type,
+                                num_hours: timing.num_hours,
+                                duster_field_name: endDusterField,
+                                redcap_field_name: endRCField,
+                                based_on: timing.end_based,
+                                label: endLabel
+                            }
+                        };
+                        newCW.timing = timingObj;
+                    }
+
+                    // labs and vitals
+                    let lvArr = window.data.labs_vitals;
+                    lvArr.forEach((item) => {
+                        // create a new field for each aggregate
+                        let itemArr = [];
+                        let rcField = '';
+                        let suffixNum = 0;
+                        let aggregates = window.aggregate_defaults;
+                        if(item.aggregates.default === false) {
+                            aggregates = item.aggregates;
+                        }
+
+                        // minimum aggregate
+                        if(aggregates.min === true) {
+                            rcField = item.duster_field_name + '_min_' + index;
+                            if(this.checkRCFieldExists(rcField)) {
+                                suffixNum = 0;
+                                while(this.checkRCFieldExists(rcField + '_' + suffixNum)) {
+                                    suffixNum++;
+                                }
+                                rcField = rcField + '_' + suffixNum;
+                            }
+                            // console.log(rcField);
+
+                            itemArr.push({
+                                duster_field_name: item.duster_field_name,
+                                redcap_field_name: rcField,
+                                label: 'Minimum ' + item.label,
+                                format: "text",
+                                aggregate: "min_agg"
+                            });
+                        }
+
+                        // maximum aggregate
+                        if(aggregates.max === true) {
+                            rcField = item.duster_field_name + '_max_' + index;
+                            if(this.checkRCFieldExists(rcField)) {
+                                suffixNum = 0;
+                                while(this.checkRCFieldExists(rcField + '_' + suffixNum)) {
+                                    suffixNum++;
+                                }
+                                rcField = rcField + '_' + suffixNum;
+                            }
+                           // console.log(rcField);
+
+
+                            itemArr.push({
+                                duster_field_name: item.duster_field_name,
+                                redcap_field_name: rcField,
+                                label: 'Maximum ' + item.label,
+                                format: "text",
+                                aggregate: "max_agg"
+                            });
+                        }
+
+                        // first aggregate
+                        if(aggregates.first === true) {
+                            rcField = item.duster_field_name + '_first_' + index;
+                            if(this.checkRCFieldExists(rcField)) {
+                                suffixNum = 0;
+                                while(this.checkRCFieldExists(rcField + '_' + suffixNum)) {
+                                    suffixNum++;
+                                }
+                                rcField = rcField + '_' + suffixNum;
+                            }
+                           // console.log(rcField);
+
+
+                            itemArr.push({
+                                duster_field_name: item.duster_field_name,
+                                redcap_field_name: rcField,
+                                label: 'First ' + item.label,
+                                format: "text",
+                                aggregate: "first_agg"
+                            });
+                        }
+
+                        // last aggregate
+                        if(aggregates.last === true) {
+                            rcField = item.duster_field_name + '_last_' + index;
+                            if(this.checkRCFieldExists(rcField)) {
+                                suffixNum = 0;
+                                while(this.checkRCFieldExists(rcField + '_' + suffixNum)) {
+                                    suffixNum++;
+                                }
+                                rcField = rcField + '_' + suffixNum;
+                            }
+                           // console.log(rcField);
+
+
+                            itemArr.push({
+                                duster_field_name: item.duster_field_name,
+                                redcap_field_name: rcField,
+                                label: 'Last ' + item.label,
+                                format: "text",
+                                aggregate: "last_agg"
+                            });
+                        }
+
+                        // closest to start datetime aggregate
+                        if(aggregates.closest_start === true) {
+                            // TODO
+                        }
+
+                        // closest to a specific time aggregate
+                        if(aggregates.closest_time === true) {
+                            // TODO
+                        }
+
+
+                        if(item.category === 'labs') {
+                            newCW.data.labs.push(...itemArr);
+                        } else {
+                            newCW.data.vitals.push(...itemArr);
+                        }
+
+                    });
+
+                    console.log(newCW);
+                    cwArr.push(newCW);
+                });
+
+                // set cwArr to this.config's collection windows
+                this.config.collection_windows = cwArr;
+                console.log(this.config);
+            },
+            // checks if the given REDCap field name already exists in the config
+            checkRCFieldExists(name, config) {
+                // check Researcher-Provided Identifiers
+                for(const id of this.config.rp_info.rp_identifiers) {
+                    // console.log(id.redcap_field_name);
+                    if(id.redcap_field_name === name) {
+                        return true;
+                    }
+                }
+
+                // check Researcher-Provided Dates
+                for(const date in this.config.rp_info.rp_dates) {
+                    // console.log(date.redcap_field_name);
+                    if(date.redcap_field_name === name) {
+                        return true;
+                    }
+                }
+
+                // check demographics
+                for(const demo in this.config.demographics) {
+                    if(demo.redcap_field_name === name) {
+                        return true;
+                    }
+                }
+
+                // check clinical windows
+                for(const window in this.config.collection_windows) {
+                    // check timing parameters (start/end)
+                    if([window.timing.start.redcap_field_name, window.timing.end.redcap_field_name].includes(name)) {
+                        return true;
+                    }
+
+                    // check labs
+                    for(const lab of window.data.labs) {
+                        // console.log(lab.redcap_field_name);
+                        if(lab.redcap_field_name === name) {
+                            return true;
+                        }
+                    }
+
+                    // check vitals
+                    for(const vital of window.data.vitals) {
+                        if(vital.redcap_field_name === name) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            },
+            getRCField(name) {
+                return "";
+            },
+            getFormName(label, cwArr) {
+                // remove whitespace at start and end and convert to lowercase characters only
+                let formName = label.trim().toLowerCase();
+                // replace spaces with underscore
+                formName = formName.replaceAll(' ', '_');
+
+                // remove illegal characters
+                formName = formName.replaceAll(/[^a-z_0-9]/g, '');
+
+                // remove any double underscores
+                while(formName.indexOf('__') != -1) {
+                    formName = formName.replaceAll('__', '_');
+                }
+                // remove beginning underscores
+                while(formName.substring(0, 1) == '_') {
+                    formName = formName.substring(1);
+                }
+                // remove ending underscores
+                while(formName.substring(formName.length - 1) == '_') {
+                    formName = formName.substring(0, formName.length - 1);
+                }
+                // remove beginning numerals
+                while(/^\d$/g.test(formName.substring(0, 1))) {
+                    formName = formName.substring(1);
+                }
+                // remove beginning underscores again
+                while(formName.substring(0, 1) == '_') {
+                    formName = formName.substring(1);
+                }
+
+                // ensure formName doesn't begin with a number and formName cannot be blank
+                if(/^\d$/.test(formName.substring(0, 1)) || formName == '') {
+                    console.log("MD5");
+                    formName = MD5.generate(formName).replaceAll(/[0-9]/g, '').substring(0, 4) + formName;
+                }
+
+                // if longer than 50 characters, substring formName to 50 characters
+                formName = formName.substring(0, 50);
+
+                // ensure formName doesn't already exist
+                let formNamesArr = ['researcher_provided_information', 'demographics'].concat(cwArr);
+                while(formNamesArr.includes(formName)) {
+                    // substring formName to less than 50 characters in length
+                    formName = formName.substring(0, 44);
+                    // append random values to formName to prevent duplication
+                    formName = formName + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString().substring(0, 6);
+                    // formName = formName + CryptoJS.SHA1(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)).substring(0, 6);
+                }
+
+                return formName;
+            },
+            createProject() {
+                let data = {
+                    surveys_enabled: this.surveys_enabled,
+                    repeatforms: this.repeatforms,
+                    scheduling: this.scheduling,
+                    randomization: this.randomization,
+                    app_title: this.app_title,
+                    // app_title: "project title",
+                    purpose: this.purpose,
+                    // purpose: 2,
+                    project_pi_firstname: this.project_pi_firstname,
+                    project_pi_mi: this.project_pi_mi,
+                    project_pi_lastname: this.project_pi_lastname,
+                    project_pi_email: this.project_pi_email,
+                    project_pi_alias: this.project_pi_alias,
+                    project_irb_number: this.project_irb_number,
+                    purpose_other: this.purpose_other,
+                    // purpose_other: 1,
+                    project_note: this.project_note,
+                    // project_note: "project notes go here",
+                    projecttype: this.projecttype,
+                    repeatforms_chk: this.repeatforms_chk,
+                    project_template_radio: this.project_template_radio,
+                    config: this.config
+                };
+                console.log(JSON.stringify(data, null, 2));
+
+                let formData = new FormData();
+                formData.append('redcap_csrf_token', "<?php echo $module->getCSRFToken(); ?>");
+                formData.append('data', JSON.stringify(data));
+
+                axios.post("<?php echo $module->getUrl("services/createProject.php"); ?>", formData)
+                    .then(function(response){
+                        console.log(response.data);
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
             }
         }
     })
