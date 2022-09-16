@@ -112,7 +112,7 @@
                                 class="mb-4"
                             >
                                 <template v-slot:item.format="{ item }">
-                                    <span>{{item.format}} [{{item.format=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM'}}]</span>
+                                    <span>{{item.format}} [{{item.format=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM:SS'}}]</span>
                                 </template>
                                 <template
                                     v-slot:item.actions="{ item }"
@@ -698,7 +698,7 @@
                                                     <v-text-field
                                                         v-model="window.label"
                                                         :rules="[rules.required, checkInstrName]"
-                                                        label="REDCap Instrument Name"
+                                                        label="Data Collection Window Name"
                                                         required
                                                     >
                                                     </v-text-field>
@@ -798,14 +798,14 @@
                                                                             mdi-information-outline
                                                                         </v-icon>
                                                                     </template>
-                                                                    <span>If the specified Date of Interest is not a Datetime, 00:00 will be used.</span>
+                                                                    <span>If the specified Date of Interest is not a Datetime, 00:00:00 will be used.</span>
                                                                 </v-tooltip>
                                                             </v-col>
                                                         </v-row>
                                                     </template>
                                                 </v-radio>
                                                 <v-radio
-                                                    label="At 00:00 on a specified Date/Datetime of Interest."
+                                                    label="At 00:00:00 on a specified Date/Datetime of Interest."
                                                     value="date"
                                                 >
                                                 </v-radio>
@@ -1518,7 +1518,7 @@
                                         hide-default-footer
                                     >
                                         <template v-slot:item.format="{ item }">
-                                            <span>{{item.format}} [{{item.format=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM'}}]</span>
+                                            <span>{{item.format}} [{{item.format=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM:SS'}}]</span>
                                         </template>
                                     </v-data-table>
                                 </v-card>
@@ -1737,9 +1737,9 @@
                     aggregate_defaults: {
                         min: true,
                         max: true,
-                        first: true,
-                        last: true,
-                        closest_start: true,
+                        first: false,
+                        last: false,
+                        closest_start: false,
                         closest_time: false,
                         closest_timestamp: "08:00:00"
                     },
@@ -1768,9 +1768,9 @@
                                     default: false,
                                     min: false,
                                     max: true,
-                                    first: true,
+                                    first: false,
                                     last: false,
-                                    closest_start: true,
+                                    closest_start: false,
                                     closest_time: false,
                                     closest_timestamp: "08:00:00"
                                 }
@@ -1797,9 +1797,9 @@
                     aggregate_defaults: {
                         min: true,
                         max: true,
-                        first: true,
-                        last: true,
-                        closest_start: true,
+                        first: false,
+                        last: false,
+                        closest_start: false,
                         closest_time: false,
                         closest_timestamp: "08:00:00"
                     },
@@ -1826,11 +1826,11 @@
                                 label: "Sodium (Na)",
                                 aggregates: {
                                     default: false,
-                                    min: false,
+                                    min: true,
                                     max: true,
-                                    first: true,
+                                    first: false,
                                     last: false,
-                                    closest_start: true,
+                                    closest_start: false,
                                     closest_time: false,
                                     closest_timestamp: "08:00:00"
                                 }
@@ -1858,9 +1858,9 @@
                     aggregate_defaults: {
                         min: true,
                         max: true,
-                        first: true,
-                        last: true,
-                        closest_start: true,
+                        first: false,
+                        last: false,
+                        closest_start: false,
                         closest_time: false,
                         closest_timestamp: "08:00:00"
                     },
@@ -1886,12 +1886,12 @@
                                 duster_field_name: "na",
                                 label: "Sodium (Na)",
                                 aggregates: {
-                                    default: false,
+                                    default: true,
                                     min: false,
-                                    max: true,
-                                    first: true,
+                                    max: false,
+                                    first: false,
                                     last: false,
-                                    closest_start: true,
+                                    closest_start: false,
                                     closest_time: false,
                                     closest_timestamp: "08:00:00"
                                 }
@@ -2194,6 +2194,9 @@
                         let timing = window.timing;
                         if(window.type === "nonrepeating") {
 
+                            // get the DUSTER field name for the start parameter for timing
+                            let startDusterField = timing.start !== null && timing.start.hasOwnProperty('duster_field_name') ? timing.start.duster_field_name : null;
+
                             // get the REDCap field name for the start and end parameters for timing
                             let startRCField = 'cw' + index + '_start_dttm';
                             /*
@@ -2208,6 +2211,9 @@
                             // console.log(startRCField);
                              */
 
+                            // get the rp_date for the start parameter for timing
+                            let startRPDate = startDusterField !== null ? timing.start_based : timing.start.redcap_field_name;
+
                             // get the REDCap label for the start parameter for timing
                             let startLabel = timing.start.label;
                             if(timing.start_type === 'date' || timing.start.format === 'date') {
@@ -2215,8 +2221,7 @@
                             }
 
                             // get the DUSTER field name for the end parameter for timing
-                            let endDusterField = null;
-                            endDusterField = timing.end_type === "dttm" ? timing.end.duster_field_name : null;
+                            let endDusterField = timing.end !== null && timing.end.hasOwnProperty("duster_field_name") ? timing.end.duster_field_name : null;
 
                             // get the REDCap field name for the end parameter for timing
                             let endRCField = 'cw' + index + '_end_dttm';
@@ -2230,6 +2235,12 @@
                             }
                             // console.log(endRCField);
                              */
+
+                            // get the rp_date for the end parameter for timing
+                            let endRPDate = null;
+                            if(timing.end_type === 'dttm') {
+                                endRPDate = endDusterField !== null ? timing.end_based : timing.end.redcap_field_name;
+                            }
 
                             // get the REDCap label for the end parameter for timing
                             let endLabel = "";
@@ -2248,17 +2259,19 @@
                             let timingObj = {
                                 start: {
                                     type: timing.start_type,
-                                    duster_field_name: timing.start.duster_field_name,
+                                    duster_field_name: startDusterField,
                                     redcap_field_name: startRCField,
-                                    based_on: timing.start_based,
-                                    label: timing.start.label
+                                    // based_on: timing.start_based,
+                                    rp_date: startRPDate,
+                                    label: startLabel
                                 },
                                 end: {
                                     type: timing.end_type,
                                     num_hours: timing.num_hours,
                                     duster_field_name: endDusterField,
                                     redcap_field_name: endRCField,
-                                    based_on: timing.end_based,
+                                    // based_on: timing.end_based,
+                                    rp_date: endRPDate,
                                     label: endLabel
                                 }
                             };
@@ -2642,8 +2655,8 @@
             // checks if the entered REDCap Field already exists
             checkRCFieldName(field) {
                 // check field is valid input
-                if (!/^\w+$/.test(field)) {
-                    return 'ONLY letters, numbers, and underscores.';
+                if (!/^[a-z0-9_]+$/.test(field)) {
+                    return 'ONLY lowercase letters, numbers, and underscores.';
                 }
                 let fields_arr = this.rp_dates.map(value => value.redcap_field_name);
                 // TODO this needs to check all REDCap field names, not just what's in dates
@@ -2655,7 +2668,7 @@
             // checks if the entered REDCap Field already exists when editing
             checkRCFieldNameEdit(field) {
                 // check field is valid input
-                if (!/^\w+$/.test(field)) {
+                if (!/^[a-z0-9_]+$/.test(field)) {
                     return 'ONLY letters, numbers, and underscores.';
                 }
                 let fields_arr = this.rp_dates.map(value => value.redcap_field);
@@ -2931,7 +2944,10 @@
                     let timing = window.timing;
                     if(window.type === "nonrepeating") {
 
-                        // get the REDCap field name for the start and end parameters for timing
+                        // get the DUSTER field name for the start parameter for timing
+                        let startDusterField = timing.start.hasOwnProperty('duster_field_name') ? timing.start.duster_field_name : null;
+
+                        // get the REDCap field name for the start parameters for timing
                         let startRCField = 'cw' + index + '_start_dttm';
                         let suffixNum;
                         if(this.checkRCFieldExists(startRCField)) {
@@ -2943,6 +2959,9 @@
                         }
                         // console.log(startRCField);
 
+                        // get the rp_date for the start parameter for timing
+                        let rpStartDate = startDusterField !== null ? timing.start_based : timing.start.redcap_field_name;
+
                         // get the REDCap label for the start parameter for timing
                         let startLabel = timing.start.label;
                         if(timing.start_type === 'date' || timing.start.format === 'date') {
@@ -2950,8 +2969,7 @@
                         }
 
                         // get the DUSTER field name for the end parameter for timing
-                        let endDusterField = null;
-                        endDusterField = timing.end_type === "dttm" ? timing.end.duster_field_name : null;
+                        let endDusterField = timing.end.hasOwnProperty("duster_field_name") ? timing.end.duster_field_name : null;
 
                         // get the REDCap field name for the end parameter for timing
                         let endRCField = 'cw' + index + '_end_dttm';
@@ -2963,6 +2981,12 @@
                             endRCField = endRCField + '_' + suffixNum;
                         }
                         // console.log(endRCField);
+
+                        // get the rp_date for the end parameter for timing
+                        let rpEndDate = null;
+                        if(timing.end_type === 'dttm') {
+                            rpEndDate = endDusterField !== null ? timing.end_based : timing.end.redcap_field_name;
+                        }
 
                         // get the REDCap label for the end parameter for timing
                         let endLabel = "";
@@ -2981,9 +3005,10 @@
                         let timingObj = {
                             start: {
                                 type: timing.start_type,
-                                duster_field_name: timing.start.duster_field_name,
+                                duster_field_name: startDusterField,
                                 redcap_field_name: startRCField,
-                                based_on: timing.start_based,
+                                // based_on: timing.start_based,
+                                rp_date: rpStartDate,
                                 label: timing.start.label
                             },
                             end: {
@@ -2991,7 +3016,8 @@
                                 num_hours: timing.num_hours,
                                 duster_field_name: endDusterField,
                                 redcap_field_name: endRCField,
-                                based_on: timing.end_based,
+                                // based_on: timing.end_based,
+                                rp_date: rpEndDate,
                                 label: endLabel
                             }
                         };
