@@ -13,13 +13,24 @@ class Duster extends \ExternalModules\AbstractExternalModule {
 
     use emLoggerTrait;
 
+    /* when duster is run post project creation*/
+    /*    public function redcap_every_page_top() {
+        // add query to see if it's a duster project from survey
+        if (strpos(PAGE, "index.php") !==false && $_GET['msg']==='newproject'
+            && !$_GET['dustercomplete']) {
+            $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
+            $some = "<script> window.location = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
+            echo $some;
+    }}*/
+
     // public function redcap_every_page_top($project_id) {
     public function redcap_every_page_top() {
-        // $this->emDebug("In Every Page Top Hook project id :" . $project_id . " Page is " . PAGE);
-        if (PAGE === "index.php" && $_GET['action'] === 'create') {
+        $this->emDebug(" Page is " . PAGE . " action is " . $_GET['action']);
+
+        if (strpos(PAGE, "index.php") !==false && $_GET['action'] === 'create') {
+            $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
             $some = "<script> let dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
             echo $some;
-
             $script = <<<EOD
                 <script>
                     $(document).ready(function() {
@@ -45,26 +56,27 @@ class Duster extends \ExternalModules\AbstractExternalModule {
                     }) ;
                 </script>
             EOD;
-
             echo $script;
         }
     }
 
-    public function getMetadata() {
-        // build and send GET request to metadata webservice
-        $metadata_url = $this->getSystemSetting("starrapi-metadata-url");
-        $metadata = [];
-
+    private function getValidToken($service) {
+        $token = false;
         try {
             $tokenMgnt = \ExternalModules\ExternalModules::getModuleInstance('vertx_token_manager');
-            $token = $tokenMgnt->findValidToken('ddp');
+            $token = $tokenMgnt->findValidToken($service);
         } catch (Exception $ex) {
             $this->emError("Could not find a valid token for service ddp");
-            $token = false;
         }
-        if($token !== false) {
-            $curl = curl_init($metadata_url);
-            curl_setopt($curl, CURLOPT_URL, $metadata_url);
+        return $token;
+    }
+
+    public function starrApiGetRequest($url, $service) {
+        $token = $this->getValidToken($service);
+        $resp_arr=[];
+        if ($token !== false) {
+            $curl = curl_init($url);
+            curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             $headers = array(
                 "Accept: application/json",
@@ -75,7 +87,39 @@ class Duster extends \ExternalModules\AbstractExternalModule {
             $resp = curl_exec($curl);
             curl_close($curl);
             $resp_arr = json_decode($resp, true);
-            $metadata = $resp_arr;
+
+        }
+        //$this->emLog("$url response = " . print_r($resp_arr, true));
+        return $resp_arr;
+    }
+
+    public function starrApiPostRequest($url, $service, $post_fields) {
+        $token = $this->getValidToken($service);
+        $resp_arr=[];
+        $message= json_encode($post_fields);
+        $content_type = 'application/json';
+        if ($token !== false) {
+            $headers = array(
+                "Content-Type: ". $content_type,
+                "Authorization: Bearer " . $token,
+                "Content-Length: ".  length($message)
+            );
+            $this->emDebug("headers: " . print_r($headers, true));
+
+            $response = http_post($url, $message, null, $content_type, null, $headers);
+            $resp_arr = json_decode($response, true);
+            $this->emDebug("Returned from getData api ");
+            if (!$resp_arr) {
+                $this->emDebug("$url response: " . print_r($resp_arr, true));
+            }
+        }
+        return $resp_arr;
+    }
+
+    public function getMetadata() {
+        // build and send GET request to metadata webservice
+        $metadata_url = $this->getSystemSetting("starrapi-metadata-url");
+        $metadata = $this->starrApiGetRequest($metadata_url,'ddp');
             // $metadata = $resp_arr["results"];
             /*
             $fields_arr = $resp_arr["results"];
@@ -120,10 +164,18 @@ class Duster extends \ExternalModules\AbstractExternalModule {
             "oxygenation" => $oxygenation_arr
         );
         */
-        }
-        // $this->emLog($metadata);
+
         return $metadata;
     }
+
+    /*public function getDusterConfig() {
+        // build and send GET request to config webservice
+        $config_url = $this->getSystemSetting("starrapi-config-url") . $this->getProjectId();
+        $this->emDebug("config url = $config_url");
+        $duster_config = $this->getFromDdp($config_url);
+        //$this->emDebug('duster_config = ' . print_r($duster_config, true));
+        return $duster_config;
+    }*/
 
     /**
      * Fetch user information from corresponding API token

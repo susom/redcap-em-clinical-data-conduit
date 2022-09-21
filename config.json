@@ -28,7 +28,13 @@
 
 	"links": {
 		"project": [
-
+			{
+				"name": "Duster Data",
+				"key": "dusterdata",
+				"icon": "fas fa-receipt",
+				"url": "pages/populateData.php",
+				"show-header-and-footer": true
+			}
 		],
 		"control-center": [
 
