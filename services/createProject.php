@@ -189,8 +189,9 @@ if (!$q) {
     queryFail($sql);
 }
 
-// enable DUSTER EM
-// $module->enableDusterOnProject($project_id);
+// enable DUSTER EM on the newly created project
+$_GET['pid'] = $project_id; // put DUSTER into project-level context of the newly created project
+                            // for sake of non-admin user permissions
 $module->enableModule($project_id, NULL);
 
 // delete the project super token if needed
@@ -209,7 +210,7 @@ try {
     $tokenMgnt = \ExternalModules\ExternalModules::getModuleInstance('vertx_token_manager');
     $token = $tokenMgnt->findValidToken('ddp');
 } catch (Exception $ex) {
-    $this->emError("Could not find a valid token for service ddp");
+    $module->emError("Could not find a valid token for service ddp");
 }
 
 // set up the headers
