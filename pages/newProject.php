@@ -24,7 +24,6 @@
             v-if="metadata_loaded"
         >
             <h1>DUSTER: Data Upload Service for Translational rEsearch on Redcap</h1>
-            </v-form>
 
             <v-stepper
                 v-model="step"
@@ -1605,7 +1604,9 @@
                                 </v-expansion-panel-content>
                             </v-expansion-panel>
                         </v-expansion-panels>
-
+                      <div v-if="save_error">
+                        <v-alert type="error"><span v-html="save_error"></span></v-alert>
+                      </div>
                         <v-btn
                             color="primary"
                             class="mt-4"
@@ -2126,7 +2127,8 @@
             rules: {
                 required: value => !!value || 'Required.',
                 num_instances: value => value > 1 || 'Number of instances must be greater than 1.'
-            }
+            },
+          save_error: null
         },
         computed: {
             /*
@@ -2455,7 +2457,7 @@
             this.project_template_radio = "<?php echo $_POST["project_template_radio"] ?>";
 
             // request metadata from STARR-API
-            axios.get("<?php echo $module->getUrl("services/callMetadata.php"); ?>").then(response => {
+          axios.get("<?php echo $module->getUrl("services/callMetadata.php"); ?>").then(response => {
                 console.log(response.data);
 
                 // add demographics
@@ -3283,14 +3285,23 @@
                 let formData = new FormData();
                 formData.append('redcap_csrf_token', "<?php echo $module->getCSRFToken(); ?>");
                 formData.append('data', JSON.stringify(data));
+                let self = this;
 
+                // use services/importMetadata.php if project has already been created
                 axios.post("<?php echo $module->getUrl("services/createProject.php"); ?>", formData)
                     .then(function(response){
-                        console.log(response.data);
-                        window.location.href = response.data;
+                        console.log("Response data: " + response.data);
+                        if (response.data.indexOf('Uncaught Error') > -1 ||
+                          response.data.indexOf('Error message') > -1) {
+                            console.log("Found Error");
+                            self.save_error = response.data;
+                        } else {
+                          window.location.href = response.data;
+                        }
                     })
                     .catch(function(error) {
-                        console.log(error);
+                        self.save_error=error.message;
+                        console.log("Catch: " + error);
                     });
             }
         }

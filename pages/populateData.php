@@ -29,8 +29,8 @@ $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
     <h1>DUSTER: Data Upload</h1>
 
     <div v-if="error">
-      <v-alert type="error">{{error}}</v-alert>
-    </div>
+        <v-alert type="error"><span v-html="error"></span></v-alert>
+      </div>
 
     <div v-if="!isLoading && !isLoaded">
       <p>Load your Duster Data!</p>
@@ -220,31 +220,32 @@ $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
         window.location = '<?php echo $record_base_url?>';
       },
       loadCohort() {
-        this.isLoading = true
+        this.isLoading = true;
+        let self = this;
         axios.get("<?php echo $module->getUrl("services/getData.php?action=cohort"); ?>").then(response => {
-          this.isLoading = false;
-          this.isLoaded = true;
+          self.isLoading = false;
+          self.isLoaded = true;
           console.log(response);
           if (response.status == 200) {
             if (response.data.indexOf('Error message') > -1) {
-              this.error = response.data;
+              self.error = response.data;
             } else {
               try {
-                this.dusterData = JSON.parse(response.data);
+                self.dusterData = JSON.parse(response.data);
                 if (this.dusterData.missing_fields && this.dusterData.missing_fields.length > 0) {
-                  this.step = 1;
+                  self.step = 1;
                 } else if (!this.dusterData.rp_data ||
-                  (this.dusterData.missing_data && this.dusterData.missing_data.length > 0)) {
-                  this.step = 2;
+                  (self.dusterData.missing_data && this.dusterData.missing_data.length > 0)) {
+                  self.step = 2;
                 } else {
-                  this.step = 3;
+                  self.step = 3;
                 }
               } catch (e) {
-                this.error = 'Cohort parsing error: ' + e.message;
+                self.error = 'Cohort parsing error: ' + e.message;
               }
             }
           } else {
-            this.error='Cohort response error: ' + response.message;
+            self.error='Cohort response error: ' + response.message;
           }
         });
       },
@@ -252,25 +253,35 @@ $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
         this.step = 4;
         let cohort = {};
         cohort.redcap_project_id = parseInt(this.dusterData.redcap_project_id);
+
         cohort.cohort = this.dusterData.rp_data;
         //console.log("cohort = '" + JSON.stringify(cohort) + "'");
         //console.log("url = " +
         //    < ?php echo '"' . $module->getUrl("services/getData.php?action=getData") . '"'; ?>
         //  +"&cohort=" + JSON.stringify(cohort));
-
-        axios.get("<?php echo $module->getUrl("services/getData.php?action=getData"); ?>"
-          ).then(response => {
-          //console.log(JSON.stringify(response.data));
+        let self = this;
+        let formData = new FormData();
+        formData.append('redcap_csrf_token', "<?php echo $module->getCSRFToken(); ?>");
+        formData.append('data', JSON.stringify(cohort));
+        axios.post("<?php echo $module->getUrl("services/getData.php?action=getData"); ?>",
+          formData).then(response => {
+          console.log(JSON.stringify(response.data));
           if (response.status == 200) {
-            if (response.data.errors.length == 0) {
-              this.savedData = response.data;
+            if (response.data.indexOf('Uncaught Error:') > -1 ||
+              response.data.indexOf('Error message') > -1) {
+              self.error='System error: ' + response.data;
+            } else if (response.data.errors.length > 0) {
+              self.error='Redcap save error: ' + JSON.stringify(response.data.errors);
             } else {
-              this.error='Redcap save error: ' + JSON.stringify(response.data.errors);
+              self.savedData = response.data;
             }
           } else {
-            this.error='Data retrieve error: ' + response.message;
+            self.error='Data retrieve error: ' + response.message;
           }
-        });
+        }).catch(function(error) {
+          self.error=error.message;
+          console.log(error);
+        });;
       }
     }
   })
