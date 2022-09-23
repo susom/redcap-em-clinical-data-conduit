@@ -655,7 +655,7 @@
                                 v-show="!collection_windows.length || show_window_form == true"
                                 outlined
                             >
-                                <v-card-subtitle><h1>Create a New Data Collection Window</h1></v-card-subtitle>
+                                <v-card-subtitle><h1>{{window_edit === false ? 'Create a New' : 'Edit'}} Data Collection Window</h1></v-card-subtitle>
 
                                 <v-stepper
                                 v-model="window_stepper"
@@ -684,6 +684,8 @@
                                                         :items="preset_windows"
                                                         @change="setPreset(preset_choice)"
                                                         label="Presets"
+                                                        item-text="label"
+                                                        return-object
                                                     >
                                                     </v-select>
                                                 </v-col>
@@ -869,7 +871,7 @@
                                                                 cols="1"
                                                             >
                                                                 <v-text-field
-                                                                    v-model="window.timing.num_hours"
+                                                                    v-model.number="window.timing.num_hours"
                                                                     dense
                                                                     type="number"
                                                                     min="1"
@@ -1901,6 +1903,7 @@
                     }
                 }
             ],
+            window_edit: false, // flag for window_form (editing a saved window if true, creating a new window if false)
             window: {
                 label: null,
                 type: null, // nonrepeating || finite_repeating || calculated_repeating
@@ -1968,141 +1971,127 @@
             preset_choice: null,
             preset_windows: [
                 {
-                    text: "ED Presentation to ED Discharge",
-                    value: {
-                        instr_name: "ED Presentation to ED Discharge",
-                        type: "nonrepeating",
-                        params: {
-                            type: "dttm", // hours || day || dttm
-                            num_hours: null, // number of hours when type is hours
-                            start_type: "dttm", // dttm || date
-                            start_dttm: "ED Presentation Datetime", // start date/datetime
-                            start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
-                            end_dttm: "ED Discharge Datetime", // end date/datetime when applicable
-                            end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                    label: "ED Presentation to ED Discharge",
+                    type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
+                    timing: {
+                        start_type: "dttm",
+                        start: {
+                            category: "dates",
+                            duster_field_name: "ed_admission_dttm",
+                            label: "ED Admission Datetime"
                         },
-                        aggregate_defaults: {
-                            min: false,
-                            max: false,
-                            first: false,
-                            last: false,
-                            closest_start: false,
-                            closest_time: false,
-                            closest_timestamp: "08:00:00"
+                        start_based: "enroll_date",
+                        end_type: "dttm",
+                        num_hours: null,
+                        end: {
+                            category: "dates",
+                            duster_field_name: "ed_discharge_dttm",
+                            label: "ED Discharge Datetime"
                         },
-                        data: {
-                            labs_vitals: []
-                        }
+                        end_based: "enroll_date"
+                    },
+                    aggregate_defaults: {
+                        min: true,
+                        max: true,
+                        first: false,
+                        last: false,
+                        closest_start: false,
+                        closest_time: false,
+                        closest_timestamp: "08:00:00"
+                    },
+                    data: {
+                        labs_vitals: []
                     }
                 },
                 {
-                    text: "First 24 Hours of Hospital Presentation",
-                    value: {
-                        instr_name: "First 24 Hours of Hospital Presentation",
-                        type: "nonrepeating",
-                        params: {
-                            type: "hours", // hours || day || dttm
-                            num_hours: 24, // number of hours when type is hours
-                            start_type: "dttm", // date || dttm
-                            start_dttm: "Hospital Presentation Datetime", // start date/datetime
-                            start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
-                            end_dttm: null, // end date/datetime when applicable
-                            end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                    label: "Hospital Presentation to Hospital Discharge",
+                    type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
+                    timing: {
+                        start_type: "dttm",
+                        start: {
+                            category: "dates",
+                            duster_field_name: "hospital_admit_dttm",
+                            label: "Hospital Admission Datetime"
                         },
-                        aggregate_defaults: {
-                            min: false,
-                            max: false,
-                            first: false,
-                            last: false,
-                            closest_start: false,
-                            closest_time: false,
-                            closest_timestamp: "08:00:00"
+                        start_based: "enroll_date",
+                        end_type: "dttm",
+                        num_hours: null,
+                        end: {
+                            category: "dates",
+                            duster_field_name: "hospital_discharge_dttm",
+                            label: "Hospital Discharge Datetime"
                         },
-                        data: {
-                            labs_vitals: []
-                        }
+                        end_based: "enroll_date"
+                    },
+                    aggregate_defaults: {
+                        min: true,
+                        max: true,
+                        first: false,
+                        last: false,
+                        closest_start: false,
+                        closest_time: false,
+                        closest_timestamp: "08:00:00"
+                    },
+                    data: {
+                        labs_vitals: []
                     }
                 },
                 {
-                    text: "First 24 Hours of First ICU Admission",
-                    value: {
-                        instr_name: "First 24 Hours of First ICU Admission",
-                        type: "nonrepeating",
-                        params: {
-                            type: "hours", // hours || day || dttm
-                            num_hours: 24, // number of hours when type is hours
-                            start_type: "dttm", // date || dttm
-                            start_dttm: "First ICU Admission Datetime", // start date/datetime
-                            start_based_dttm: "Study Enrollment Date", // required when start_dttm is based on a clinical date
-                            end_dttm: null, // end date/datetime when applicable
-                            end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                    label: "First 24 Hours of Hospital Admission",
+                    type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
+                    timing: {
+                        start_type: "dttm",
+                        start: {
+                            category: "dates",
+                            duster_field_name: "hospital_admit_dttm",
+                            label: "Hospital Admission Datetime"
                         },
-                        aggregate_defaults: {
-                            min: false,
-                            max: false,
-                            first: false,
-                            last: false,
-                            closest_start: false,
-                            closest_time: false,
-                            closest_timestamp: "08:00:00"
-                        },
-                        data: {
-                            labs_vitals: []
-                        }
+                        start_based: "enroll_date",
+                        end_type: "hours",
+                        num_hours: 24,
+                        end: null,
+                        end_based: "enroll_date"
+                    },
+                    aggregate_defaults: {
+                        min: true,
+                        max: true,
+                        first: false,
+                        last: false,
+                        closest_start: false,
+                        closest_time: false,
+                        closest_timestamp: "08:00:00"
+                    },
+                    data: {
+                        labs_vitals: []
                     }
                 },
                 {
-                    text: "Inpatient Calendar Days",
-                    value: {
-                        instr_name: "Inpatient Calendar Days",
-                        type: "calculated_repeating",
-                        params: {
-                            type: "days", // hours || days
-                            num_hours: null, // number of hours when type is 'hours'
-                            start_dttm: "Hospital Admission Datetime", // start date/datetime
-                            start_based_dttm: "Study Enrollment Date", // required when end_dttm is based on a clinical date
-                            end_dttm: "Hospital Discharge Datetime", // end date/datetime when applicable
-                            end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
+                    label: "First 24 Hours of First ICU Admission",
+                    type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
+                    timing: {
+                        start_type: "dttm",
+                        start: {
+                            category: "dates",
+                            duster_field_name: "first_icu_admission_dttm",
+                            label: "First ICU Admission Datetime"
                         },
-                        aggregate_defaults: {
-                            min: false,
-                            max: false,
-                            first: false,
-                            last: false,
-                            closest_start: false,
-                            closest_time: false,
-                            closest_timestamp: "08:00:00"
-                        },
-                        data: {
-                            labs_vitals: []
-                        }
-                    }
-                },
-                {
-                    text: "ICU Calendar Days",
-                    value: {
-                        instr_name: "ICU Calendar Days",
-                        type: "calculated_repeating",
-                        params: {
-                            type: "days", // hours || days
-                            num_hours: null, // number of hours when type is 'hours'
-                            start_dttm: "First ICU Admission Datetime", // start date/datetime
-                            start_based_dttm: "Study Enrollment Date", // required when end_dttm is based on a clinical date
-                            end_dttm: "First ICU Discharge Datetime", // end date/datetime when applicable
-                            end_based_dttm: "Study Enrollment Date" // required when end_dttm is based on a clinical date
-                        },
-                        aggregate_defaults: {
-                            min: false,
-                            max: false,
-                            first: false,
-                            last: false,
-                            closest_start: false,
-                            closest_time: false,
-                            closest_timestamp: "08:00:00"
-                        },
-                        data: {
-                            labs_vitals: []
-                        }
+                        start_based: "enroll_date",
+                        end_type: "hours",
+                        num_hours: 24,
+                        end: null,
+                        end_based: "enroll_date"
+                    },
+                    aggregate_defaults: {
+                        min: true,
+                        max: true,
+                        first: false,
+                        last: false,
+                        closest_start: false,
+                        closest_time: false,
+                        closest_timestamp: "08:00:00"
+                    },
+                    data: {
+                        labs_vitals: []
                     }
                 }
             ],
@@ -2131,15 +2120,6 @@
           save_error: null
         },
         computed: {
-            /*
-            instruments: {
-                get: function() {
-                    return Array.from(Array(2 + this.config.collection_windows.length).keys());
-                },
-                set: function() {
-                }
-            },
-             */
             config: {
                 get: function() {
                     let config = {
@@ -2684,14 +2664,18 @@
             checkInstrName(name) {
                 let names_arr = this.collection_windows.map(value => value.label);
                 names_arr = names_arr.concat(['Researcher-Provided Info', 'Demographics'])
-                if (names_arr.includes(name)) {
-                    return 'Enter another name. This name is already used by another data collection window or other REDCap Instrument DUSTER will create by default.';
+                if (!names_arr.includes(name) ||
+                    (this.window_edit === true && names_arr[this.edit_window_index] === name)) {
+                    return true;
+                } else {
+                    return 'Enter another name. This name is already used by another data collection window or other REDCap Form DUSTER will create by default.';
                 }
-                return true;
             },
             isValidTiming() {
                 // this.$refs.date_form.validate();
+                //console.log("isValidTiming()");
                 if (this.window.type === 'nonrepeating') {
+                    console.log("nonrepeating");
                     return this.isValidNonRepeat();
                 } else if (this.window.type === 'finite_repeating') {
                     return this.isValidFiniteRepeat();
@@ -2792,8 +2776,11 @@
                 return true;
             },
             editWindow(i) {
-                this.pre_edit_window = JSON.parse(JSON.stringify(this.collection_windows[i]));
+                this.window = JSON.parse(JSON.stringify(this.collection_windows[i]));
                 this.edit_window_index = i;
+                this.open_window_panel = null;
+                this.window_edit = true;
+                this.show_window_form = true;
             },
             saveEditWindow() {
                 this.edit_window_index = -1;
@@ -2818,6 +2805,7 @@
             setPreset(preset_choice) {
                 this.$refs.window_form.resetValidation();
                 this.window = JSON.parse(JSON.stringify(preset_choice));
+                // this.window = Object.assign({}, this.window, JSON.parse(JSON.stringify(preset_choice)));
                 this.preset_choice = null;
             },
             resetWindow(window, ref) {
@@ -2927,230 +2915,6 @@
             deleteWindow(i) {
                 this.collection_windows.splice(i, 1);
                 this.delete_window_dialog = false;
-            },
-            createConfigCollectionWindows() {
-                let cwArr = [];
-                this.collection_windows.forEach((window, index) => {
-                    let newCW = {
-                        label: window.label,
-                        form_name: this.getFormName(window.label),
-                        type: window.type,
-                        timing: {
-                        },
-                        data: {
-                            labs: [],
-                            vitals: []
-                        }
-                    };
-
-                    let timing = window.timing;
-                    if(window.type === "nonrepeating") {
-
-                        // get the DUSTER field name for the start parameter for timing
-                        let startDusterField = timing.start.hasOwnProperty('duster_field_name') ? timing.start.duster_field_name : null;
-
-                        // get the REDCap field name for the start parameters for timing
-                        let startRCField = 'cw' + index + '_start_dttm';
-                        let suffixNum;
-                        if(this.checkRCFieldExists(startRCField)) {
-                            suffixNum = 0;
-                            while(this.checkRCFieldExists(startRCField + '_' + suffixNum)) {
-                                suffixNum++;
-                            }
-                            startRCField = startRCField + '_' + suffixNum;
-                        }
-                        // console.log(startRCField);
-
-                        // get the rp_date for the start parameter for timing
-                        let rpStartDate = startDusterField !== null ? timing.start_based : timing.start.redcap_field_name;
-
-                        // get the REDCap label for the start parameter for timing
-                        let startLabel = timing.start.label;
-                        if(timing.start_type === 'date' || timing.start.format === 'date') {
-                            startLabel = '00:00:00 on the Calendar Day of ' + timing.start.label;
-                        }
-
-                        // get the DUSTER field name for the end parameter for timing
-                        let endDusterField = timing.end.hasOwnProperty("duster_field_name") ? timing.end.duster_field_name : null;
-
-                        // get the REDCap field name for the end parameter for timing
-                        let endRCField = 'cw' + index + '_end_dttm';
-                        if(this.checkRCFieldExists(endRCField)) {
-                            suffixNum = 0;
-                            while(this.checkRCFieldExists(endRCField + '_' + suffixNum)) {
-                                suffixNum++;
-                            }
-                            endRCField = endRCField + '_' + suffixNum;
-                        }
-                        // console.log(endRCField);
-
-                        // get the rp_date for the end parameter for timing
-                        let rpEndDate = null;
-                        if(timing.end_type === 'dttm') {
-                            rpEndDate = endDusterField !== null ? timing.end_based : timing.end.redcap_field_name;
-                        }
-
-                        // get the REDCap label for the end parameter for timing
-                        let endLabel = "";
-                        if(timing.end_type === 'dttm') {
-                            if(timing.end.format === 'date') {
-                                endLabel = 'Midnight on the Calendar Day of ' + timing.end.label;
-                            } else {
-                                endLabel = timing.end.label;
-                            }
-                        } else if(timing.end_type === 'day') {
-                            endLabel = 'Midnight on the Calendar Day of ' + timing.start.label;
-                        } else if(timing.end_type === 'hours') {
-                            endLabel = timing.num_hours + ' hours after ' + startLabel;
-                        }
-
-                        let timingObj = {
-                            start: {
-                                type: timing.start_type,
-                                duster_field_name: startDusterField,
-                                redcap_field_name: startRCField,
-                                // based_on: timing.start_based,
-                                rp_date: rpStartDate,
-                                label: timing.start.label
-                            },
-                            end: {
-                                type: timing.end_type,
-                                num_hours: timing.num_hours,
-                                duster_field_name: endDusterField,
-                                redcap_field_name: endRCField,
-                                // based_on: timing.end_based,
-                                rp_date: rpEndDate,
-                                label: endLabel
-                            }
-                        };
-                        newCW.timing = timingObj;
-                    }
-
-                    // labs and vitals
-                    let lvArr = window.data.labs_vitals;
-                    lvArr.forEach((item) => {
-                        // create a new field for each aggregate
-                        let itemArr = [];
-                        let rcField = '';
-                        let suffixNum = 0;
-                        let aggregates = window.aggregate_defaults;
-                        if(item.aggregates.default === false) {
-                            aggregates = item.aggregates;
-                        }
-
-                        // minimum aggregate
-                        if(aggregates.min === true) {
-                            rcField = item.duster_field_name + '_min_' + index;
-                            if(this.checkRCFieldExists(rcField)) {
-                                suffixNum = 0;
-                                while(this.checkRCFieldExists(rcField + '_' + suffixNum)) {
-                                    suffixNum++;
-                                }
-                                rcField = rcField + '_' + suffixNum;
-                            }
-                            // console.log(rcField);
-
-                            itemArr.push({
-                                duster_field_name: item.duster_field_name,
-                                redcap_field_name: rcField,
-                                label: 'Minimum ' + item.label,
-                                format: "text",
-                                aggregate: "min_agg"
-                            });
-                        }
-
-                        // maximum aggregate
-                        if(aggregates.max === true) {
-                            rcField = item.duster_field_name + '_max_' + index;
-                            if(this.checkRCFieldExists(rcField)) {
-                                suffixNum = 0;
-                                while(this.checkRCFieldExists(rcField + '_' + suffixNum)) {
-                                    suffixNum++;
-                                }
-                                rcField = rcField + '_' + suffixNum;
-                            }
-                           // console.log(rcField);
-
-
-                            itemArr.push({
-                                duster_field_name: item.duster_field_name,
-                                redcap_field_name: rcField,
-                                label: 'Maximum ' + item.label,
-                                format: "text",
-                                aggregate: "max_agg"
-                            });
-                        }
-
-                        // first aggregate
-                        if(aggregates.first === true) {
-                            rcField = item.duster_field_name + '_first_' + index;
-                            if(this.checkRCFieldExists(rcField)) {
-                                suffixNum = 0;
-                                while(this.checkRCFieldExists(rcField + '_' + suffixNum)) {
-                                    suffixNum++;
-                                }
-                                rcField = rcField + '_' + suffixNum;
-                            }
-                           // console.log(rcField);
-
-
-                            itemArr.push({
-                                duster_field_name: item.duster_field_name,
-                                redcap_field_name: rcField,
-                                label: 'First ' + item.label,
-                                format: "text",
-                                aggregate: "first_agg"
-                            });
-                        }
-
-                        // last aggregate
-                        if(aggregates.last === true) {
-                            rcField = item.duster_field_name + '_last_' + index;
-                            if(this.checkRCFieldExists(rcField)) {
-                                suffixNum = 0;
-                                while(this.checkRCFieldExists(rcField + '_' + suffixNum)) {
-                                    suffixNum++;
-                                }
-                                rcField = rcField + '_' + suffixNum;
-                            }
-                           // console.log(rcField);
-
-
-                            itemArr.push({
-                                duster_field_name: item.duster_field_name,
-                                redcap_field_name: rcField,
-                                label: 'Last ' + item.label,
-                                format: "text",
-                                aggregate: "last_agg"
-                            });
-                        }
-
-                        // closest to start datetime aggregate
-                        if(aggregates.closest_start === true) {
-                            // TODO
-                        }
-
-                        // closest to a specific time aggregate
-                        if(aggregates.closest_time === true) {
-                            // TODO
-                        }
-
-
-                        if(item.category === 'labs') {
-                            newCW.data.labs.push(...itemArr);
-                        } else {
-                            newCW.data.vitals.push(...itemArr);
-                        }
-
-                    });
-
-                    console.log(newCW);
-                    cwArr.push(newCW);
-                });
-
-                // set cwArr to this.config's collection windows
-                this.config.collection_windows = cwArr;
-                console.log(this.config);
             },
             // checks if the given REDCap field name already exists in the config
             checkRCFieldExists(name, config) {
