@@ -26,7 +26,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     // public function redcap_every_page_top($project_id) {
     public function redcap_every_page_top() {
         $this->emDebug(" Page is " . PAGE . " action is " . $_GET['action']);
-
         if (strpos(PAGE, "index.php") !==false && $_GET['action'] === 'create') {
             $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
             $some = "<script> let dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";

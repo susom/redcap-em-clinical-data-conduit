@@ -5,6 +5,8 @@ namespace Stanford\Duster;
 use RedCapDB;
 
 require_once $module->getModulePath() . "classes/OdmXmlString.php";
+require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
+
 
 /*
 if(!isset($_POST['odm']) | !isset($_POST['app_title']) | !isset($_POST['purpose'])) {
@@ -189,6 +191,11 @@ if (!$q) {
     queryFail($sql);
 }
 
+$data_arr['redcap_server_name'] = SERVER_NAME;
+$data_arr['project_irb_number'] = $data['project_irb_number'];
+$data_arr['project_pi_name'] = $data['project_pi_firstname'] . ' ' . $data['project_pi_lastname'];
+
+
 // enable DUSTER EM on the newly created project
 $_GET['pid'] = $project_id; // put DUSTER into project-level context of the newly created project
                             // for sake of non-admin user permissions
@@ -223,7 +230,8 @@ $headers = array(
 // set up the POST body as a JSON-encoded string
 $config_data = json_encode(array(
     'redcap_project_id' => $project_id,
-    'config' => $data['config']
+    'config' => $data['config'],
+    'linkinfo' => $data_arr
 ));
 
 // Create a new cURL resource
@@ -240,9 +248,17 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 // Execute the POST request
 $result = curl_exec($ch);
-
 // Close cURL resource
 curl_close($ch);
+
+
+if ($result['success'] && $result['rcToStarrLinkConfig']) {
+    $em_config = json_decode($result, true);
+    $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module, $em_config);
+    $rctostarr_config->enableRedcapToStarrLink();
+    $rctostarr_config->configureRedcapToStarrLink();
+}
+//TODO: add error handling
 
 echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
 ?>

@@ -227,21 +227,19 @@ $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
           self.isLoaded = true;
           console.log(response);
           if (response.status == 200) {
-            if (response.data.indexOf('Error message') > -1) {
-              self.error = response.data;
+            console.log(JSON.stringify(response.data));
+            let data_str = JSON.stringify(response.data);
+            if (data_str.indexOf('Error message') > -1) {
+              self.error = data_str;
             } else {
-              try {
-                self.dusterData = JSON.parse(response.data);
-                if (this.dusterData.missing_fields && this.dusterData.missing_fields.length > 0) {
-                  self.step = 1;
-                } else if (!this.dusterData.rp_data ||
-                  (self.dusterData.missing_data && this.dusterData.missing_data.length > 0)) {
-                  self.step = 2;
-                } else {
-                  self.step = 3;
-                }
-              } catch (e) {
-                self.error = 'Cohort parsing error: ' + e.message;
+              self.dusterData = response.data;
+              if (this.dusterData.missing_fields && this.dusterData.missing_fields.length > 0) {
+                self.step = 1;
+              } else if (!this.dusterData.rp_data ||
+                (self.dusterData.missing_data && this.dusterData.missing_data.length > 0)) {
+                self.step = 2;
+              } else {
+                self.step = 3;
               }
             }
           } else {
@@ -267,9 +265,10 @@ $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
           formData).then(response => {
           console.log(JSON.stringify(response.data));
           if (response.status == 200) {
-            if (response.data.indexOf('Uncaught Error:') > -1 ||
-              response.data.indexOf('Error message') > -1) {
-              self.error='System error: ' + response.data;
+            let data_str = JSON.stringify(response.data);
+            if (data_str.indexOf('Uncaught Error:') > -1 ||
+              data_str.indexOf('Error message') > -1) {
+              self.error='System error: ' + data_str.data;
             } else if (response.data.errors.length > 0) {
               self.error='Redcap save error: ' + JSON.stringify(response.data.errors);
             } else {

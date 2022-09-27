@@ -92,7 +92,7 @@ class DusterDataRequestClass
 
             }
         }
-        return json_encode($rp_data);
+        return $rp_data;
     }
 
 }

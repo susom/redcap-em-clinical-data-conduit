@@ -5,6 +5,7 @@ namespace Stanford\Duster;
 use RedCapDB;
 
 require_once $module->getModulePath() . "classes/DusterConfigClass.php";
+require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
 
 $json = $_POST['data'];
 // $module->emLog($json);
@@ -24,7 +25,7 @@ if (!$user_token) {
     // TODO exit/return since we cannot create a project without a super token
 }
 $module->emDebug(json_encode($duster_config->getRedcapMetadata()));
-// call REDCap API to create project
+// call REDCap API to import project metadata
 $fields = array(
     'token'   => $user_token,
     'content' => 'metadata',
@@ -72,18 +73,31 @@ foreach($forms as $form) {
     }
 }
 
+
 $db->deleteAPIToken(USERID, PROJECT_ID);
 
 /* send POST request to DUSTER's config route in STARR-API */
+$data_arr['redcap_server_name'] = SERVER_NAME;
+$data_arr['project_title'] = $data['app_title'];
+$data_arr['project_irb_number'] = $data['project_irb_number'];
+$data_arr['project_pi_name'] = $data['project_pi_firstname'] . ' ' . $data['project_pi_lastname'];
 
 // Retrieve the data URL that is saved in the config file
 $config_url = $module->getSystemSetting("starrapi-config-url");
 // set up the POST body
 $config_data = array(
     'redcap_project_id' => $project_id,
-    'config' => $duster_config->getDusterConfig()
+    'config' => $duster_config->getDusterConfig(),
+    'linkinfo' => $data_arr
 );
-$module->starrApiPostRequest($config_url, 'ddp', $config_data);
+$result = $module->starrApiPostRequest($config_url, 'ddp', $config_data);
 
+// TODO: enable redcap to starr link and configure it
+/*if ($result['success'] && $result['rcToStarrLinkConfig']) {
+    $em_config = json_decode($result, true);
+    $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module, $em_config);
+    $rctostarr_config->enableRedcapToStarrLink();
+    $rctostarr_config->configureRedcapToStarrLink();
+}*/
 echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject&dustercomplete=true";
 ?>
