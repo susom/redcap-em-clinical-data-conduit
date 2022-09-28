@@ -2,7 +2,7 @@
 namespace Stanford\Duster;
 /** @var \Stanford\Duster\Duster $module */
 
-require_once $module->getModulePath() . "classes/DusterDataRequestClass.php";
+require_once $module->getModulePath() . "classes/DusterConfigClass.php";
 require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
 
 $pid = isset($_GET['pid']) && !empty($_GET['pid']) ? $_GET['pid'] : null;
