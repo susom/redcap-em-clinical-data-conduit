@@ -4,7 +4,7 @@ namespace Stanford\Duster;
 
 class RedcapToStarrLinkConfig
 {
-    private $project_id, $module, $em_config, $em_id;
+    private $project_id, $module;
     /*
      * this is just for my reference.  will delete later.
     private $rts_settings = "enable-project-debug-logging,cohorts,id-source,starr-id-field,starr-event-name,include-logic,status-field,query-date1,query-date1-event,query-date2,query-date2-event,query-date3,query-date3-event,query-int1,query-int1-event,query-int2,query-int2-event,query-num1,query-num1-event,query-num2,query-num2-event,query-string1,query-string1-event,query-string2,query-string2-event,query-date4,query-date4-event,query-date5,query-date5-event";
@@ -12,22 +12,21 @@ class RedcapToStarrLinkConfig
     private $query_settings="queries,query-name,data-location,data-store-event,include-form-list,exclude-field-list,
     redcap-cohort,sync-on-save,save-instrument,cron-freq";*/
 
-    public function __construct($pid, $module, $em_config)
+    public function __construct($pid, $module)
     {
         $this->project_id = $pid;
         $this->module = $module;
-        $this->em_config = $em_config;
-        $this->module->emDebug('em_config: ' . print_r($em_config, true));
-        $this->em_id = $this->getEmId();
     }
 
+    /*enable RtoS Link EM in the project*/
     public function enableRedcapToStarrLink() {
         $this->module->enableModule($this->project_id, "redcap_to_starr_link");
     }
 
-    public function configureRedcapToStarrLink() {
+    /*takes JsonObject returned from starr-api to configure project level RtoS Link EM settings*/
+    public function configureRedcapToStarrLink($em_config) {
         // there's no api for this so just saving settings directly to database
-        $data_sync_settings = $this->em_config['rcToStarrLinkConfig']['dataSync'];
+        $data_sync_settings = $em_config['rcToStarrLinkConfig']['dataSync'];
         $this->module->emDebug('data_sync_settings: ' . print_r($data_sync_settings, true));
 
         foreach ($data_sync_settings as $key=>$setting) {
@@ -35,7 +34,7 @@ class RedcapToStarrLinkConfig
         }
 
         // these settings are for the data queries
-        $data_queries = $this->em_config['rcToStarrLinkConfig']['queries'];
+        $data_queries = $em_config['rcToStarrLinkConfig']['queries'];
         $this->module->emDebug("data queries: ".print_r($data_queries, true));
 
         $query_settings = [];
@@ -53,10 +52,12 @@ class RedcapToStarrLinkConfig
         }
     }
 
+    /*constructs the url to call RtoStarr Link api
+    @return "1" if successful*/
     private function invokeRedcapToStarrLink($action, $query) {
         $url = APP_PATH_WEBROOT_FULL .
-            'api/?type=module&prefix=redcap_to_starr_link&page=src%2FRedcapProjectToStarrLink&NOAUTH" .
-            &action=' . $action . // should be either data or records
+            'api/?type=module&prefix=redcap_to_starr_link&page=src%2FRedcapProjectToStarrLink&NOAUTH' .
+            '&action=' . $action . // should be either data or records
             '&pid=' . $this->project_id .
             '&user=' . $this->module->getUser()->getUserName();
         if ($query) {
@@ -67,35 +68,53 @@ class RedcapToStarrLinkConfig
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $headers = array(
-            "Accept: application/json",
-            "Content-Type: application/json"
+            "Accept: text/html",
+            "Content-Type: text/html"
         );
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         $resp = curl_exec($curl);
-        curl_close($curl);
-        $resp_arr = json_decode($resp, true);
-        //$this->emLog("$url response = " . print_r($resp_arr, true));
-        return $resp_arr;
-    }
-
-    public function updateCohort() {
-        $this->invokeRedcapToStarrLink("records", null);
-    }
-
-    // if needed we can just query demographics or clinical windows separately
-    public function updateData() {
-        $data_queries = $this->em_config['rcToStarrLinkConfig']['queries'];
-        foreach($data_queries as $data_query) {
-            $this->invokeRedcapToStarrLink("data", $data_query['query-name']);
+        if (!json_encode($resp)) {
+            $curl_error = curl_error($curl);
+            //TODO
         }
-        /*duster_pid73_demographics
-         duster_pid73_cw0
-         duster_pid73_cw1
-         duster_pid73_cw2
-         */
+        curl_close($curl);
+        $this->module->emLog("$url response = " . json_encode($resp));
+        return $resp;
     }
 
-    private function getEmId()
+    /* call the RtoS Link api to sync the records
+    * @return "1" if successful
+    */
+    public function syncCohort() {
+        return $this->invokeRedcapToStarrLink("records", null);
+    }
+
+    /* call the RtoS Link api to getData
+     *if $queryName is null, then all queries will be executed
+     * @param $queryName as configured in RtoS Link EM
+     * @return "1" if successful
+     */
+    public function updateData($queryName) {
+        return $this->invokeRedcapToStarrLink("data", $queryName);
+    }
+
+    /*returns RtoSt Link configured queries
+    @return array*/
+    public function getQueryNames() {
+        $em_id = $this->getEmId();
+        $result = $this->module->query(
+            "select `value` from redcap_external_module_settings where `key`='query-name' and `external_module_id` = ? and `project_id`=?",
+            [$em_id, $this->project_id]);
+        if ($result->num_rows > 0) {
+            $query_names = json_decode($result->fetch_assoc()['value'], true);
+        }
+        $this->module->emDebug('query_names: ' . $query_names);
+        return $query_names;
+    }
+
+    /*returns the RtoS Link external module id from redcap
+    @return int*/
+    public function getEmId()
     {
         $ex_mod_result = $this->module->query(
             "select external_module_id from redcap_external_modules where directory_prefix = ?",
@@ -107,7 +126,8 @@ class RedcapToStarrLinkConfig
         return $rts_ex_mod_id;
     }
 
-    // should return null or double quoted string
+    /*convenience method to apply transformations to external module setting values
+    @return double quoted strings or "null" string*/
     private function transformSetting($key, $setting)
     {
         $this->module->emDebug("key: ".$key.", pre-setting: ".$setting);
@@ -117,10 +137,14 @@ class RedcapToStarrLinkConfig
                 '"'.$setting.'"');
     }
 
+    /*save EM configuration settings
+    @param $key string
+    @param $setting string*/
     private function saveSetting($key, $setting){
+        $em_id = $this->getEmId();
         $this->module->query(
             "insert into redcap_external_module_settings (`external_module_id`, `project_id`, 
                                              `key`, `type`, `value`) values (?,?,?,?,?)",
-            [$this->em_id, $this->project_id, $key, 'json-array', '['.$setting.']']);
+            [$em_id, $this->project_id, $key, 'json-array', '['.$setting.']']);
     }
 }

@@ -23,7 +23,10 @@ class DusterConfigClass
 
     public function loadConfig() {
         // build and send GET request to config webservice
-        $config_url = $this->module->getSystemSetting("starrapi-config-url") . $this->project_id;
+        $config_url = $this->module->getSystemSetting("starrapi-config-url");
+        // add a '/' at the end of the url if it's not there
+        $config_url = $config_url .
+            ((substr($config_url,-1) =='/') ? "" : "/") . $this->project_id;
         $this->module->emDebug("config url = $config_url");
         $this->duster_config = $this->module->starrApiGetRequest($config_url,'ddp');
         $this->module->emDebug('duster_config = ' . print_r($this->duster_config, true));
@@ -38,6 +41,65 @@ class DusterConfigClass
 
     public function setDusterConfig($config) {
         $this->duster_config = $config;
+    }
+
+    /**
+     * Fetch researcher provided data.  Returns JsonObject
+     * { "redcap_project_id":
+     *   "missing_vars":
+     *   "missing_data":
+     *   "rp_data":
+     * }
+     * @return Json encoded string
+     */
+    public function getDusterRequestObject() {
+        if ($this->duster_config == null) {
+            $this->loadConfig();
+        }
+        $rp_data['redcap_project_id'] = intval($this->project_id);
+        $rp_data['missing_fields'] = $this->getMissingRedcapFields();
+
+        if (empty($rp_data['missing_fields'])) {
+            // add rp_identifiers to request fields
+            foreach ($$this->duster_config['rp_info']['rp_identifiers'] as $identifier) {
+                $rp_fields[] = $identifier['redcap_field_name'];
+            }
+            // add rp_dates to request fields
+            foreach ($$this->duster_config['rp_info']['rp_dates'] as $rp_dates) {
+                $rp_fields[] = $rp_dates['redcap_field_name'];
+            }
+            $this->module->emDebug('$request_fields: ' . print_r($rp_fields, true));
+            $records = REDCap::getData('array', null, $rp_fields);
+
+            // populate $rp_data with data in $records
+            foreach ($records as $record_id => $record) {
+                $has_missing = false;
+                $request_record = [];
+                $request_record['redcap_record_id'] = strval($record_id);
+                $record = $record[$this->module->getEventId()];
+                // add rp_identifiers
+                foreach ($this->duster_config['rp_info']['rp_identifiers'] as $identifier) {
+                    $request_record[$identifier['redcap_field_name']] = $record[$identifier['redcap_field_name']];
+                    $has_missing = $has_missing || empty($request_record[$identifier['redcap_field_name']]);
+                }
+                //$request_record['dates'] = [];
+                // add rp_dates
+                $date_obj = [];
+                foreach ($this->duster_config['rp_info']['rp_dates'] as $rp_dates) {
+                    $date_obj['redcap_field_name'] = $rp_dates['redcap_field_name'];
+                    $date_obj['value'] = $record[$rp_dates['redcap_field_name']];
+                    $date_obj['type'] = $rp_dates['format'];
+                    $request_record['dates'][] = $date_obj;
+                    $has_missing = $has_missing || empty($date_obj['value']);
+                }
+                if ($has_missing) {
+                    $rp_data['missing_data'][] = $request_record;
+                }
+                // add everything to rp_data including missing
+                $rp_data['rp_data'][] = $request_record;
+            }
+        }
+        return $rp_data;
     }
 
     /*returns list of fields that are in duster config but not in redcap config

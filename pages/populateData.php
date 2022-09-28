@@ -9,6 +9,7 @@ $record_base_url = APP_PATH_WEBROOT_FULL
 $designer_url = APP_PATH_WEBROOT_FULL
     . "redcap_" . $redcap_version .'Design/online_designer.php?pid=' . PROJECT_ID;
 $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
+$project_id = PROJECT_ID;
 
 ?>
 
@@ -156,29 +157,61 @@ $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
           </v-stepper-content>
 
           <v-stepper-content step="4">
-            <div v-if="dusterData.rp_data">
-              <div class="text-center" v-if="!savedData">Retrieving data.
-                <v-progress-circular
-                      indeterminate
-                      color="primary"
-                  ></v-progress-circular>
-              </div>
-              <div v-else>
-                <saved-data-table
-                    record-base-url="<?php echo $record_base_url?>"
-                    :rp-data="dusterData.rp_data"
-                    :saved-data="savedData"
-                >
-                </saved-data-table>
-                <!--pre> {{ savedData }} </pre-->
-              </div>
+            <div class="text-center" v-if="dusterData.rp_data">
+              {{saveMessage}}
+              <v-progress-linear
+                  v-model="saveProgress"
+                  height="25"
+                  stream
+              >
+                <strong>{{ Math.ceil(saveProgress) }}%</strong>
+              </v-progress-linear>
             </div>
+            <v-dialog
+                v-model="confirmCancel"
+                max-width="500px"
+            >
+              <v-card>
+                <v-card-title>
+                  Cancel Data Load
+                </v-card-title>
+                <v-card-text>
+                  <v-alert type="warning">
+                    Are you sure you want to cancel the data upload?  Data that has already been saved to Redcap will
+                    not be deleted.
+                  </v-alert>'
 
-            <v-btn
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn
+                      outlined
+                      text
+                      @click="goToRecords()"
+                  >
+                    Cancel Upload
+                  </v-btn>
+                  <v-btn
+                      color="primary"
+                      @click="confirmCancel = false"
+                  >
+                    Continue Upload
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+
+            <v-divider></v-divider>
+            <v-btn v-if="saveProgress < 100"
                 text
                 outlined
-                @click="goToRecords()">
+                @click="confirmCancel = true">
               Cancel
+            </v-btn>
+            <v-btn v-else
+                   color="primary"
+                   @click="goToRecords()"
+            >
+            Complete
             </v-btn>
           </v-stepper-content>
         </v-stepper-items>
@@ -205,12 +238,17 @@ $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
     },
     vuetify: new Vuetify(),
     data: {
+      project_id: <?php echo $project_id?>,
       step: 0,
-      error: null,
+      error: "",
       isLoading: false,
       isLoaded: false,
+      confirmCancel: false,
       dusterData: null,
-      savedData: null
+      savedData: null,
+      saveProgress:0,
+      saveMessage:"Saving ...",
+      queries:null
     },
     methods: {
       goToDesigner() {
@@ -222,65 +260,70 @@ $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
       loadCohort() {
         this.isLoading = true;
         let self = this;
-        axios.get("<?php echo $module->getUrl("services/getData.php?action=cohort"); ?>").then(response => {
+        axios.get("<?php echo $module->getUrl("services/getData.php?action=cohort&pid=$project_id"); ?>").then
+        (response => {
           self.isLoading = false;
           self.isLoaded = true;
-          console.log(response);
-          if (response.status == 200) {
-            console.log(JSON.stringify(response.data));
-            let data_str = JSON.stringify(response.data);
-            if (data_str.indexOf('Error message') > -1) {
-              self.error = data_str;
+          console.log(JSON.stringify(response));
+          if (!self.hasError(response)) {
+            self.dusterData = response.data;
+            self.queries = response.data.queries;
+            if (self.dusterData.missing_fields && self.dusterData.missing_fields.length > 0) {
+              self.step = 1;
+            } else
+            if (!this.dusterData.rp_data ||
+              (self.dusterData.missing_data != null && self.dusterData.missing_data.length > 0)) {
+              self.step = 2;
             } else {
-              self.dusterData = response.data;
-              if (this.dusterData.missing_fields && this.dusterData.missing_fields.length > 0) {
-                self.step = 1;
-              } else if (!this.dusterData.rp_data ||
-                (self.dusterData.missing_data && this.dusterData.missing_data.length > 0)) {
-                self.step = 2;
-              } else {
-                self.step = 3;
-              }
+              self.step = 3;
             }
-          } else {
-            self.error='Cohort response error: ' + response.message;
           }
         });
       },
+      hasError(response) {
+        if (response.status != 200) {
+          this.error = response.message;
+          return true;
+        } else if (response.data.status != 200) {
+          this.error += response.data.message + '<br>';
+          return true;
+        } else {
+          const data_str = JSON.stringify(response.data);
+          if (data_str.indexOf('Error message') > -1  || data_str.indexOf('syntax error') > -1) {
+            self.error += data_str;
+            return true;
+          }
+        }
+        return false;
+      },
       getAndSaveData() {
         this.step = 4;
-        let cohort = {};
-        cohort.redcap_project_id = parseInt(this.dusterData.redcap_project_id);
-
-        cohort.cohort = this.dusterData.rp_data;
-        //console.log("cohort = '" + JSON.stringify(cohort) + "'");
-        //console.log("url = " +
-        //    < ?php echo '"' . $module->getUrl("services/getData.php?action=getData") . '"'; ?>
-        //  +"&cohort=" + JSON.stringify(cohort));
+        const numSaves = this.queries.length + 1;
+        const saveSize = 100/numSaves;
         let self = this;
-        let formData = new FormData();
-        formData.append('redcap_csrf_token', "<?php echo $module->getCSRFToken(); ?>");
-        formData.append('data', JSON.stringify(cohort));
-        axios.post("<?php echo $module->getUrl("services/getData.php?action=getData"); ?>",
-          formData).then(response => {
-          console.log(JSON.stringify(response.data));
-          if (response.status == 200) {
-            let data_str = JSON.stringify(response.data);
-            if (data_str.indexOf('Uncaught Error:') > -1 ||
-              data_str.indexOf('Error message') > -1) {
-              self.error='System error: ' + data_str.data;
-            } else if (response.data.errors.length > 0) {
-              self.error='Redcap save error: ' + JSON.stringify(response.data.errors);
-            } else {
-              self.savedData = response.data;
-            }
-          } else {
-            self.error='Data retrieve error: ' + response.message;
+        axios.get("<?php echo $module->getUrl("services/getData.php?action=syncCohort&pid=$project_id"); ?>").then
+        (response1 => {
+          console.log(JSON.stringify(response1));
+          if (!self.hasError(response1)) {
+            self.saveProgress += saveSize;
+            self.saveMessage = "Cohort sync complete."
+            for(let i=0; i< self.queries.length; i++) {
+              axios.get("<?php echo $module->getUrl("services/getData.php?action=getData&pid=$project_id&query=");
+                ?>" + self.queries[i])
+                .then(response2 => {
+                  console.log(JSON.stringify(response2));
+                  if (!self.hasError(response2)) {
+                    const resp_data2 = response2.data;
+                    self.saveProgress += saveSize;
+                    self.saveMessage = resp_data2.message;
+                  }
+                  });
+                }
           }
         }).catch(function(error) {
-          self.error=error.message;
+          self.error +=error.message + '<br>';
           console.log(error);
-        });;
+        });
       }
     }
   })

@@ -143,6 +143,8 @@ $fields = array(
 
 $ch = curl_init();
 $api_url = APP_PATH_WEBROOT_FULL . "api/";
+//$api_url= "http://localhost:80/redcap/api/";
+
 $module->emDebug("API URL is " . $api_url . "\n");
 curl_setopt($ch, CURLOPT_URL, $api_url);
 curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields, '', '&'));
@@ -254,9 +256,9 @@ curl_close($ch);
 
 if ($result['success'] && $result['rcToStarrLinkConfig']) {
     $em_config = json_decode($result, true);
-    $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module, $em_config);
+    $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module);
     $rctostarr_config->enableRedcapToStarrLink();
-    $rctostarr_config->configureRedcapToStarrLink();
+    $rctostarr_config->configureRedcapToStarrLink($em_config);
 }
 //TODO: add error handling
 
