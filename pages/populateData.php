@@ -8,6 +8,8 @@ $record_base_url = APP_PATH_WEBROOT_FULL
     . "redcap_" . $redcap_version .'DataEntry/record_home.php?pid=' . PROJECT_ID;
 $designer_url = APP_PATH_WEBROOT_FULL
     . "redcap_" . $redcap_version .'Design/online_designer.php?pid=' . PROJECT_ID;
+$data_exports_url = APP_PATH_WEBROOT_FULL
+    . "redcap_" . $redcap_version .'DataExport/index.php?pid=' . PROJECT_ID;
 $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
 $project_id = PROJECT_ID;
 
@@ -29,8 +31,8 @@ $project_id = PROJECT_ID;
   <v-app>
     <h1>DUSTER: Data Upload</h1>
 
-    <div v-if="error">
-        <v-alert type="error"><span v-html="error"></span></v-alert>
+    <div v-if="errorMessage">
+        <v-alert type="error"><span v-html="errorMessage"></span></v-alert>
       </div>
 
     <div v-if="!isLoading && !isLoaded">
@@ -92,7 +94,7 @@ $project_id = PROJECT_ID;
             <v-btn
                 text
                 outlined
-                @click="goToDesigner()">
+                @click="goToUrl(designer_url)">
               Cancel
             </v-btn>
           </v-stepper-content>
@@ -123,7 +125,7 @@ $project_id = PROJECT_ID;
               Continue
             </v-btn>
 
-            <v-btn text outlined @click="goToRecords()">
+            <v-btn text outlined @click="goTo(record_base_url)">
               Cancel
             </v-btn>
           </v-stepper-content>
@@ -150,7 +152,7 @@ $project_id = PROJECT_ID;
 
             <v-btn
                 text
-                outlined @click="goToRecords()"
+                outlined @click="goToUrl(record_base_url)"
             >
               Cancel
             </v-btn>
@@ -158,7 +160,7 @@ $project_id = PROJECT_ID;
 
           <v-stepper-content step="4">
             <div class="text-center" v-if="dusterData.rp_data">
-              {{saveMessage}}
+              <p>{{saveMessage}}</p>
               <v-progress-linear
                   v-model="saveProgress"
                   height="25"
@@ -186,7 +188,7 @@ $project_id = PROJECT_ID;
                   <v-btn
                       outlined
                       text
-                      @click="goToRecords()"
+                      @click="goToUrl(record_base_url)"
                   >
                     Cancel Upload
                   </v-btn>
@@ -209,9 +211,9 @@ $project_id = PROJECT_ID;
             </v-btn>
             <v-btn v-else
                    color="primary"
-                   @click="goToRecords()"
+                   @click="goToUrl(data_exports_url)"
             >
-            Complete
+            Export Data
             </v-btn>
           </v-stepper-content>
         </v-stepper-items>
@@ -239,23 +241,41 @@ $project_id = PROJECT_ID;
     vuetify: new Vuetify(),
     data: {
       project_id: <?php echo $project_id?>,
+      record_base_url : '<?php echo $record_base_url?>',
+      designer_url: '<?php echo $designer_url?>',
+      data_exports_url: '<?php echo $data_exports_url?>',
       step: 0,
-      error: "",
+      errorMessage: "",
       isLoading: false,
       isLoaded: false,
       confirmCancel: false,
       dusterData: null,
-      savedData: null,
       saveProgress:0,
       saveMessage:"Saving ...",
       queries:null
     },
     methods: {
-      goToDesigner() {
-        window.location = '<?php echo $designer_url?>';
+      goToUrl(url) {
+        window.location = url;
       },
-      goToRecords() {
-        window.location = '<?php echo $record_base_url?>';
+      hasError(self, response) {
+        if (response.status !== 200) {
+          self.errorMessage = response.message;
+          return true;
+        } else if (response.data.status && response.data.status !== 200) {
+          self.errorMessage += response.data.message + '<br>';
+          return true;
+        } else {
+          const data_str = JSON.stringify(response.data).toLowerCase();
+          if (data_str.indexOf('error message') !== -1  ||
+            data_str.indexOf('syntax error') !== -1 ||
+            data_str.indexOf('fatal error') !== -1) {
+            self.errorMessage += data_str;
+            console.log("error data_str:" + data_str);
+            return true;
+          }
+        }
+        return false;
       },
       loadCohort() {
         this.isLoading = true;
@@ -264,8 +284,7 @@ $project_id = PROJECT_ID;
         (response => {
           self.isLoading = false;
           self.isLoaded = true;
-          console.log(JSON.stringify(response));
-          if (!self.hasError(response)) {
+          if (!self.hasError(self, response)) {
             self.dusterData = response.data;
             self.queries = response.data.queries;
             if (self.dusterData.missing_fields && self.dusterData.missing_fields.length > 0) {
@@ -278,24 +297,12 @@ $project_id = PROJECT_ID;
               self.step = 3;
             }
           }
+        }).catch(function(error) {
+          this.errorMessage +=error.message + '<br>';
+          console.log(error);
         });
       },
-      hasError(response) {
-        if (response.status != 200) {
-          this.error = response.message;
-          return true;
-        } else if (response.data.status != 200) {
-          this.error += response.data.message + '<br>';
-          return true;
-        } else {
-          const data_str = JSON.stringify(response.data);
-          if (data_str.indexOf('Error message') > -1  || data_str.indexOf('syntax error') > -1) {
-            self.error += data_str;
-            return true;
-          }
-        }
-        return false;
-      },
+
       getAndSaveData() {
         this.step = 4;
         const numSaves = this.queries.length + 1;
@@ -304,24 +311,31 @@ $project_id = PROJECT_ID;
         axios.get("<?php echo $module->getUrl("services/getData.php?action=syncCohort&pid=$project_id"); ?>").then
         (response1 => {
           console.log(JSON.stringify(response1));
-          if (!self.hasError(response1)) {
+          if (!self.hasError(self, response1)) {
             self.saveProgress += saveSize;
             self.saveMessage = "Cohort sync complete."
             for(let i=0; i< self.queries.length; i++) {
               axios.get("<?php echo $module->getUrl("services/getData.php?action=getData&pid=$project_id&query=");
-                ?>" + self.queries[i])
+                ?>" + JSON.stringify(self.queries[i]))
                 .then(response2 => {
                   console.log(JSON.stringify(response2));
-                  if (!self.hasError(response2)) {
+                  if (!self.hasError(self, response2)) {
                     const resp_data2 = response2.data;
                     self.saveProgress += saveSize;
-                    self.saveMessage = resp_data2.message;
+                    if (self.saveProgess === 100) {
+                      self.saveMessage = "Data save complete";
+                    } else {
+                      self.saveMessage = resp_data2.message;
+                    }
                   }
+                  }).catch(function(error) {
+                    self.errorMessage +=error.message + '<br>';
+                    console.log(error);
                   });
-                }
+            }
           }
         }).catch(function(error) {
-          self.error +=error.message + '<br>';
+          this.errorMessage +=error.message + '<br>';
           console.log(error);
         });
       }

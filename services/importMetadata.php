@@ -95,9 +95,9 @@ $result = $module->starrApiPostRequest($config_url, 'ddp', $config_data);
 // TODO: enable redcap to starr link and configure it
 /*if ($result['success'] && $result['rcToStarrLinkConfig']) {
     $em_config = json_decode($result, true);
-    $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module, $em_config);
+    $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module);
     $rctostarr_config->enableRedcapToStarrLink();
-    $rctostarr_config->configureRedcapToStarrLink();
+    $rctostarr_config->configureRedcapToStarrLink($em_config);
 }*/
 echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject&dustercomplete=true";
 ?>
