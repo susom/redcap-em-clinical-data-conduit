@@ -2838,8 +2838,7 @@
                 this.$refs.window_form.validate();
             },
             cancelEditWindow(i) {
-                // this.edit_window_index = -1;
-                this.collection_windows[i] = JSON.parse(JSON.stringify(this.pre_edit_window));
+                this.collection_windows.splice(i, 1, JSON.parse(JSON.stringify(this.pre_edit_window)));
                 this.pre_edit_window = Object.assign({}, this.pre_edit_window, null);
                 this.edit_window_stepper = 1;
                 this.show_window_form = false;
@@ -2852,7 +2851,7 @@
                     if(this.edit_window_index === -1) {
                         this.collection_windows.push(JSON.parse(JSON.stringify(this.window)));
                     } else {
-                        this.collection_windows[this.edit_window_index] = JSON.parse(JSON.stringify(this.window));
+                        this.collection_windows.splice(this.edit_window_index, 1, JSON.parse(JSON.stringify(this.window)));
                         this.edit_window_index = -1;
                         this.pre_edit_window = null;
                     }
@@ -2868,7 +2867,6 @@
                 console.log(JSON.stringify(preset_choice));
                 console.log("setPreset()");
                 console.log(JSON.stringify(this.window));
-                // this.$forceUpdate();
             },
             resetWindow(window, ref) {
                 console.log("resetWindow() called.");
