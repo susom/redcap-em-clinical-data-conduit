@@ -1712,7 +1712,6 @@
             review_window_stepper: 1,
             window_stepper: 1,
             dialog: false,
-            sb_flag: false,
             instruments: [],
             rp_identifiers: [
                 {
@@ -2863,9 +2862,13 @@
             setPreset(preset_choice) {
                 this.window = JSON.parse(JSON.stringify(preset_choice));
                 this.$refs["preset_window"].reset();
-                this.$forceUpdate();
+                console.log(JSON.stringify(preset_choice));
+                console.log("setPreset()");
+                console.log(JSON.stringify(this.window));
+                // this.$forceUpdate();
             },
             resetWindow(window, ref) {
+                console.log("resetWindow() called.");
                 this[window] = JSON.parse(JSON.stringify({
                     label: null,
                     // type: null, // nonrepeating || finite_repeating || calculated_repeating
