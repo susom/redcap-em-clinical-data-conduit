@@ -840,7 +840,7 @@
                                                 </v-col>
                                                 <v-col
                                                     cols="4"
-                                                    v-if="clinical_dates.includes(window.timing.start)"
+                                                    v-if="isClinicalDate(window.timing.start)"
                                                 >
                                                     <v-select
                                                         v-model="window.timing.start_based"
@@ -994,7 +994,7 @@
                                                         item-text="label"
                                                         item-value="redcap_field_name"
                                                         :items="rp_dates"
-                                                        v-if="clinical_dates.includes(window.timing.end)"
+                                                        v-if="isClinicalDate(window.timing.end)"
                                                         hint="To identify the End Date/Datetime, this date/datetime must fall within the same hospital encounter."
                                                         persistent-hint
                                                     >
@@ -2718,6 +2718,9 @@
                     return 'Enter another name. This name is already used by another data collection window or other REDCap Form DUSTER will create by default.';
                 }
             },
+            isClinicalDate(obj) {
+                return obj !== null ? obj.hasOwnProperty('duster_field_name') : false;
+            },
             isValidTiming() {
                 if (this.window.type === 'nonrepeating') {
                     return this.isValidNonRepeat();
@@ -2858,7 +2861,7 @@
                 }
             },
             setPreset(preset_choice) {
-                this.window = Object.assign({}, this.window, JSON.parse(JSON.stringify(preset_choice)));
+                this.window = JSON.parse(JSON.stringify(preset_choice));
                 this.$refs["preset_window"].reset();
                 this.$forceUpdate();
             },
