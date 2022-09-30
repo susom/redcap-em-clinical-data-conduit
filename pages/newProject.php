@@ -2720,6 +2720,9 @@
             isClinicalDate(obj) {
                 return obj !== null ? obj.hasOwnProperty('duster_field_name') : false;
             },
+            isRPDate(obj) {
+                return obj !== null ? obj.hasOwnProperty('redcap_field_name') : false;
+            },
             isValidTiming() {
                 if (this.window.type === 'nonrepeating') {
                     return this.isValidNonRepeat();
@@ -2738,19 +2741,19 @@
                     // check if start_dttm is a clinical window and start_based_dttm is a researcher-provided date
                     // or if start_dttm is a researcher-provided date/datetime
                     if (['date', 'dttm'].includes(this.window.timing.start_type)
-                        && ((this.clinical_dates.includes(this.window.timing.start)
+                        && ((this.isClinicalDate(this.window.timing.start)
                                 && this.rp_dates_rcfields.includes(this.window.timing.start_based))
-                            || this.rp_dates.includes(this.window.timing.start))) {
+                            || this.isRPDate(this.window.timing.start))) {
                         // check this nonrepeating window's ending parameters
                         if ((this.window.timing.end_type === 'hours' && this.window.timing.num_hours > 0)
                             || this.window.timing.end_type === 'day') {
-                            console.log("valid");
+                            console.log("isValidNonRepeat(): valid, returning true");
                             return true;
                         } else if (this.window.timing.end_type === 'dttm') {
-                            if ((this.clinical_dates.includes(this.window.timing.end)
+                            if ((this.isClinicalDate(this.window.timing.end)
                                     && this.rp_dates_rcfields.includes(this.window.timing.end_based))
-                                || this.rp_dates.includes(this.window.timing.end)) {
-                                console.log("valid");
+                                || this.isRPDate(this.window.timing.end)) {
+                                console.log("isValidNonRepeat(): valid, returning true");
                                 return true;
                             }
                         }
