@@ -2770,10 +2770,10 @@
                     if (this.window.timing.num_instances > 1) {
                         // check if start_dttm is a clinical window and start_based_dttm is a researcher-provided date
                         // or if start_dttm is a researcher-provided date/datetime
-                        if ((this.clinical_dates.includes(this.window.timing.start)
+                        if ((this.isClinicalDate(this.window.timing.start)
                                 && this.rp_dates_rcfields.includes(this.window.timing.start_based))
-                            || this.rp_dates.includes(this.window.timing.start)) {
-                            // check configuration for how instances will be repeated
+                            || this.isRPDate(this.window.timing.start)) {
+                            // check how instances will be repeated
                             if ((this.window.timing.type === 'hours' && this.window.timing.num_hours > 0)
                                 || this.window.timing.type === 'days') {
                                 return true;
@@ -2790,15 +2790,15 @@
                 if (this.window.type === 'calculated_repeating') {
                     // check if start_dttm is a clinical window and start_based_dttm is a researcher-provided date
                     // or if start_dttm is a researcher-provided date/datetime
-                    if ((this.clinical_dates.includes(this.window.timing.start)
+                    if ((this.isClinicalDate(this.window.timing.start)
                             && this.rp_dates_rcfields.includes(this.window.timing.start_based))
-                        || this.rp_dates.includes(this.window.timing.start)) {
+                        || this.isRPDate(this.window.timing.start)) {
                         // check if end_dttm is a clinical window and end_based_dttm is a researcher-provided date
                         // or if end_dttm is a researcher-provided date/datetime
-                        if ((this.clinical_dates.includes(this.window.timing.end)
+                        if ((this.isClinicalDate(this.window.timing.end)
                                 && this.rp_dates_rcfields.includes(this.window.timing.end_based))
-                            || this.rp_dates.includes(this.window.timing.end)) {
-                            // check configuration for how instances will be repeated
+                            || this.isRPDate(this.window.timing.end)) {
+                            // check how instances will be repeated
                             if ((this.window.timing.type === 'hours' && this.window.timing.num_hours > 0)
                                 || this.window.timing.type === 'days') {
                                 return true;
