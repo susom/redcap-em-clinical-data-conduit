@@ -388,6 +388,7 @@
                                 v-model="open_window_panel"
                                 focusable
                                 class="mb-4"
+                                :disabled="show_window_form === true"
                             >
                                 <v-expansion-panel
                                     v-for="(window, i) in collection_windows"
@@ -506,10 +507,12 @@
                                                             dark
                                                         >
                                                             <v-tab>Labs & Vitals</v-tab>
+                                                            <!--
                                                             <v-tab>Medications</v-tab>
                                                             <v-tab>Outcomes</v-tab>
                                                             <v-tab>Oxygen</v-tab>
                                                             <v-tab>Scores</v-tab>
+                                                            -->
 
                                                             <v-tab-item
                                                             >
@@ -561,6 +564,7 @@
                                                                     </v-data-table>
                                                                 </v-card>
                                                             </v-tab-item>
+                                                            <!--
                                                             <v-tab-item
                                                             >
                                                                 <v-card>
@@ -585,7 +589,9 @@
                                                                     <v-card-text>Scores</v-card-text>
                                                                 </v-card>
                                                             </v-tab-item>
+                                                            -->
                                                         </v-tabs>
+
 
                                                     </v-card>
                                                 </v-col>
@@ -598,7 +604,7 @@
                                         >
                                             <v-btn
                                                 color="secondary"
-                                                @click="cancelEditWindow(i)"
+                                                @click="edit_window_index = -1, cancelEditWindow(i)"
                                             >
                                                 Cancel Edit
                                             </v-btn>
@@ -655,7 +661,7 @@
                                 v-show="!collection_windows.length || show_window_form == true"
                                 outlined
                             >
-                                <v-card-subtitle><h1>{{window_edit === false ? 'Create a New' : 'Edit'}} Data Collection Window</h1></v-card-subtitle>
+                                <v-card-subtitle><h1>{{edit_window_index === -1 ? 'Create a New' : 'Edit'}} Data Collection Window</h1></v-card-subtitle>
 
                                 <v-stepper
                                 v-model="window_stepper"
@@ -683,6 +689,7 @@
                                                         v-model="preset_choice"
                                                         :items="preset_windows"
                                                         @change="setPreset(preset_choice)"
+                                                        ref="preset_window"
                                                         label="Presets"
                                                         item-text="label"
                                                         return-object
@@ -707,6 +714,7 @@
                                             </v-row>
 
                                             <!-- Is this data collection window repeatable (i.e., multiple instances)? -->
+                                            <!--
                                             <v-radio-group
                                                 v-model="window.type"
                                                 @change="resetWindowType(window)"
@@ -764,6 +772,7 @@
                                                     </template>
                                                 </v-radio>
                                             </v-radio-group>
+                                            -->
 
                                             <!-- When should this window start? -->
                                             <v-radio-group
@@ -773,6 +782,7 @@
                                             >
                                                 <v-radio
                                                     value="dttm"
+                                                    class="pl-3"
                                                 >
                                                     <template v-slot:label>
                                                         <v-row
@@ -780,7 +790,6 @@
                                                             no-gutters
                                                         >
                                                             <v-col
-                                                                class="pr-1"
                                                                 cols="auto"
                                                             >
                                                                 At a specified Date/Datetime of Interest.
@@ -808,6 +817,7 @@
                                                 <v-radio
                                                     label="At 00:00:00 on a specified Date/Datetime of Interest."
                                                     value="date"
+                                                    class="pl-3"
                                                 >
                                                 </v-radio>
                                             </v-radio-group>
@@ -838,9 +848,12 @@
                                                         item-text="label"
                                                         item-value="redcap_field_name"
                                                         label="based on"
+                                                        hint="To identify the Date/Datetime of Interest, this date/datetime must fall within the same hospital encounter."
+                                                        persistent-hint
                                                     >
                                                     </v-select>
                                                 </v-col>
+
                                             </v-row>
 
                                             <!-- When should this window end? -->
@@ -853,6 +866,7 @@
                                             >
                                                 <v-radio
                                                     value="hours"
+                                                    class="pl-3"
                                                 >
                                                     <template v-slot:label>
                                                         <v-row
@@ -888,6 +902,7 @@
                                                 </v-radio>
                                                 <v-radio
                                                     value="day"
+                                                    class="pl-3"
                                                 >
                                                     <template v-slot:label>
                                                         This window ends on 23:59 on the same calendar date of {{window.timing.start.label}}.
@@ -896,6 +911,7 @@
                                                 <v-radio
                                                     label="This window ends on a specified date/datetime."
                                                     value="dttm"
+                                                    class="pl-3"
                                                 >
                                                 </v-radio>
                                             </v-radio-group>
@@ -963,11 +979,9 @@
                                                         item-text="label"
                                                         item-value="label"
                                                         return-object
-                                                        label="End date/datetime"
-                                                        v-if="
-                                                (window.type === 'nonrepeating' && window.timing.end_type === 'dttm')
-                                                || window.type === 'calculated_repeating'
-                                               "
+                                                        label="End Date/Datetime"
+                                                        v-if="(window.type === 'nonrepeating' && window.timing.end_type === 'dttm')
+                                                                || window.type === 'calculated_repeating'"
                                                     >
                                                     </v-select>
                                                 </v-col>
@@ -981,6 +995,8 @@
                                                         item-value="redcap_field_name"
                                                         :items="rp_dates"
                                                         v-if="clinical_dates.includes(window.timing.end)"
+                                                        hint="To identify the End Date/Datetime, this date/datetime must fall within the same hospital encounter."
+                                                        persistent-hint
                                                     >
                                                     </v-select>
                                                 </v-col>
@@ -988,7 +1004,7 @@
                                         <v-btn
                                             color="error"
                                             type="reset"
-                                            @click="resetWindow(window, 'window_form')"
+                                            @click="resetWindow('window', 'window_form')"
                                         >
                                             Reset Timing
                                         </v-btn>
@@ -1029,6 +1045,7 @@
                                                             </v-col>
                                                             <v-col
                                                                 cols="1"
+                                                                class="pl-1"
                                                             >
                                                                 <v-checkbox
                                                                     v-model="window.aggregate_defaults.max"
@@ -1037,6 +1054,7 @@
                                                                 >
                                                                 </v-checkbox>
                                                             </v-col>
+                                                            <!--
                                                             <v-col
                                                                 cols="1"
                                                             >
@@ -1057,7 +1075,9 @@
                                                                 >
                                                                 </v-checkbox>
                                                             </v-col>
+                                                            -->
                                                         </v-row>
+                                                        <!--
                                                         <v-row
                                                             no-gutters
                                                         >
@@ -1110,6 +1130,7 @@
                                                                 </v-checkbox>
                                                             </v-col>
                                                         </v-row>
+                                                        -->
                                                     </v-card-text>
                                                 </v-card>
                                             </v-col>
@@ -1122,9 +1143,9 @@
                                                         dark
                                                     >
                                                         <v-tab>Labs & Vitals</v-tab>
-                                                        <v-tab>Medications</v-tab>
+                                                        <!-- <v-tab>Medications</v-tab> -->
                                                         <v-tab>Outcomes</v-tab>
-                                                        <v-tab>Oxygen</v-tab>
+                                                        <!-- <v-tab>Oxygen</v-tab> -->
                                                         <v-tab>Scores</v-tab>
 
                                                         <v-tab-item
@@ -1193,6 +1214,7 @@
                                                                                     >
                                                                                     </v-checkbox>
                                                                                 </v-col>
+                                                                                <!--
                                                                                 <v-col
                                                                                     cols="2"
                                                                                 >
@@ -1265,6 +1287,7 @@
                                                                                         </template>
                                                                                     </v-checkbox>
                                                                                 </v-col>
+                                                                                -->
                                                                             </v-row>
                                                                         </v-card>
                                                                         <v-card-actions>
@@ -1393,28 +1416,32 @@
                                                                 </v-data-table>
                                                             </v-card>
                                                         </v-tab-item>
+                                                        <!--
                                                         <v-tab-item
                                                         >
                                                             <v-card>
                                                                 <v-card-text>Medications</v-card-text>
                                                             </v-card>
                                                         </v-tab-item>
+                                                        -->
                                                         <v-tab-item
                                                         >
                                                             <v-card>
-                                                                <v-card-text>Outcomes</v-card-text>
+                                                                <v-card-text>Outcomes is not currently available.</v-card-text>
                                                             </v-card>
                                                         </v-tab-item>
+                                                        <!--
                                                         <v-tab-item
                                                         >
                                                             <v-card>
                                                                 <v-card-text>Oxygen</v-card-text>
                                                             </v-card>
                                                         </v-tab-item>
+                                                        -->
                                                         <v-tab-item
                                                         >
                                                             <v-card>
-                                                                <v-card-text>Scores</v-card-text>
+                                                                <v-card-text>Scores is not currently available.</v-card-text>
                                                             </v-card>
                                                         </v-tab-item>
                                                     </v-tabs>
@@ -1450,7 +1477,7 @@
                                 >
                                     <v-btn
                                         color="secondary"
-                                        @click="show_window_form = false, resetWindow(window, 'window_form')"
+                                        @click="edit_window_index = -1, show_window_form = false, resetWindow('window', 'window_form')"
                                     >
                                         Cancel
                                     </v-btn>
@@ -1458,8 +1485,8 @@
                             </v-card>
                             <v-btn
                                 color="primary"
-                                @click="show_window_form = true"
-                                v-show="!show_window_form && collection_windows.length > 0 && edit_window_index === -1"
+                                @click="show_window_form = true, open_window_panel = null"
+                                v-show="show_window_form === false"
                             >
                                 Add New Data Collection Window
                             </v-btn>
@@ -1469,13 +1496,22 @@
                     </v-stepper-content>
 
                     <v-stepper-content step="4">
-                        <v-btn
-                            color="secondary"
-                            class="mb-4"
-                            @click="instruments = instruments.length > 0 ? [] : Array.from(Array(2 + config.collection_windows.length).keys())"
+                    <!-- Place collapse/expand panels in a grid to maintain constant size with block prop -->
+                    <v-row>
+                        <v-col
+                            cols="4"
                         >
-                            {{ instruments.length > 0 ? 'Collapse all instruments' : 'Expand all instruments'}}
-                        </v-btn>
+                            <v-btn
+                                color="secondary"
+                                block
+                                class="mb-4"
+                                @click="instruments = instruments.length > 0 ? [] : Array.from(Array(2 + config.collection_windows.length).keys())"
+                            >
+                                {{ instruments.length > 0 ? 'Collapse all instruments' : 'Expand all instruments'}}
+                            </v-btn>
+                        </v-col>
+                    </v-row>
+
 
                         <v-expansion-panels
                             v-model="instruments"
@@ -1623,6 +1659,7 @@
                 <v-btn
                     color="primary"
                     @click="backStep"
+                    :disabled="show_window_form && collection_windows.length > 0"
                 >
                     < Back
                 </v-btn>
@@ -1631,6 +1668,7 @@
                     color="primary"
                     @click="nextStep"
                     v-show="step < 4"
+                    :disabled="show_window_form && collection_windows.length > 0"
                 >
                     Next >
                 </v-btn>
@@ -1674,6 +1712,7 @@
             review_window_stepper: 1,
             window_stepper: 1,
             dialog: false,
+            sb_flag: false,
             instruments: [],
             rp_identifiers: [
                 {
@@ -1906,8 +1945,16 @@
             window_edit: false, // flag for window_form (editing a saved window if true, creating a new window if false)
             window: {
                 label: null,
-                type: null, // nonrepeating || finite_repeating || calculated_repeating
-                timing: {},  // changes depending on window's type
+                type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
+                timing: {   // changes depending on window's type
+                    start_type: null,
+                    start: null,
+                    start_based: "enroll_date",
+                    end_type: null,
+                    num_hours: null,
+                    end: null,
+                    end_based: "enroll_date"
+                },
                 aggregate_defaults: {
                     min: false,
                     max: false,
@@ -1991,8 +2038,8 @@
                         end_based: "enroll_date"
                     },
                     aggregate_defaults: {
-                        min: true,
-                        max: true,
+                        min: false,
+                        max: false,
                         first: false,
                         last: false,
                         closest_start: false,
@@ -2024,8 +2071,8 @@
                         end_based: "enroll_date"
                     },
                     aggregate_defaults: {
-                        min: true,
-                        max: true,
+                        min: false,
+                        max: false,
                         first: false,
                         last: false,
                         closest_start: false,
@@ -2053,8 +2100,8 @@
                         end_based: "enroll_date"
                     },
                     aggregate_defaults: {
-                        min: true,
-                        max: true,
+                        min: false,
+                        max: false,
                         first: false,
                         last: false,
                         closest_start: false,
@@ -2082,8 +2129,8 @@
                         end_based: "enroll_date"
                     },
                     aggregate_defaults: {
-                        min: true,
-                        max: true,
+                        min: false,
+                        max: false,
                         first: false,
                         last: false,
                         closest_start: false,
@@ -2672,10 +2719,7 @@
                 }
             },
             isValidTiming() {
-                // this.$refs.date_form.validate();
-                //console.log("isValidTiming()");
                 if (this.window.type === 'nonrepeating') {
-                    console.log("nonrepeating");
                     return this.isValidNonRepeat();
                 } else if (this.window.type === 'finite_repeating') {
                     return this.isValidFiniteRepeat();
@@ -2698,11 +2742,13 @@
                         // check this nonrepeating window's ending parameters
                         if ((this.window.timing.end_type === 'hours' && this.window.timing.num_hours > 0)
                             || this.window.timing.end_type === 'day') {
+                            console.log("valid");
                             return true;
                         } else if (this.window.timing.end_type === 'dttm') {
                             if ((this.clinical_dates.includes(this.window.timing.end)
                                     && this.rp_dates_rcfields.includes(this.window.timing.end_based))
                                 || this.rp_dates.includes(this.window.timing.end)) {
+                                console.log("valid");
                                 return true;
                             }
                         }
@@ -2776,43 +2822,60 @@
                 return true;
             },
             editWindow(i) {
-                this.window = JSON.parse(JSON.stringify(this.collection_windows[i]));
+                this.pre_edit_window = JSON.parse(JSON.stringify(this.collection_windows[i]));
+                this.window = Object.assign({}, this.window, JSON.parse(JSON.stringify(this.collection_windows[i])));
                 this.edit_window_index = i;
                 this.open_window_panel = null;
                 this.window_edit = true;
                 this.show_window_form = true;
-            },
-            saveEditWindow() {
-                this.edit_window_index = -1;
-                this.pre_edit_window = null;
-                this.edit_window_stepper = 1;
+
+                this.$refs.window_form.resetValidation();
+                this.$refs.window_form.validate();
             },
             cancelEditWindow(i) {
-                this.edit_window_index = -1;
+                // this.edit_window_index = -1;
                 this.collection_windows[i] = JSON.parse(JSON.stringify(this.pre_edit_window));
-                this.pre_edit_window = null;
+                this.pre_edit_window = Object.assign({}, this.pre_edit_window, null);
                 this.edit_window_stepper = 1;
+                this.show_window_form = false;
+                this.$refs.window_form.resetValidation();
             },
             saveCollectionWindowForm() {
                 // check if default aggregates are set if needed
                 if (this.checkDefaultAgg(this.window)) {
-                    this.collection_windows.push(JSON.parse(JSON.stringify(this.window)));
+                    // check if this is a new window to save or an existing window that's being edited
+                    if(this.edit_window_index === -1) {
+                        this.collection_windows.push(JSON.parse(JSON.stringify(this.window)));
+                    } else {
+                        this.collection_windows[this.edit_window_index] = JSON.parse(JSON.stringify(this.window));
+                        this.edit_window_index = -1;
+                        this.pre_edit_window = null;
+                    }
                     this.resetWindow('window', 'window_form');
+                    this.show_window_form = false;
                 } else {
                     this.alert_default_agg = true;
                 }
             },
             setPreset(preset_choice) {
-                this.$refs.window_form.resetValidation();
-                this.window = JSON.parse(JSON.stringify(preset_choice));
-                // this.window = Object.assign({}, this.window, JSON.parse(JSON.stringify(preset_choice)));
-                this.preset_choice = null;
+                this.window = Object.assign({}, this.window, JSON.parse(JSON.stringify(preset_choice)));
+                this.$refs["preset_window"].reset();
+                this.$forceUpdate();
             },
             resetWindow(window, ref) {
                 this[window] = JSON.parse(JSON.stringify({
                     label: null,
-                    type: null, // nonrepeating || finite_repeating || calculated_repeating
-                    timing: {},  // changes depending on window's type
+                    // type: null, // nonrepeating || finite_repeating || calculated_repeating
+                    type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
+                    timing: {  // changes depending on window's type
+                        start_type: null,
+                        start: null,
+                        start_based: "enroll_date",
+                        end_type: null,
+                        num_hours: null,
+                        end: null,
+                        end_based: "enroll_date"
+                    },
                     aggregate_defaults: {
                         min: false,
                         max: false,
@@ -2826,7 +2889,7 @@
                         labs_vitals: []
                     }
                 }));
-                this.show_window_form = false;
+                this.alert_default_agg = false;
                 this.window_stepper = 1;
                 this.$refs[ref].resetValidation();
             },
@@ -2915,6 +2978,7 @@
             deleteWindow(i) {
                 this.collection_windows.splice(i, 1);
                 this.delete_window_dialog = false;
+                this.open_window_panel = null;
             },
             // checks if the given REDCap field name already exists in the config
             checkRCFieldExists(name, config) {
@@ -3000,7 +3064,7 @@
 
                 // ensure formName doesn't begin with a number and formName cannot be blank
                 if(/^\d$/.test(formName.substring(0, 1)) || formName == '') {
-                    console.log("MD5");
+                    // console.log("MD5");
                     formName = MD5.generate(formName).replaceAll(/[0-9]/g, '').substring(0, 4) + formName;
                 }
 
@@ -3053,7 +3117,7 @@
 
                 // use services/importMetadata.php if project has already been created
                 axios.post("<?php echo $module->getUrl("services/createProject.php"); ?>", formData)
-                    .then(function(response){
+                    .then(function(response) {
                         console.log("Response data: " + response.data);
                         if (response.data.indexOf('Uncaught Error') > -1 ||
                           response.data.indexOf('Error message') > -1) {

@@ -147,8 +147,16 @@ class OdmXmlString {
                 // TODO date and datetime REDCap fields
                 $section_header = $item_group["section_header"] !== "" ? " redcap:SectionHeader=\"{$item_group["section_header"]}\"" : $item_group["section_header"];
                 foreach($item_group["items"] as $field) {
+                    // text validation type for dates and datetimes
+                    $text_validation = "";
+                    if($field["format"] === "date") {
+                        $text_validation .= " redcap:TextValidationType=\"date_ymd\"";
+                    } else if($field["format"] === "datetime") {
+                        $text_validation .= " redcap:TextValidationType=\"datetimetest_seconds_ymd\"";
+                    }
+
                     // add field to item def string
-                    $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"text\"{$section_header}>\n"
+                    $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"text\"{$text_validation}{$section_header}>\n"
                                . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
                                . "\t</ItemDef>\n";
                     // add field to item group string
