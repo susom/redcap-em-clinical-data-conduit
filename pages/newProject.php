@@ -658,7 +658,7 @@
 
                             <!-- Create/Edit a Data Collection Window -->
                             <v-card
-                                v-show="!collection_windows.length || show_window_form == true"
+                                v-show="!collection_windows.length || show_window_form === true"
                                 outlined
                             >
                                 <v-card-subtitle><h1>{{edit_window_index === -1 ? 'Create a New' : 'Edit'}} Data Collection Window</h1></v-card-subtitle>
@@ -808,7 +808,7 @@
                                                                             mdi-information-outline
                                                                         </v-icon>
                                                                     </template>
-                                                                    <span>If the specified Date of Interest is not a Datetime, 00:00:00 will be used.</span>
+                                                                    <span>If the specified Date of Interest is not a Datetime, 00:00:00 will be used for the date's timestamp.</span>
                                                                 </v-tooltip>
                                                             </v-col>
                                                         </v-row>
@@ -1754,193 +1754,7 @@
                 options: [],
                 selected: []
             },
-            collection_windows: [
-                {
-                    label: "Hospital Admission",
-                    type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
-                    timing: {
-                        start_type: "dttm",
-                        start: {
-                            category: "dates",
-                            duster_field_name: "hospital_admit_dttm",
-                            label: "Hospital Admission Datetime"
-                        },
-                        start_based: "enroll_date",
-                        end_type: "dttm",
-                        num_hours: null,
-                        end: {
-                            category: "dates",
-                            duster_field_name: "hospital_discharge_dttm",
-                            label: "Hospital Discharge Datetime"
-                        },
-                        end_based: "enroll_date"
-                    },
-                    aggregate_defaults: {
-                        min: true,
-                        max: true,
-                        first: false,
-                        last: false,
-                        closest_start: false,
-                        closest_time: false,
-                        closest_timestamp: "08:00:00"
-                    },
-                    data: {
-                        labs_vitals: [
-                            {
-                                category: "labs",
-                                duster_field_name: "k",
-                                label: "Potassium (K)",
-                                aggregates: {
-                                    default: true,
-                                    min: false,
-                                    max: false,
-                                    first: false,
-                                    last: false,
-                                    closest_start: false,
-                                    closest_time: false,
-                                    closest_timestamp: "08:00:00"
-                                }
-                            },
-                            {
-                                category: "labs",
-                                duster_field_name: "na",
-                                label: "Sodium (Na)",
-                                aggregates: {
-                                    default: false,
-                                    min: false,
-                                    max: true,
-                                    first: false,
-                                    last: false,
-                                    closest_start: false,
-                                    closest_time: false,
-                                    closest_timestamp: "08:00:00"
-                                }
-                            }
-                        ]
-                    }
-                },
-                {
-                    label: "First 24 Hours of Hospital Admission",
-                    type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
-                    timing: {
-                        start_type: "dttm",
-                        start: {
-                            category: "dates",
-                            duster_field_name: "hospital_admit_dttm",
-                            label: "Hospital Admission Datetime"
-                        },
-                        start_based: "enroll_date",
-                        end_type: "hours",
-                        num_hours: 24,
-                        end: null,
-                        end_based: "enroll_date"
-                    },
-                    aggregate_defaults: {
-                        min: true,
-                        max: true,
-                        first: false,
-                        last: false,
-                        closest_start: false,
-                        closest_time: false,
-                        closest_timestamp: "08:00:00"
-                    },
-                    data: {
-                        labs_vitals: [
-                            {
-                                category: "labs",
-                                duster_field_name: "k",
-                                label: "Potassium (K)",
-                                aggregates: {
-                                    default: true,
-                                    min: false,
-                                    max: false,
-                                    first: false,
-                                    last: false,
-                                    closest_start: false,
-                                    closest_time: false,
-                                    closest_timestamp: "08:00:00"
-                                }
-                            },
-                            {
-                                category: "labs",
-                                duster_field_name: "na",
-                                label: "Sodium (Na)",
-                                aggregates: {
-                                    default: false,
-                                    min: true,
-                                    max: true,
-                                    first: false,
-                                    last: false,
-                                    closest_start: false,
-                                    closest_time: false,
-                                    closest_timestamp: "08:00:00"
-                                }
-                            }
-                        ]
-                    }
-                },
-                {
-                    label: "Study Enrollment Day",
-                    type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
-                    timing: {
-                        start_type: "date",
-                        start: {
-                            format: "date",
-                            id: 0,
-                            label: "Study Enrollment Date",
-                            redcap_field_name: "enroll_date"
-                        },
-                        start_based: "enroll_date",
-                        end_type: "day",
-                        num_hours: null,
-                        end: null,
-                        end_based: "enroll_date"
-                    },
-                    aggregate_defaults: {
-                        min: true,
-                        max: true,
-                        first: false,
-                        last: false,
-                        closest_start: false,
-                        closest_time: false,
-                        closest_timestamp: "08:00:00"
-                    },
-                    data: {
-                        labs_vitals: [
-                            {
-                                category: "labs",
-                                duster_field_name: "k",
-                                label: "Potassium (K)",
-                                aggregates: {
-                                    default: true,
-                                    min: false,
-                                    max: false,
-                                    first: false,
-                                    last: false,
-                                    closest_start: false,
-                                    closest_time: false,
-                                    closest_timestamp: "08:00:00"
-                                }
-                            },
-                            {
-                                category: "labs",
-                                duster_field_name: "na",
-                                label: "Sodium (Na)",
-                                aggregates: {
-                                    default: true,
-                                    min: false,
-                                    max: false,
-                                    first: false,
-                                    last: false,
-                                    closest_start: false,
-                                    closest_time: false,
-                                    closest_timestamp: "08:00:00"
-                                }
-                            }
-                        ]
-                    }
-                }
-            ],
+            collection_windows: [],
             window_edit: false, // flag for window_form (editing a saved window if true, creating a new window if false)
             window: {
                 label: null,
@@ -2986,6 +2800,9 @@
                 this.collection_windows.splice(i, 1);
                 this.delete_window_dialog = false;
                 this.open_window_panel = null;
+                if(this.collection_windows.length < 1) {
+                    this.show_window_form = true;
+                }
             },
             // checks if the given REDCap field name already exists in the config
             checkRCFieldExists(name, config) {

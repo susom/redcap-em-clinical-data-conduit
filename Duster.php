@@ -24,19 +24,38 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     }}*/
 
     // public function redcap_every_page_top($project_id) {
+    /**
+     * Hook to show DUSTER as an option in the 'New Project' page
+     * Only shows DUSTER option if:
+     *  1) user is allowlisted in the System-level config
+     *  2) purpose selected on 'New Project' page is 'Research'
+     * @return void
+     */
     public function redcap_every_page_top() {
-        $this->emDebug(" Page is " . PAGE . " action is " . $_GET['action']);
-        if (strpos(PAGE, "index.php") !==false && $_GET['action'] === 'create') {
-            $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
+        // $this->emDebug(" Page is " . PAGE . " action is " . $_GET['action']);
+
+        // check user is allowed to use DUSTER
+        $allowlist = $this->getSystemSetting('sunet')[0];
+        $sunet = $this->getUser()->getUsername();
+        $allow_duster = in_array($sunet, $allowlist);
+
+        // add DUSTER option to REDCap's Create New Project page if user is allowlisted
+        if (strpos(PAGE, "index.php") !== false && $_GET['action'] === 'create' && $allow_duster === true) {
+            // $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
             $some = "<script> let dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
             echo $some;
             $script = <<<EOD
                 <script>
                     $(document).ready(function() {
-                        let div = "<div style='text-indent: -1.5em; margin-left: 1.5em;'><input name='project_template_radio' id='project_template_duster' type='radio'>" ;
+                        let div = "<div id='duster_option' style='text-indent: -1.5em; margin-left: 1.5em; display: none;'><input name='project_template_radio' id='project_template_duster' type='radio'>" ;
                         div += "<label style='text-indent:3px;margin-top:4px;margin-bottom:0;cursor:pointer;' for='project_template_duster'>Create project using DUSTER</label>" ;
                         div += "</div>" ;
                         $("#project_template_radio0").closest('td').append(div) ;
+
+                        // show DUSTER radio button option if purpose is research
+                        $("#purpose").change(function() {
+                            $("#purpose").val() == "2" ? $("#duster_option").show() : $("#duster_option").hide() ;
+                        }) ;
 
                         let btn = '<button type="button" class="btn btn-primaryrc" id="dusterSubmitBtn">Create Project</button>' ;
                         let defaultCreateBtn = $("button.btn-primaryrc").hide() ;
@@ -119,51 +138,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         // build and send GET request to metadata webservice
         $metadata_url = $this->getSystemSetting("starrapi-metadata-url");
         $metadata = $this->starrApiGetRequest($metadata_url,'ddp');
-            // $metadata = $resp_arr["results"];
-            /*
-            $fields_arr = $resp_arr["results"];
-
-            $demographics_arr = [];
-            $outcomes_arr = [];
-            $labs_arr = [];
-            $vitals_arr = [];
-            $scores_arr = [];
-            $oxygenation_arr = [];
-            foreach ($fields_arr as $field) {
-                switch ($field["category"]) {
-                    case "Demographics":
-                        $demographics_arr[$field["field"]] = $field;
-                        break;
-                    case "Outcomes":
-                        $outcomes_arr[$field["field"]] = $field;
-                        break;
-                    case "Labs":
-                        $labs_arr[$field["field"]] = $field;
-                        break;
-                    case "Vitals":
-                        $vitals_arr[$field["field"]] = $field;
-                        break;
-                    case "Scores":
-                        $scores_arr[$field["field"]] = $field;
-                        break;
-                    case "Oxygenation":
-                        $oxygenation_arr[$field["field"]] = $field;
-                        break;
-                    default: // TODO error
-                        break;
-                }
-            }
-        }
-        $metadata = array(
-            "demographics" => $demographics_arr,
-            "outcomes" => $outcomes_arr,
-            "labs" => $labs_arr,
-            "vitals" => $vitals_arr,
-            "scores" => $scores_arr,
-            "oxygenation" => $oxygenation_arr
-        );
-        */
-
         return $metadata;
     }
 

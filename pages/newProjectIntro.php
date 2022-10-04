@@ -35,7 +35,6 @@ namespace Stanford\Duster;
 </head>
 <body>
 
-
 <div class="container">
     <div class="row justify-content-start">
         <div class="col-12"><h1>DUSTER</h1><h4>Data Upload Service for Translational rEsearch on Redcap</h4></div>

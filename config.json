@@ -29,7 +29,7 @@
 	"links": {
 		"project": [
 			{
-				"name": "Duster Data",
+				"name": "DUSTER: Get Data",
 				"key": "dusterdata",
 				"icon": "fas fa-receipt",
 				"url": "pages/populateData.php",
@@ -53,7 +53,6 @@
 			"type": "checkbox"
 		}
 	],
-
 
 	"system-settings": [
 		{
@@ -79,6 +78,21 @@
             "name": "STARR-API Data Webservice URL",
             "required": true,
             "type": "text"
+        },
+        {
+            "key": "allowlist",
+            "name": "SUNet Allowlist",
+            "required": true,
+            "type": "sub_settings",
+            "sub_settings": [
+                {
+                    "key": "sunet",
+                    "name": "SUNet",
+                    "required": true,
+                    "type": "text",
+                    "repeatable": true
+                }
+            ]
         }
 	],
 

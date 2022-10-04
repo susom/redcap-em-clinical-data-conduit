@@ -152,7 +152,7 @@ class OdmXmlString {
                     if($field["format"] === "date") {
                         $text_validation .= " redcap:TextValidationType=\"date_ymd\"";
                     } else if($field["format"] === "datetime") {
-                        $text_validation .= " redcap:TextValidationType=\"datetimetest_seconds_ymd\"";
+                        $text_validation .= " redcap:TextValidationType=\"datetime_seconds_ymd\"";
                     }
 
                     // add field to item def string
