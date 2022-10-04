@@ -32,9 +32,13 @@ then select "Create project using DUSTER" from the "Project creation option" rad
 ## Dependencies
 
 ### REDCap to STARR Link EM, Vertx Token Lookup EM, and IRB Validity Lookup EM
-For appropriate installation/configuration of these EMs, refer to this REDCap to STARR Link document hosted on Google Drive:
+For appropriate installation/configuration of these EMs, refer to these REDCap to STARR Link documents hosted on Google Drive:
 
-[REDCap to STARR Link dependencies](https://docs.google.com/document/d/1V_p7GJ8da8iWb9AH-MMjpD5xEQf3ExPRGizHMy8oPBk/edit)
+- [REDCap to STARR Link dependencies](https://docs.google.com/document/d/1V_p7GJ8da8iWb9AH-MMjpD5xEQf3ExPRGizHMy8oPBk/edit)
+
+- [REDCap to STARR Link](https://docs.google.com/document/d/1X-6_yge5LBe7I3mXoBtMCP5YCMkqnP0BktZD7riyoRY/edit)
+
+Only system-level configuration should be required for these EMs.
 
 ## How to install and set up in local environment
 Ensure that you are running on REDCap 12.2.4 and PHP 7.3.33.
@@ -54,12 +58,19 @@ To enable the EM on your local REDCap server:
 4. On the popup screen "Available Modules": Click the green "Enable" button for Duster
 
 ### Required System-Level Configuration
+#### Allowing non-admins to use DUSTER
+Check these two options so that non-admins can use DUSTER's project creation UI to create projects that have DUSTER automatically enabled on them:
+- Make module discoverable by users
+- Allow normal users to enable this module in projects
+
 #### Allowlist
 To prevent DUSTER from being visible to a broader userbase, users can only see DUSTER as an option when creating a new project if they in the allowlist.
 For a user to be part of the allowlist, their REDCap username (i.e., SUNet) must be entered in this setting.
 
 #### STARR-API Metadata Webservice URL
-Until DUSTER's STARR-API backend goes into production, this URL should point to your local STARR-API deployment's endpoint for getting DUSTER's metadata.
+You may set this to `https://starr-dev.med.stanford.edu/duster/api/v1/metadata`.
+
+Alternatively, this URL may instead point to your local STARR-API deployment's endpoint for getting DUSTER's metadata.
 The URL pathname is `/duster/api/v1/metadata`.
 >##### Example
 >My local STARR-API server listens at `http://127.0.0.1:8889` or `http://localhost:8889`.
@@ -68,7 +79,9 @@ However, my local REDCap's server resides in a Docker container so `localhost` i
 Thus, in order for my local REDCap server to correctly point to my local STARR-API server's metadata endpoint, I use `http://host.docker.internal:8889/duster/api/v1/metadata`.
 
 #### STARR-API Config Webservice URL
-Until DUSTER's STARR-API backend goes into production, this URL should point to your local STARR-API deployment's endpoint for saving a DUSTER project config in starrapi db.
+You may set this to `https://starr-dev.med.stanford.edu/duster/api/v1/config`.
+
+Alternatively, this URL may instead point to your local STARR-API deployment's endpoint for saving a DUSTER project config in starrapi db.
 The URL pathname is `/duster/api/v1/config`.
 >##### Example
 >My local STARR-API server listens at `http://127.0.0.1:8889` or `http://localhost:8889`.
@@ -77,7 +90,9 @@ However, my local REDCap's server resides in a Docker container so `localhost` i
 Thus, in order for my local REDCap server to correctly point to my local STARR-API server's metadata endpoint, I use `http://host.docker.internal:8889/duster/api/v1/config`.
 
 #### STARR-API Data Webservice URL
-Until DUSTER's STARR-API backend goes into production, this URL should point to your local STARR-API deployment's endpoint for fetching data.
+You may set this to `https://starr-dev.med.stanford.edu/duster/api/v1/getData`.
+
+Alternatively, this URL may instead point to your local STARR-API deployment's endpoint for fetching data.
 The URL pathname is `/duster/api/v1/getData`.
 >##### Example
 >My local STARR-API server listens at `http://127.0.0.1:8889` or `http://localhost:8889`.
