@@ -15,16 +15,19 @@
 <!-- Our application root element -->
 <div id="app">
     <v-app>
+        <v-container>
+            <h1>DUSTER: Data Upload Service for Translational rEsearch on Redcap</h1>
+        </v-container>
         <v-container
             v-if="!metadata_loaded"
         >
-            Retrieving metadata...
+            <v-card-title>
+                <h2 class="primary--text">Retrieving DUSTER metadata...</h2>
+            </v-card-title>
         </v-container>
         <v-container
             v-if="metadata_loaded"
         >
-            <h1>DUSTER: Data Upload Service for Translational rEsearch on Redcap</h1>
-
             <v-stepper
                 v-model="step"
                 outlined
@@ -1656,22 +1659,63 @@
                 </v-stepper-items>
             </v-stepper>
             <v-container>
-                <v-btn
-                    color="primary"
-                    @click="backStep"
-                    :disabled="show_window_form && collection_windows.length > 0"
-                >
-                    < Back
-                </v-btn>
+                <v-row>
+                    <v-col
+                        cols="auto"
+                        v-show="step == 1"
+                    >
+                        <v-form
+                            action="<?php echo $module->getUrl("pages/newProjectIntro.php", false, true) ?>"
+                            method="post"
+                            id="project-form"
+                        >
+                            <input type="hidden" name="type" value="module">
+                            <?php
+                            foreach($_POST as $name=>$value) {
+                                $value = is_array($value) ? implode(",", $value) : $value;
+                                echo "<input type=\"hidden\" name=\"$name\" value=\"$value\">";
+                            }
+                            echo "<input type=\"hidden\" name=\"redcap_csrf_token\"value=\"{$module->getCSRFToken()}\">";
+                            ?>
+                            <v-btn
+                                color="secondary"
+                                type="submit"
+                            >
+                                < Back to DUSTER Intro
+                            </v-btn>
+                        </v-form>
+                    </v-col>
+                    <v-col
+                        cols="auto"
+                        v-show="step > 1"
+                    >
+                        <v-btn
+                            color="primary"
+                            @click="backStep"
+                            :disabled="show_window_form && collection_windows.length > 0"
+                        >
+                            < Back
+                        </v-btn>
+                    </v-col>
+                    <v-col
+                        cols="auto"
+                        v-show="step < 4"
+                    >
+                        <v-btn
+                            color="primary"
+                            @click="nextStep"
+                            :disabled="show_window_form && collection_windows.length > 0"
+                        >
+                            Next >
+                        </v-btn>
+                    </v-col>
+                    <v-spacer></v-spacer>
+                </v-row>
 
-                <v-btn
-                    color="primary"
-                    @click="nextStep"
-                    v-show="step < 4"
-                    :disabled="show_window_form && collection_windows.length > 0"
-                >
-                    Next >
-                </v-btn>
+
+
+
+
             </v-container>
             </v-stepper-content>
         </v-container>
@@ -2853,9 +2897,6 @@
                 }
                 return false;
             },
-            getRCField(name) {
-                return "";
-            },
             getFormName(label, cwArr) {
                 // remove whitespace at start and end and convert to lowercase characters only
                 let formName = label.trim().toLowerCase();
@@ -2914,9 +2955,7 @@
                     scheduling: this.scheduling,
                     randomization: this.randomization,
                     app_title: this.app_title,
-                    // app_title: "project title",
                     purpose: this.purpose,
-                    // purpose: 2,
                     project_pi_firstname: this.project_pi_firstname,
                     project_pi_mi: this.project_pi_mi,
                     project_pi_lastname: this.project_pi_lastname,
@@ -2924,15 +2963,13 @@
                     project_pi_alias: this.project_pi_alias,
                     project_irb_number: this.project_irb_number,
                     purpose_other: this.purpose_other,
-                    // purpose_other: 1,
                     project_note: this.project_note,
-                    // project_note: "project notes go here",
                     projecttype: this.projecttype,
                     repeatforms_chk: this.repeatforms_chk,
                     project_template_radio: this.project_template_radio,
                     config: this.config
                 };
-                console.log(JSON.stringify(data, null, 2));
+                // console.log(JSON.stringify(data, null, 2));
 
                 let formData = new FormData();
                 formData.append('redcap_csrf_token', "<?php echo $module->getCSRFToken(); ?>");
@@ -2942,7 +2979,7 @@
                 // use services/importMetadata.php if project has already been created
                 axios.post("<?php echo $module->getUrl("services/createProject.php"); ?>", formData)
                     .then(function(response) {
-                        console.log("Response data: " + response.data);
+                        // console.log("Response data: " + response.data);
                         if (response.data.indexOf('Uncaught Error') > -1 ||
                           response.data.indexOf('Error message') > -1) {
                             console.log("Found Error");
