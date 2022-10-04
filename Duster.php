@@ -78,6 +78,20 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         }
     }
 
+    /**
+     * Hook to prevent DUSTER links to appear unless user is in Allowlist
+     * @param $project_id
+     * @param $link
+     * @return array|null
+     */
+    public function redcap_module_link_check_display($project_id, $link) {
+        // check user is allowed to use DUSTER
+        $allowlist = $this->getSystemSetting('sunet')[0];
+        $sunet = $this->getUser()->getUsername();
+        $allow_duster = in_array($sunet, $allowlist);
+        return $allow_duster === true ? $link : null;
+    }
+
     private function getValidToken($service) {
         $token = false;
         try {
