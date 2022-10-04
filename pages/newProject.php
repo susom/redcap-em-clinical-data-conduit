@@ -363,9 +363,7 @@
                     </v-stepper-content>
 
                     <v-stepper-content step="3">
-                        <v-card-text
-                            flat
-                        >
+                        <v-card-text>
                             <p>
                                 Clinical data is partly defined by relative windows of time.
                                 <br>
@@ -661,7 +659,7 @@
 
                             <!-- Create/Edit a Data Collection Window -->
                             <v-card
-                                v-show="!collection_windows.length || show_window_form === true"
+                                v-show="show_window_form === true"
                                 outlined
                             >
                                 <v-card-subtitle><h1>{{edit_window_index === -1 ? 'Create a New' : 'Edit'}} Data Collection Window</h1></v-card-subtitle>
@@ -1499,6 +1497,16 @@
                     </v-stepper-content>
 
                     <v-stepper-content step="4">
+                    <v-card
+                        flat
+                    >
+                        <v-card-text>
+                            <p>
+                                Below is an overview of the REDCap instruments and REDCap fields that will be created based on the choices made in previous steps.
+                            </p>
+                        </v-card-text>
+                    </v-card>
+
                     <!-- Place collapse/expand panels in a grid to maintain constant size with block prop -->
                     <v-row>
                         <v-col
@@ -1658,65 +1666,60 @@
                     </v-stepper-content>
                 </v-stepper-items>
             </v-stepper>
-            <v-container>
-                <v-row>
-                    <v-col
-                        cols="auto"
-                        v-show="step == 1"
-                    >
-                        <v-form
-                            action="<?php echo $module->getUrl("pages/newProjectIntro.php", false, true) ?>"
-                            method="post"
-                            id="project-form"
+                <v-container>
+                    <v-row>
+                        <v-col
+                            cols="auto"
+                            v-show="step == 1"
                         >
-                            <input type="hidden" name="type" value="module">
-                            <?php
-                            foreach($_POST as $name=>$value) {
-                                $value = is_array($value) ? implode(",", $value) : $value;
-                                echo "<input type=\"hidden\" name=\"$name\" value=\"$value\">";
-                            }
-                            echo "<input type=\"hidden\" name=\"redcap_csrf_token\"value=\"{$module->getCSRFToken()}\">";
-                            ?>
-                            <v-btn
-                                color="secondary"
-                                type="submit"
+                            <v-form
+                                action="<?php echo $module->getUrl("pages/newProjectIntro.php", false, true) ?>"
+                                method="post"
+                                id="project-form"
                             >
-                                < Back to DUSTER Intro
+                                <input type="hidden" name="type" value="module">
+                                <?php
+                                foreach($_POST as $name=>$value) {
+                                    $value = is_array($value) ? implode(",", $value) : $value;
+                                    echo "<input type=\"hidden\" name=\"$name\" value=\"$value\">";
+                                }
+                                echo "<input type=\"hidden\" name=\"redcap_csrf_token\"value=\"{$module->getCSRFToken()}\">";
+                                ?>
+                                <v-btn
+                                    color="secondary"
+                                    type="submit"
+                                >
+                                    < Back to DUSTER Intro
+                                </v-btn>
+                            </v-form>
+                        </v-col>
+                        <v-col
+                            cols="auto"
+                            v-show="step > 1"
+                        >
+                            <v-btn
+                                color="primary"
+                                @click="backStep"
+                                :disabled="show_window_form"
+                            >
+                                < Back
                             </v-btn>
-                        </v-form>
-                    </v-col>
-                    <v-col
-                        cols="auto"
-                        v-show="step > 1"
-                    >
-                        <v-btn
-                            color="primary"
-                            @click="backStep"
-                            :disabled="show_window_form && collection_windows.length > 0"
+                        </v-col>
+                        <v-col
+                            cols="auto"
+                            v-show="step < 4"
                         >
-                            < Back
-                        </v-btn>
-                    </v-col>
-                    <v-col
-                        cols="auto"
-                        v-show="step < 4"
-                    >
-                        <v-btn
-                            color="primary"
-                            @click="nextStep"
-                            :disabled="show_window_form && collection_windows.length > 0"
-                        >
-                            Next >
-                        </v-btn>
-                    </v-col>
-                    <v-spacer></v-spacer>
-                </v-row>
-
-
-
-
-
-            </v-container>
+                            <v-btn
+                                color="primary"
+                                @click="nextStep"
+                                :disabled="show_window_form"
+                            >
+                                Next >
+                            </v-btn>
+                        </v-col>
+                        <v-spacer></v-spacer>
+                    </v-row>
+                </v-container>
             </v-stepper-content>
         </v-container>
     </v-app>

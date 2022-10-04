@@ -29,15 +29,15 @@ $project_id = PROJECT_ID;
 <!-- Our application root element -->
 <div id="app">
   <v-app>
-    <h1>DUSTER: Data Upload</h1>
+    <h1>DUSTER: Get Data</h1>
 
     <div v-if="errorMessage">
         <v-alert type="error"><span v-html="errorMessage"></span></v-alert>
       </div>
 
     <div v-if="!isLoading && !isLoaded">
-      <p>Load your Duster Data!</p>
-      <v-btn  color="primary" max-width=200 @click="loadCohort">Load</v-btn>
+      <p>Click the button below to begin.</p>
+      <v-btn  color="primary" max-width=200 @click="loadCohort">Begin</v-btn>
     </div>
 
     <p class="text-center" v-if="isLoading && !isLoaded">Loading <v-progress-circular
@@ -49,7 +49,7 @@ $project_id = PROJECT_ID;
       <v-stepper v-model="step">
         <v-stepper-header>
           <v-stepper-step :complete="step > 1" step="1" >
-            Validate Duster Config
+            Validate DUSTER Config
           </v-stepper-step>
 
           <v-divider></v-divider>
@@ -67,7 +67,7 @@ $project_id = PROJECT_ID;
           <v-divider></v-divider>
 
           <v-stepper-step :complete="step > 4" step="4">
-            Retrieve and Save Data
+            Retrieve & Save Data
           </v-stepper-step>
 
 
@@ -102,15 +102,15 @@ $project_id = PROJECT_ID;
           <v-stepper-content step="2">
             <div v-if="!dusterData.missing_data && !dusterData.rp_data">
               <v-alert type="error">
-                No researcher provided data found.  Mrns and required dates must be entered into the project before proceeding.
+                Your REDCap project contains no records. Add at least one record to your project in order to proceed.
               </v-alert>
             </div>
 
             <div v-if="dusterData.missing_data">
               <request-data-table
-                  title='Missing Data'
+                  title='Missing Researcher-Provided Information'
                   alert-type="warning"
-                  alert-content="There are missing dates.  Please ensure that all necessary data has been entered."
+                  alert-content="You may still continue, but DUSTER may not be able to retrieve all possible data on records with missing researcher-provided information."
                   record-base-url="<?php echo $record_base_url?>"
                   :table-data="dusterData.missing_data"
               >
@@ -135,7 +135,7 @@ $project_id = PROJECT_ID;
               <request-data-table
                   title='Data Records'
                   alert-type="info"
-                  alert-content="Duster will upload data for the following records:"
+                  alert-content="DUSTER will attempt to get data for the following records:"
                   record-base-url="<?php echo $record_base_url?>"
                   :table-data="dusterData.rp_data"
               >
@@ -175,28 +175,31 @@ $project_id = PROJECT_ID;
             >
               <v-card>
                 <v-card-title>
-                  Cancel Data Load
+                  Cancel Data Retrieval
                 </v-card-title>
                 <v-card-text>
                   <v-alert type="warning">
-                    Are you sure you want to cancel the data upload?  Data that has already been saved to Redcap will
-                    not be deleted.
-                  </v-alert>'
+                      <p>
+                          Are you sure you want to cancel data retrieval?
+                          <br>
+                          Data that has already been saved to REDCap will not be deleted.
+                      </p>
+                  </v-alert>
 
                 </v-card-text>
                 <v-card-actions>
                   <v-btn
+                      color="error"
                       outlined
-                      text
                       @click="goToUrl(record_base_url)"
                   >
-                    Cancel Upload
+                    Yes, Cancel
                   </v-btn>
                   <v-btn
                       color="primary"
                       @click="confirmCancel = false"
                   >
-                    Continue Upload
+                    No, Continue
                   </v-btn>
                 </v-card-actions>
               </v-card>
@@ -204,7 +207,7 @@ $project_id = PROJECT_ID;
 
             <v-divider></v-divider>
             <v-btn v-if="saveProgress < 100"
-                text
+                color="error"
                 outlined
                 @click="confirmCancel = true">
               Cancel

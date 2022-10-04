@@ -26,20 +26,20 @@ We plan to eventually support longitudinal projects.
 mockup/ contains HTML and some art assets for an initial prototype of the user interface
 
 ## User Instructions
-To use DUSTER, click on "+ New Project", supply a title and purpose,
-then select "Create project using DUSTER" from the "Project creation option" radio button group.
+To use DUSTER, click on "+ New Project". On this page, enter a title, choose "Research" as the purpose, enter a valid IRB,
+then select "Create project using DUSTER" from the "Project creation option" radio button group
 
 ## Dependencies
-### Vertx Token Lookup EM
-Similar to the REDCap to STARR Link EM, DUSTER requires use of the Token Lookup EM.
-For appropriate installation/configuration of the Token Lookup EM, refer to this REDCap to STARR Link document hosted on Google Drive:
+
+### REDCap to STARR Link EM, Vertx Token Lookup EM, and IRB Validity Lookup EM
+For appropriate installation/configuration of these EMs, refer to this REDCap to STARR Link document hosted on Google Drive:
 
 [REDCap to STARR Link dependencies](https://docs.google.com/document/d/1V_p7GJ8da8iWb9AH-MMjpD5xEQf3ExPRGizHMy8oPBk/edit)
 
 ## How to install and set up in local environment
 Ensure that you are running on REDCap 12.2.4 and PHP 7.3.33.
 
-### Installation and enable
+### Install and enable
 Place a copy of the EM into your local REDCap server's directory for external modules.
 Make sure the folder's name ends with a '_v9.9.9' suffix (e.g., `duster_v9.9.9`).
 
@@ -54,6 +54,10 @@ To enable the EM on your local REDCap server:
 4. On the popup screen "Available Modules": Click the green "Enable" button for Duster
 
 ### Required System-Level Configuration
+#### Allowlist
+To prevent DUSTER from being visible to a broader userbase, users can only see DUSTER as an option when creating a new project if they in the allowlist.
+For a user to be part of the allowlist, their REDCap username (i.e., SUNet) must be entered in this setting.
+
 #### STARR-API Metadata Webservice URL
 Until DUSTER's STARR-API backend goes into production, this URL should point to your local STARR-API deployment's endpoint for getting DUSTER's metadata.
 The URL pathname is `/duster/api/v1/metadata`.

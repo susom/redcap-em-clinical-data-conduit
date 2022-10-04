@@ -13,9 +13,6 @@ namespace Stanford\Duster;
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet" crossorigin="anonymous">
-    <!-- Bootstrap CSS -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
     <link rel="icon" type="image/ico" href="data:image/ico;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAD///8A////AP///wD///8A////AP///wDa2vAkgYHMtWxsxJPw8PkM////AP///wD///8A////AP///wD///8A////AP///wD///8A////AP///wCiotpaCgqd8z8/sv8AAJn/ICCl3szM6jH///8A////AP///wD///8A////AP///wD///8A////AP///wCGhs53AACZ/wAAmf8/P7L/AACZ/wAAmf8KCp31vLzkQf///wD///8A////AP///wD///8A////AP///wCiotpaISGm/S8vrP8vL6z/Pz+y/wAAmf8AAJn/Cwud/xsbo/DU1O4p////AP///wD///8A////AP///wDe3vIfDAyd83xwy/+kjtz/wrPn/z8/sv8AAJn/AACZ/1pavf9ISLb/MDCsz/r6/QP///8A////AP///wD///8AWFi8pk5MuP+biNj/jG/S/5uD2P8/P7L/AACZ/wAAmf9FRbT/mprW/wwMnf+YmNZl////AP///wD///8A4ODyHQQEmvxmZML/tKLi/7yr5f93dcj/Pz+y/wAAmf8QEJ//nZ3Y/3Z2yP8AAJn/Jiao2f///wD///8A////AIqK0HIAAJn/VFK7/2tTxf+Xidb/Jiao/z8/sv8AAJn/Jiao/6ys3v8wMKz/AACZ/wAAmf/Kyuoy////AP///wBiYr+1ICCl/yAgpf8gIKX/ICCl/yAgpf9XV7z/AACZ/wAAmf9KSrb/k5PU/ywsqv8AAJn/iIjPdf///wD///8AQkKz4jMzrf9SUrr/d3fJ/0lJtv8vL6z/Y2PA/wAAmf8AAJn/PDyx/2NjwP9nZ8L/AACZ/1xcvaH///8A////AAUFmv1kZMH/ysrp/9XV7v+2tuH/NDSu/z8/sv8AAJn/AACZ/29vxf+np9v/BASa/wAAmf9CQrO9////AP///wAGBpv/m5vX/4eHz//u7vj/Tk64/5eX1f8/P7L/AACZ/ywsqv+qqt3/QECy/wAAmf8AAJn/QECyv////wD///8AAgKZ/QAAmf9ra8T/3d3x/ykpqf8CApn/Pz+y/wcHm/+JidD/MDCs/1dXvP8AAJn/AACZ/0BAsr3///8A////ABgYouUAAJn/Wlq9/9/f8v8XF6L/AACZ/z8/sv8UFKH/kZHT/6el3P9iYsD/AACZ/wAAmf9YWLym////AP///wBCQrO9AACZ/yMjp/+vr9//BASa/wAAmf8/P7L/AACZ/wAAmf8ICJz/AACZ/wAAmf8AAJn/goLNff///wD///8Ajo7ScCAgpd4gIKXeS0u33iAgpd4gIKXeV1e73iAgpd4gIKXeICCl3iAgpd4gIKXeICCl3sbG6Dj///8A/n8AAPw/AAD4HwAA8A8AAOAHAADABwAAwAMAAMADAACAAwAAgAEAAIABAACAAQAAgAEAAIABAACAAwAAwAMAAA=="/>
 
@@ -50,30 +47,40 @@ namespace Stanford\Duster;
                 </v-card-title>
                 <v-row>
                     <v-col
-                        class="10"
+                        cols="7"
                     >
                         <v-card-text>
                             <p>
-                                Welcome to Stanford REDCap's DUSTER, a self-service tool to automatically import clinical data associated with research subjects in your study.
-                            </p>
-                            <p>
-                                DUSTER has both patient data and structured clinical data. A small set of demographics, lab results, and vitals are currently available with more on the way;
+                                Welcome to Stanford REDCap's DUSTER, a self-service tool to automatically import STARR data associated with your research cohort.
+                                <br>
+                                <br>
+                                DUSTER can retrieve both patient data and structured clinical data based on STARR. A small set of demographics, lab results, and vitals are currently available with more on the way;
                                 we also plan to expand our structured clinical data offerings to include inpatient outcomes, risk scores, and medications.
-                            </p>
-                            <p>
-                                You can use DUSTER to populate a newly created REDCap project.
-                                We plan to support adding DUSTER to an existing project in the future.
-                            </p>
-                            <p>
-                                Once you have specified the time frames and variable selection algorithms for the clinical variables of interest, DUSTER will automatically import all data for your cohort.
+                                <br>
+                                <br>
+                                You can use DUSTER to design and create a dataset as a newly-created REDCap project.
+                                We plan to support adding DUSTER to existing REDCap projects in the future.
+                                <br>
+                                <br>
+                                After your REDCap project is created, DUSTER will be able to retrieve and save data into your REDCap project upon request.
                             </p>
                         </v-card-text>
                     </v-col>
-                    <v-col class="1">
-                        <img class="screenshot" src="<?php echo $module->getUrl("images/duster_infographic.png") ?>" height="200"  />
+                    <v-col
+                        cols="3"
+                    >
+                        <v-img
+                            src="<?php echo $module->getUrl("images/duster_infographic.png") ?>"
+                        >
+                        </v-img>
                     </v-col>
-                    <v-col class="1">
-                        <img class="screenshot" src="<?php echo $module->getUrl("images/duster_logo_cropped.png") ?>" height="200"  />
+                    <v-col
+                        cols="2"
+                    >
+                        <v-img
+                            src="<?php echo $module->getUrl("images/duster_logo_cropped.png") ?>"
+                        >
+                        </v-img>
                     </v-col>
                 </v-row>
 
@@ -82,13 +89,17 @@ namespace Stanford\Duster;
                 </v-card-title>
                 <v-card-text>
                     <p>
-                        DUSTER requires each REDCap record to contain an MRN and a clinical date (e.g., an enrollment date or visit date).
-                        These two fields are needed to identify the requested data.
-                        By default, an enrollment date is designated as the clinical date.
-                        This can be changed at the final step of DUSTER's project creation wizard.
-                    </p>
-                    <p>
-                        You can choose to create each record one at a time using standard REDCap data entry (left), or you can import your
+                        DUSTER requires each REDCap record to contain "researcher-provided information" to retrieve data.
+                        <br>
+                        At minimum, MRNs are required as a researcher-provided identifier and study enrollment dates are required as a researcher-provided date.
+                        <br>
+                        <br>
+                        Currently, only the MRN can be assigned as a researcher-provided identifier.
+                        <br>
+                        Optionally, more researcher-provided date/datetimes may be added. This is useful for cohorts that have multiple study visits/events or sample collections.
+                        <br>
+                        <br>
+                        To add researcher-provided information, you can choose to create each record one at a time using standard REDCap data entry (left), or you can import your
                         records using REDCap's data import tool (right).
                     </p>
                 </v-card-text>
@@ -97,13 +108,19 @@ namespace Stanford\Duster;
                     <v-col
                         cols="6"
                     >
-                        <img class="screenshot" src="<?php echo $module->getUrl("images/option_1_data_entry.png") ?>" height="200" />
+                        <v-img
+                            src="<?php echo $module->getUrl("images/option_1_data_entry.png") ?>"
+                        >
+                        </v-img>
 
                     </v-col>
                     <v-col
                         cols="6"
                     >
-                        <img class="screenshot" src="<?php echo $module->getUrl("images/option2_data_import.png") ?>" height="100" />
+                        <v-img
+                            src="<?php echo $module->getUrl("images/option2_data_import.png") ?>"
+                        >
+                        </v-img>
                     </v-col>
                 </v-row>
 
@@ -197,13 +214,14 @@ namespace Stanford\Duster;
         mounted () {
             let formData = new FormData();
             formData.append('redcap_csrf_token', "<?php echo $module->getCSRFToken(); ?>");
-            formData.append("project_irb_number", "<?php // echo $_POST["project_irb_number"] ?>");
+            formData.append("project_irb_number", "<?php echo $_POST["project_irb_number"] ?>");
+
             let self = this;
 
             axios.post("<?php echo $module->getUrl("services/checkIRB.php"); ?>", formData)
                 .then(function(response) {
                     self.irb_flag = response.data === 1 ? 1 : -1;
-                    console.log(self.irb_flag);
+                    // console.log(self.irb_flag);
                 })
                 .catch(function(error) {
                     // TODO
