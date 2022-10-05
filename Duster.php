@@ -34,17 +34,17 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     public function redcap_every_page_top() {
         // $this->emDebug(" Page is " . PAGE . " action is " . $_GET['action']);
 
-        // check user is allowed to use DUSTER
-        $allowlist = $this->getSystemSetting('sunet')[0];
-        $sunet = $this->getUser()->getUsername();
-        $allow_duster = in_array($sunet, $allowlist);
-
         // add DUSTER option to REDCap's Create New Project page if user is allowlisted
-        if (strpos(PAGE, "index.php") !== false && $_GET['action'] === 'create' && $allow_duster === true) {
-            // $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
-            $some = "<script> let dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
-            echo $some;
-            $script = <<<EOD
+        if (strpos(PAGE, "index.php") !== false && $_GET['action'] === 'create') {
+            // check user is allowed to use DUSTER
+            $allowlist = $this->getSystemSetting('sunet')[0];
+            $sunet = $this->getUser()->getUsername();
+            $allow_duster = in_array($sunet, $allowlist);
+            if ($allow_duster === true) {
+                // $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
+                $some = "<script> let dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
+                echo $some;
+                $script = <<<EOD
                 <script>
                     $(document).ready(function() {
                         let div = "<div id='duster_option' style='text-indent: -1.5em; margin-left: 1.5em; display: none;'><input name='project_template_radio' id='project_template_duster' type='radio'>" ;
@@ -73,8 +73,9 @@ class Duster extends \ExternalModules\AbstractExternalModule {
                         }) ;
                     }) ;
                 </script>
-            EOD;
-            echo $script;
+                EOD;
+                echo $script;
+            }
         }
     }
 
