@@ -253,14 +253,16 @@ $result = curl_exec($ch);
 // Close cURL resource
 curl_close($ch);
 
-
+$module->emDebug('Setting up REDCap to STARR Link');
 if ($result['success'] && $result['rcToStarrLinkConfig']) {
     $em_config = json_decode($result, true);
+    $module->emDebug('em_config: '. $em_config);
     $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module);
     $rctostarr_config->enableRedcapToStarrLink();
     $rctostarr_config->configureRedcapToStarrLink($em_config);
 }
 //TODO: add error handling
 
+$module->emDebug(APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject");
 echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
 ?>
