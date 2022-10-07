@@ -7,43 +7,6 @@ use RedCapDB;
 require_once $module->getModulePath() . "classes/OdmXmlString.php";
 require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
 
-
-/*
-if(!isset($_POST['odm']) | !isset($_POST['app_title']) | !isset($_POST['purpose'])) {
-    // TODO exit/return since we cannot create the project as intended without these parameters
-}
-*/
-/*
-$project_title = $purpose = $purpose_other = $project_notes = $is_longitudinal = $surveys_enabled = $record_autonumbering_enabled = "";
-$data_arr = array(
-    "project_title" => "",
-    "purpose" => "",
-    "purpose_other" => "",
-    "project_notes" => "",
-    "is_longitudinal" => "",
-    "surveys_enabled" => "",
-    "record_autonumbering_enabled" => ""
-);
-
-foreach($data_arr as $key => &$value) {
-    if(isset($_POST[$key])) {
-        $value = $_POST[$key];
-    }
-}
-unset($value);
-$module->emDebug($data_arr);
-echo $data_arr;
-$odm = $_POST['odm'];
-unset($_POST['odm']);
-
-$project_title = $_POST['app_title'];
-unset($_POST['app_title']);
-$purpose = $_POST['purpose'];
-unset($_POST['purpose']);
-*/
-
-// $odm = $_POST['odm'];
-
 /* get JSON from POST request */
 // $json = file_get_contents('php://input');
 $json = $_POST['data'];

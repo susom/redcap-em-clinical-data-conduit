@@ -2,7 +2,6 @@
 namespace Stanford\Duster;
 /** @var $module Duster */
 
-// TODO require_once APP_PATH_DOCROOT . 'Views/HomeTabs.php';
 ?>
 
 <!doctype html>
@@ -202,7 +201,7 @@ namespace Stanford\Duster;
 <!-- Required scripts CDN -->
 <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js" crossorigin="anonymous"> </script>
 <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@0.27.2/dist/axios.min.js" crossorigin="anonymous"></script>
 
 <script>
     new Vue({
@@ -221,41 +220,12 @@ namespace Stanford\Duster;
             axios.post("<?php echo $module->getUrl("services/checkIRB.php"); ?>", formData)
                 .then(function(response) {
                     self.irb_flag = response.data === 1 ? 1 : -1;
-                    // console.log(self.irb_flag);
                 })
                 .catch(function(error) {
                     // TODO
                 });
-        },
-        methods: {
-            /*
-            getStarted() {
-                let formData = new FormData();
-                formData.append('redcap_csrf_token', "<?php // echo $module->getCSRFToken(); ?>");
-                formData.append('surveys_enabled', this.surveys_enabled);
-                formData.append('repeatforms', this.repeatforms);
-                formData.append('scheduling', this.scheduling);
-                formData.append('randomization', this.randomization);
-                formData.append('app_title', this.app_title);
-                formData.append('purpose', this.purpose);
-                formData.append('project_pi_firstname', this.project_pi_firstname);
-                formData.append('project_pi_mi', this.project_pi_mi);
-                formData.append('project_pi_lastname', this.project_pi_lastname);
-                formData.append('project_pi_email', this.project_pi_email);
-                formData.append('project_pi_alias', this.project_pi_alias);
-                formData.append('project_irb_number', this.project_irb_number);
-                formData.append('purpose_other', this.purpose_other);
-                formData.append('project_note', this.project_note);
-                formData.append('projecttype', this.projecttype);
-                formData.append('repeatforms_chk', this.repeatforms_chk);
-                formData.append('project_template_radio', this.project_template_radio);
-
-                axios.post("<?php // echo $module->getUrl("pages/newProject.php", false, true) ?>", formData);
-
-            }
-            */
         }
-    })
+    });
 
 </script>
 </body>
