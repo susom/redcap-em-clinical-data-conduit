@@ -58,10 +58,6 @@ To enable the EM on your local REDCap server:
 4. On the popup screen "Available Modules": Click the green "Enable" button for Duster
 
 ### Required System-Level Configuration
-#### Allowing non-admins to use DUSTER
-Check these two options so that non-admins can use DUSTER's project creation UI to create projects that have DUSTER automatically enabled on them:
-- Make module discoverable by users
-- Allow normal users to enable this module in projects
 
 #### Allowlist
 To prevent DUSTER from being visible to a broader userbase, users can only see DUSTER as an option when creating a new project if they in the allowlist.

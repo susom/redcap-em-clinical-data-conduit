@@ -160,11 +160,14 @@ $data_arr['redcap_server_name'] = SERVER_NAME;
 $data_arr['project_irb_number'] = $data['project_irb_number'];
 $data_arr['project_pi_name'] = $data['project_pi_firstname'] . ' ' . $data['project_pi_lastname'];
 
+// put DUSTER into project-level context of the newly created project
+// for sake of non-admin user permissions
+$_GET['pid'] = $project_id;
 
 // enable DUSTER EM on the newly created project
-$_GET['pid'] = $project_id; // put DUSTER into project-level context of the newly created project
-                            // for sake of non-admin user permissions
-$module->enableModule($project_id, NULL);
+$external_module_id = $module->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = ?', ['duster']);
+$module->query('INSERT INTO `redcap_external_module_settings`(`external_module_id`, `project_id`, `key`, `type`, `value`) VALUES (?, ?, ?, ?, ?)',
+    [$external_module_id->fetch_assoc()['external_module_id'], $project_id, 'enabled', 'boolean', 'true']);
 
 // delete the project super token if needed
 if($delete_token) {

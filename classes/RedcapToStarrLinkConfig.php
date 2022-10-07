@@ -20,8 +20,10 @@ class RedcapToStarrLinkConfig
 
     /*enable RtoS Link EM in the project*/
     public function enableRedcapToStarrLink() {
-        $this->module->enableModule($this->project_id, "redcap_to_starr_link");
         $this->module->emDebug('Enabling REDCap to STARR Link on project.');
+        $external_module_id = $this->module->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = ?', ['redcap_to_starr_link']);
+        $this->module->query('INSERT INTO `redcap_external_module_settings`(`external_module_id`, `project_id`, `key`, `type`, `value`) VALUES (?, ?, ?, ?, ?)',
+            [$external_module_id->fetch_assoc()['external_module_id'], $this->project_id, 'enabled', 'boolean', 'true']);
     }
 
     /*takes JsonObject returned from starr-api to configure project level RtoS Link EM settings*/
