@@ -11,8 +11,8 @@ use REDCap;
 
 class DusterConfigClass
 {
-    private $project_id, $duster_config, $module;
-    private $rp_info_form = array('form_name'=>'rp_info','form_label'=>'Researcher-Provided Information');
+    private mixed $project_id , $duster_config, $module;
+    private array $rp_info_form = array('form_name'=>'rp_info','form_label'=>'Researcher-Provided Information');
     private $demographics_form = array('form_name'=>'demographics','form_label'=>'Demographics');
 
     public function __construct($pid, $module)
