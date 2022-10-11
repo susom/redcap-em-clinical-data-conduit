@@ -85,7 +85,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
      * @param $link
      * @return array|null
      */
-    public function redcap_module_link_check_display( mixed  $project_id, mixed $link) {
+    public function redcap_module_link_check_display($project_id, $link) {
         // check user is allowed to use DUSTER
         $allowlist = $this->getSystemSetting('sunet')[0];
         $sunet = $this->getUser()->getUsername();
@@ -93,7 +93,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         return $allow_duster === true ? $link : null;
     }
 
-    private  function getValidToken(string $service): bool {
+    private function getValidToken($service) {
         $token = false;
         try {
             $tokenMgnt = \ExternalModules\ExternalModules::getModuleInstance('vertx_token_manager');
@@ -104,7 +104,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         return $token;
     }
 
-    public function starrApiGetRequest(string $url, string $service): mixed {
+    public function starrApiGetRequest($url, $service) {
         $token = $this->getValidToken($service);
         $resp_arr=[];
         if ($token !== false) {
@@ -119,14 +119,14 @@ class Duster extends \ExternalModules\AbstractExternalModule {
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             $resp = curl_exec($curl);
             curl_close($curl);
-            $resp_arr = json_decode(strval($resp), true);
+            $resp_arr = json_decode($resp, true);
 
         }
         //$this->emLog("$url response = " . print_r($resp_arr, true));
         return $resp_arr;
     }
 
-    public function starrApiPostRequest(string $url, string $service, array $post_fields) : mixed {
+    public function starrApiPostRequest($url, $service, $post_fields) {
         $token = $this->getValidToken($service);
         $resp_arr=[];
         $message= json_encode($post_fields);
@@ -149,7 +149,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         return $resp_arr;
     }
 
-    public function getMetadata() : mixed {
+    public function getMetadata() {
         // build and send GET request to metadata webservice
         $metadata_url = $this->getSystemSetting("starrapi-metadata-url");
         $metadata = $this->starrApiGetRequest($metadata_url,'ddp');
