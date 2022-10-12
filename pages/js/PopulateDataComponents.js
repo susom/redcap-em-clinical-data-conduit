@@ -56,8 +56,7 @@ var RequestDataTable = Vue.component('request-data-table', {
     '          :headers="tableHeaders"' +
     '          :items="tableRows"' +
     '          fixed-header' +
-    '          dense' +
-    '          hide-default-footer>' +
+    '          dense>' +
     '      <template v-slot:item.redcap_record_id="{ item }">' +
     '          <span v-html="item.redcap_record_id"></span>' +
     '        </template>' +
