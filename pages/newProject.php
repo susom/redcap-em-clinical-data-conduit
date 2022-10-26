@@ -1681,7 +1681,7 @@
                                 <?php
                                 foreach($_POST as $name=>$value) {
                                     $value = is_array($value) ? implode(",", $value) : $value;
-                                    echo "<input type=\"hidden\" name=\"$name\" value=\"$value\">";
+                                    echo "<input type=\"hidden\" name=\"" . htmlentities($name, ENT_QUOTES) . "\" value=\"" . htmlentities($value, ENT_QUOTES) . "\">";
                                 }
                                 echo "<input type=\"hidden\" name=\"redcap_csrf_token\"value=\"{$module->getCSRFToken()}\">";
                                 ?>
@@ -2325,23 +2325,23 @@
         },
         mounted () {
             // form data initially entered by user on initial create new project page (/index.php?action=create)
-            this.surveys_enabled = "<?php echo $_POST["surveys_enabled"]; ?>";
-            this.repeatforms = "<?php echo $_POST["repeatforms"]; ?>";
-            this.scheduling = "<?php echo $_POST["scheduling"]; ?>";
-            this.randomization = "<?php echo $_POST["randomization"]; ?>";
-            this.app_title = "<?php echo $_POST["app_title"]; ?>";
-            this.purpose = "<?php echo $_POST["purpose"] ?>";
-            this.project_pi_firstname = "<?php echo $_POST["project_pi_firstname"] ?>";
-            this.project_pi_mi = "<?php echo $_POST["project_pi_mi"] ?>";
-            this.project_pi_lastname = "<?php echo $_POST["project_pi_lastname"] ?>";
-            this.project_pi_email = "<?php echo $_POST["project_pi_email"] ?>";
-            this.project_pi_alias = "<?php echo $_POST["project_pi_alias"] ?>";
-            this.project_irb_number = "<?php echo $_POST["project_irb_number"] ?>";
-            this.purpose_other = "<?php echo $_POST["purpose_other"] ?>";
-            this.project_note = "<?php echo $_POST["project_note"] ?>";
-            this.projecttype = "<?php echo $_POST["projecttype"] ?>";
-            this.repeatforms_chk = "<?php echo $_POST["repeatforms_chk"] ?>";
-            this.project_template_radio = "<?php echo $_POST["project_template_radio"] ?>";
+            this.surveys_enabled = "<?php echo htmlentities($_POST["surveys_enabled"], ENT_QUOTES); ?>";
+            this.repeatforms = "<?php echo htmlentities($_POST["repeatforms"], ENT_QUOTES); ?>";
+            this.scheduling = "<?php echo htmlentities($_POST["scheduling"], ENT_QUOTES); ?>";
+            this.randomization = "<?php echo htmlentities($_POST["randomization"], ENT_QUOTES); ?>";
+            this.app_title = "<?php echo htmlentities($_POST["app_title"], ENT_QUOTES); ?>";
+            this.purpose = "<?php echo htmlentities($_POST["purpose"], ENT_QUOTES); ?>";
+            this.project_pi_firstname = "<?php echo htmlentities($_POST["project_pi_firstname"], ENT_QUOTES); ?>";
+            this.project_pi_mi = "<?php echo htmlentities($_POST["project_pi_mi"], ENT_QUOTES); ?>";
+            this.project_pi_lastname = "<?php echo htmlentities($_POST["project_pi_lastname"], ENT_QUOTES); ?>";
+            this.project_pi_email = "<?php echo htmlentities($_POST["project_pi_email"], ENT_QUOTES); ?>";
+            this.project_pi_alias = "<?php echo htmlentities($_POST["project_pi_alias"], ENT_QUOTES); ?>";
+            this.project_irb_number = "<?php echo htmlentities($_POST["project_irb_number"], ENT_QUOTES); ?>";
+            this.purpose_other = "<?php echo htmlentities($_POST["purpose_other"], ENT_QUOTES); ?>";
+            this.project_note = "<?php echo htmlentities($_POST["project_note"], ENT_QUOTES); ?>";
+            this.projecttype = "<?php echo htmlentities($_POST["projecttype"], ENT_QUOTES); ?>";
+            this.repeatforms_chk = "<?php echo htmlentities($_POST["repeatforms_chk"], ENT_QUOTES); ?>";
+            this.project_template_radio = "<?php echo htmlentities($_POST["project_template_radio"], ENT_QUOTES); ?>";
 
             // request metadata from STARR-API
           axios.get("<?php echo $module->getUrl("services/callMetadata.php"); ?>").then(response => {

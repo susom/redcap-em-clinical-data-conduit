@@ -7,13 +7,18 @@ use RedCapDB;
 require_once $module->getModulePath() . "classes/OdmXmlString.php";
 require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
 
-/* get JSON from POST request */
-// $json = file_get_contents('php://input');
-$json = $_POST['data'];
-// $module->emLog($json);
-$data = json_decode($json, true);
-// $module->emLog($data);
+/**
+ * avoiding false-positive Psalm TaintedSSRF on $_POST['data']
+ * @psalm-taint-escape ssrf
+ */
 
+/* get JSON from POST request */
+// $result = json_encode($_POST['data'], JSON_THROW_ON_ERROR);
+// $data = htmlentities($result, ENT_QUOTES);
+// $data = htmlentities($_POST['data']);
+// $module->emLog($data);
+$data = json_decode($_POST['data'], true);
+$module->emLog($data);
 /* construct the ODM XML string */
 $odm = new OdmXmlString($data['app_title'], $data['purpose'], $data['purpose_other'], $data['project_note']);
 $config = $data['config'];
@@ -195,12 +200,17 @@ $headers = array(
     "Authorization: Bearer $token"
 );
 
+/**
+ * @var string $config_data
+ * @psalm-ignore-var
+ */
 // set up the POST body as a JSON-encoded string
 $config_data = json_encode(array(
     'redcap_project_id' => $project_id,
     'config' => $data['config'],
     'linkinfo' => $data_arr
 ));
+// $config_data = htmlentities($config_data, ENT_QUOTES);
 
 // Create a new cURL resource
 $ch = curl_init($config_url);
