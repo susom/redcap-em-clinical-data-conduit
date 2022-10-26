@@ -164,3 +164,6 @@ This is because REDCap projects using the DUSTER EM have their DUSTER configurat
 
 #### Response Specifications
 TODO
+
+## Psalm Taint Analysis
+To perform Psalm Taint Analysis - while in DUSTER EM's directory, enter in a command-line interface: `./vendor/bin/psalm --taint-analysis`
