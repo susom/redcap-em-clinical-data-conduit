@@ -166,4 +166,11 @@ This is because REDCap projects using the DUSTER EM have their DUSTER configurat
 TODO
 
 ## Psalm Taint Analysis
+You may refer to [Psalm's official documention](https://psalm.dev/docs/running_psalm/installation/) for more details, including PHP version requirements and Composer.
+
+### Psalm Installation
+While in DUSTER EM's directory, enter in a command-line interface: `composer require --dev vimeo/psalm`
+### Psalm Configuration File
+`psalm.xml` is already included, so a new configuration file should not need to be generated.
+### Run Psalm Taint Analysis
 To perform Psalm Taint Analysis - while in DUSTER EM's directory, enter in a command-line interface: `./vendor/bin/psalm --taint-analysis`
