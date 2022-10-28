@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<psalm
+    errorLevel="4"
+    resolveFromConfigFile="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+>
+    <projectFiles>
+        <file name="emLoggerTrait.php" />
+        <file name="Duster.php" />
+        <directory name="classes" />
+        <directory name="pages" />
+        <directory name="services" />
+        <ignoreFiles allowMissingFiles="true">
+            <file name="services/getData.php" />
+            <directory name="vendor" />
+            <directory name="node_modules" />
+        </ignoreFiles>
+    </projectFiles>
+    <globals>
+        <var name="module" type="Stanford\Duster" />
+    </globals>
+    <extraFiles>
+        <directory name="../../redcap_*/ExternalModules/classes" />
+    </extraFiles>
+</psalm>

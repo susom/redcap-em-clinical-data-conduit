@@ -7,7 +7,7 @@ use RedCapDB;
 require_once $module->getModulePath() . "classes/DusterConfigClass.php";
 require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
 
-$json = $_POST['data'];
+$json = htmlentities($_POST['data'], ENT_QUOTES);
 // $module->emLog($json);
 $data = json_decode($json, true);
 // $module->emLog($data);

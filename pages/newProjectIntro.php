@@ -147,7 +147,7 @@ namespace Stanford\Duster;
                             <?php
                             foreach($_POST as $name=>$value) {
                                 $value = is_array($value) ? implode(",", $value) : $value;
-                                echo "<input type=\"hidden\" name=\"$name\" value=\"$value\">";
+                                echo "<input type=\"hidden\" name=\"" . htmlentities($name, ENT_QUOTES) . "\" value=\"" . htmlentities($value, ENT_QUOTES) . "\">";
                             }
                             echo "<input type=\"hidden\" name=\"redcap_csrf_token\"value=\"{$module->getCSRFToken()}\">";
                             ?>
@@ -213,7 +213,7 @@ namespace Stanford\Duster;
         mounted () {
             let formData = new FormData();
             formData.append('redcap_csrf_token', "<?php echo $module->getCSRFToken(); ?>");
-            formData.append("project_irb_number", "<?php echo $_POST["project_irb_number"] ?>");
+            formData.append("project_irb_number", "<?php echo htmlentities($_POST["project_irb_number"], ENT_QUOTES) ?>");
 
             let self = this;
 
