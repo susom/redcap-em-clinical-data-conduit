@@ -115,8 +115,6 @@ class RedcapToStarrLinkConfig
         return $query_names;
     }
 
-    /* This is just using the form name to label the query since there's only one query per form
-right now.  Will need to figure out something different in the future if there are multiple queries per form*/
     public function getQueries() {
         $em_id = $this->getEmId();
         $names_result = $this->module->query(
@@ -125,21 +123,35 @@ right now.  Will need to figure out something different in the future if there a
         $forms_result = $this->module->query(
             "select `value` from redcap_external_module_settings where `key`='save-instrument' and `external_module_id` = ? and `project_id`=?",
             [$em_id, $this->project_id]);
-        if ($names_result->num_rows > 0) {
+        if ($names_result->num_rows > 0 && $forms_result->num_rows === $names_result->num_rows) {
             $query_names = json_decode($names_result->fetch_assoc()['value'], true);
             $form_names = json_decode($forms_result->fetch_assoc()['value'], true);
         }
         $queries=[];
         foreach($form_names as $index=>$form_name) {
+            // get the Form Label
             $label_result = $this->module->query(
                 "select `form_menu_description` from redcap_metadata where `form_name`=? and `project_id`=? and `form_menu_description` is not null",
                 [$form_name, $this->project_id]);
-            $label = $label_result->fetch_assoc()['form_menu_description'];
-            $queries[] = array('query_name'=>$query_names[$index],
-                                'query_label'=>$label) ;
+
+            $query_label = $label_result->fetch_assoc()['form_menu_description'];
+            // if this is a collection window query
+            if (strpos($query_names[$index],'_cw') !== false) {
+                // get the substring after the "_" after "cw" in the query name
+                $query_substr = substr($query_names[$index],
+                    strpos($query_names[$index],"_",strpos($query_names[$index], '_cw') + 3)  +1);
+                $query_substr = ((strcmp($query_substr,'flow') ===0) ? 'Vitals' : $query_substr);
+                $query_substr = ((strpos($query_substr,'timing') !== false) ? 'Timing' : $query_substr);
+
+                $query_label = $query_label . " " . ucfirst($query_substr);
+                #$this->module->emDebug("query_name =".$query_names[$index]." form_name = $form_name;
+                # label=$query_substr; form_label=$query_label");
+            }
+            $queries[] = array('query_name' => $query_names[$index],
+                'query_label' => $query_label);
         }
 
-        $this->module->emDebug('queries: ' . print_r($queries, true));
+        #$this->module->emDebug('queries: ' . print_r($queries, true));
         return $queries;
     }
 
