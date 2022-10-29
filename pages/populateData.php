@@ -305,42 +305,37 @@ $project_id = PROJECT_ID;
           console.log(error);
         });
       },
-
-      getAndSaveData() {
+      async getAndSaveData() {
         this.step = 4;
         const numSaves = this.queries.length + 1;
-        const saveSize = 100/numSaves;
+        const saveSize = 100 / numSaves;
         let self = this;
-        axios.get("<?php echo $module->getUrl("services/getData.php?action=syncCohort&pid=$project_id"); ?>").then
-        (response1 => {
-          console.log(JSON.stringify(response1));
-          if (!self.hasError(self, response1)) {
-            self.saveProgress += saveSize;
-            self.saveMessage = "Cohort sync complete."
-            for(let i=0; i< self.queries.length; i++) {
-              axios.get("<?php echo $module->getUrl("services/getData.php?action=getData&pid=$project_id&query=");
-                ?>" + JSON.stringify(self.queries[i]))
-                .then(response2 => {
-                  console.log(JSON.stringify(response2));
-                  if (!self.hasError(self, response2)) {
-                    const resp_data2 = response2.data;
-                    self.saveProgress += saveSize;
-                    if (self.saveProgess === 100) {
-                      self.saveMessage = "Data save complete";
-                    } else {
-                      self.saveMessage = resp_data2.message;
-                    }
-                  }
-                  }).catch(function(error) {
-                    self.errorMessage +=error.message + '<br>';
-                    console.log(error);
-                  });
+        try {
+          const cohortSync = await axios.get("<?php echo $module->getUrl("services/getData.php?action=syncCohort&pid=$project_id"); ?>");
+
+          console.log(JSON.stringify(cohortSync));
+          if (!this.hasError(this, cohortSync)) {
+            this.saveProgress += saveSize;
+            this.saveMessage = "Cohort sync complete."
+            for (let i = 0; i < this.queries.length; i++) {
+              console.log(JSON.stringify(this.queries[i]));
+              const dataSync = await axios.get("<?php echo $module->getUrl("services/getData.php?action=getData&pid=$project_id&query=");?>" + JSON.stringify(this.queries[i]));
+              console.log(JSON.stringify(dataSync));
+              if (!this.hasError(this, dataSync)) {
+                const resp_data2 = dataSync.data;
+                this.saveProgress += saveSize;
+                if (this.saveProgess === 100) {
+                  this.saveMessage = "Data save complete";
+                } else {
+                  this.saveMessage = resp_data2.message;
+                }
+              }
             }
           }
-        }).catch(function(error) {
-          this.errorMessage +=error.message + '<br>';
+        } catch (error) {
+          this.errorMessage += error.message + '<br>';
           console.log(error);
-        });
+        }
       }
     }
   })
