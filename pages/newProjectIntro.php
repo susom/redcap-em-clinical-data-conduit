@@ -139,7 +139,7 @@ namespace Stanford\Duster;
                         cols="auto"
                     >
                         <v-form
-                            action="<?php echo $module->getUrl("pages/newProject.php", false, true) ?>"
+                            action="<?php echo $module->getUrl("pages/newProject", false, true) ?>"
                             method="post"
                             id="project-form"
                         >
@@ -211,6 +211,13 @@ namespace Stanford\Duster;
             irb_flag: 0 // 0 if checking IRB, -1 if IRB invalid, 1 if IRB valid
         },
         mounted () {
+            // storing $_POST parameters in local browser storage
+            let postObj = {};
+
+            postObj['redcap_csrf_token'] = "<?php echo $module->getCSRFToken(); ?>";
+
+            localStorage.setItem('postObj', JSON.stringify(postObj));
+
             let formData = new FormData();
             formData.append('redcap_csrf_token', "<?php echo $module->getCSRFToken(); ?>");
             formData.append("project_irb_number", "<?php echo htmlentities($_POST["project_irb_number"], ENT_QUOTES) ?>");
