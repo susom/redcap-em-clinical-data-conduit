@@ -29,8 +29,7 @@ export default {
   },
 
   data: () => ({
-    metadata_loaded: true,
-    step: 1
+    metadata_loaded: true
   }),
 };
 </script>

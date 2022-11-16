@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-title>{{greeting}}</v-title>
+    {{collection_windows}}
     <v-stepper
       v-model="step"
       outlined
@@ -49,19 +49,35 @@
 
       <v-stepper-items>
         <!-- Researcher-Provided Info -->
-        <ResearcherProvidedInfoStep v-bind:greeting="greeting"/>
+        <ResearcherProvidedInfoStep
+          :rp_identifiers_prop.sync="rp_identifiers"
+          :rp_dates_prop.sync="rp_dates"
+        />
 
         <!-- Demographics -->
-        <DemographicsStep/>
+        <DemographicsStep
+          :demographics_prop.sync="demographics"
+        />
 
         <!-- Clinical Dates -->
         <ClinicalDatesStep/>
 
         <!-- Data Collection Windows -->
-        <DataCollectionWindowsStep/>
+        <DataCollectionWindowsStep
+          :clinical_dates_prop="clinical_dates"
+          :collection_windows_prop.sync="collection_windows"
+          :labs_prop="labs"
+          :rp_dates_prop="rp_dates"
+          :show_window_form_prop.sync="show_window_form"
+          :vitals_prop="vitals"
+        />
 
         <!-- Review -->
-        <ReviewStep/>
+        <ReviewStep
+          :collection_windows="collection_windows"
+          :demographics="demographics"
+          :rp_dates="rp_dates"
+        />
       </v-stepper-items>
     </v-stepper>
     <v-row>
@@ -118,9 +134,62 @@ export default {
   name: "NewProjectStepper",
   data: function () {
     return {
-      greeting: 'Hello',
-      step: 1,
-      show_window_form: false
+      clinical_dates: [],
+      collection_windows: [],
+      step: 5,
+      show_window_form: false,
+      rp_identifiers: [
+        {
+          label: "MRN",
+          redcap_field_name: "mrn",
+          format: "8-digit number (including leading zeros, e.g., '01234567')"
+        }
+      ],
+      rp_dates: [
+        {
+          id: 0,
+          label: "Study Enrollment Date",
+          redcap_field_name: "enroll_date",
+          format: "date"
+        }
+      ],
+      demographics: {
+        options: [
+          {
+            label:"First Name",
+            duster_field_name:"first_name",
+            redcap_field_name:"first_name"
+          },
+          {
+            label:"Last Name",
+            duster_field_name:"last_name",
+            redcap_field_name:"last_name"
+          },
+          {
+            label:"Sex",
+            duster_field_name:"sex",
+            redcap_field_name:"sex"
+          },
+          {
+            label:"Race",
+            duster_field_name:"race",
+            redcap_field_name:"race"
+          },
+          {
+            label:"Ethnicity",
+            duster_field_name:"ethnicity",
+            redcap_field_name:"ethnicity"
+          },
+          {
+            label:"Birth Date",
+            duster_field_name:"birth_date",
+            redcap_field_name:"birth_date"
+          }
+        ],
+        selected: []
+      },
+      labs: [],
+      vitals: []
     }
   },
   methods: {
