@@ -228,7 +228,7 @@ namespace Stanford\Duster;
             postObj['project_pi_email'] = "<?php echo htmlentities($_POST["project_pi_email"], ENT_QUOTES); ?>";
             postObj['project_pi_alias'] = "<?php echo htmlentities($_POST["project_pi_alias"], ENT_QUOTES); ?>";
             postObj['project_irb_number'] = "<?php echo htmlentities($_POST["project_irb_number"], ENT_QUOTES); ?>";
-            postObj['purpose_other'] = "<?php echo htmlentities($_POST["purpose_other"], ENT_QUOTES); ?>";
+            postObj['purpose_other'] = "<?php echo htmlentities(implode(",", $_POST["purpose_other"]), ENT_QUOTES); ?>";
             postObj['project_note'] = "<?php echo htmlentities($_POST["project_note"], ENT_QUOTES); ?>";
             postObj['projecttype'] = "<?php echo htmlentities($_POST["projecttype"], ENT_QUOTES); ?>";
             postObj['repeatforms_chk'] = "<?php echo htmlentities($_POST["repeatforms_chk"], ENT_QUOTES); ?>";
