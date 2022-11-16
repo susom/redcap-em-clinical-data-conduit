@@ -235,10 +235,10 @@ namespace Stanford\Duster;
             postObj['project_template_radio'] = "<?php echo htmlentities($_POST["project_template_radio"], ENT_QUOTES); ?>";
 
             // store URL for services/callMetadata.php
-            postObj['callMetadataURL'] = "<?php echo $module->getUrl("services/callMetadata.php"); ?>";
+            postObj['metadata_url'] = "<?php echo $module->getUrl("services/callMetadata.php"); ?>";
 
             // store URL for services/createProject.php
-            postObj['createProjectURL'] ="<?php echo $module->getUrl("services/createProject.php") ?>";
+            postObj['create_project_url'] ="<?php echo $module->getUrl("services/createProject.php") ?>";
             localStorage.setItem('postObj', JSON.stringify(postObj));
 
 

@@ -170,34 +170,20 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: "ReviewStep",
   props: {
     'collection_windows': Array,
+    'create_project_url': String,
     'demographics': Object,
-    'rp_dates': Array
+    'project_info': Object,
+    'redcap_csrf_token': String,
+    'rp_dates': Array,
   },
   data: function() {
     return {
-      surveys_enabled: "",
-      repeatforms: "",
-      scheduling: "",
-      randomization: "",
-      app_title: "",
-      purpose: "",
-      project_pi_firstname: "",
-      project_pi_mi: "",
-      project_pi_lastname: "",
-      project_pi_email: "",
-      project_pi_alias: "",
-      project_irb_number: "",
-      purpose_other: "",
-      project_note: "",
-      projecttype: "",
-      repeatforms_chk: "",
-      project_template_radio: "",
-      redcap_csrf_token: "",
-      create_project_url: "",
       review_id_headers: [
         {text: 'Label', value: 'label', sortable: false},
         {text: 'REDCap field name', value: 'redcap_field_name', sortable: false},
@@ -503,23 +489,23 @@ export default {
     createProject() {
 
       let data = {
-        surveys_enabled: this.surveys_enabled,
-        repeatforms: this.repeatforms,
-        scheduling: this.scheduling,
-        randomization: this.randomization,
-        app_title: this.app_title,
-        purpose: this.purpose,
-        project_pi_firstname: this.project_pi_firstname,
-        project_pi_mi: this.project_pi_mi,
-        project_pi_lastname: this.project_pi_lastname,
-        project_pi_email: this.project_pi_email,
-        project_pi_alias: this.project_pi_alias,
-        project_irb_number: this.project_irb_number,
-        purpose_other: this.purpose_other,
-        project_note: this.project_note,
-        projecttype: this.projecttype,
-        repeatforms_chk: this.repeatforms_chk,
-        project_template_radio: this.project_template_radio,
+        surveys_enabled: this.project_info.surveys_enabled,
+        repeatforms: this.project_info.repeatforms,
+        scheduling: this.project_info.scheduling,
+        randomization: this.project_info.randomization,
+        app_title: this.project_info.app_title,
+        purpose: this.project_info.purpose,
+        project_pi_firstname: this.project_info.project_pi_firstname,
+        project_pi_mi: this.project_info.project_pi_mi,
+        project_pi_lastname: this.project_info.project_pi_lastname,
+        project_pi_email: this.project_info.project_pi_email,
+        project_pi_alias: this.project_info.project_pi_alias,
+        project_irb_number: this.project_info.project_irb_number,
+        purpose_other: this.project_info.purpose_other,
+        project_note: this.project_info.project_note,
+        projecttype: this.project_info.projecttype,
+        repeatforms_chk: this.project_info.repeatforms_chk,
+        project_template_radio: this.project_info.project_template_radio,
         config: this.config
       };
       // console.log(JSON.stringify(data, null, 2));
@@ -531,8 +517,8 @@ export default {
 
       // use services/importMetadata.php if project has already been created
       // let axios = require('axios');
-      console.log("pre axios");
-      this.axios.post(this.create_project_url, formData)
+      // console.log("pre axios");
+      axios.post(this.create_project_url, formData)
         .then(function(response) {
           console.log("ajax response");
           console.log(response);
@@ -542,7 +528,7 @@ export default {
               console.log("Found Error");
               self.save_error = response.data;
             } else {
-              // window.location.href = response.data;
+              window.location.href = response.data;
               console.log(response.data);
             }
           })
@@ -603,33 +589,6 @@ export default {
 
       return formName;
     },
-  },
-  mounted() {
-    const postObj = JSON.parse(localStorage.getItem('postObj'));
-    localStorage.removeItem('postObj');
-    this.surveys_enabled = postObj.surveys_enabled;
-    this.repeatforms = postObj.repeatforms;
-    this.scheduling = postObj.scheduling;
-    this.randomization = postObj.randomization;
-    this.app_title = postObj.app_title;
-    this.purpose = postObj.purpose;
-    this.project_pi_firstname = postObj.project_pi_firstname;
-    this.project_pi_mi = postObj.project_pi_mi;
-    this.project_pi_lastname = postObj.project_pi_lastname;
-    this.project_pi_email = postObj.project_pi_email;
-    this.project_pi_alias = postObj.project_pi_alias;
-    this.project_irb_number = postObj.project_irb_number;
-    this.purpose_other = postObj.purpose_other;
-    this.project_note = postObj.project_note;
-    this.projecttype = postObj.projecttype;
-    this.repeatforms_chk = postObj.repeatforms_chk;
-    this.project_template_radio = postObj.project_template_radio;
-    this.redcap_csrf_token = postObj.redcap_csrf_token;
-    this.create_project_url = postObj.createProjectURL;
-
-    console.log(postObj);
-    console.log(this.app_title);
-    console.log(this.redcap_csrf_token);
   }
 }
 </script>

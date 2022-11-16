@@ -1095,6 +1095,7 @@
 </template>
 
 <script>
+
 export default {
   name: "DataCollectionWindowsStep",
   props: {
@@ -1151,9 +1152,8 @@ export default {
       get() {
         return this.show_window_form_prop;
       },
-      set() {
-        console.log(this.show_window_form);
-        this.$emit('update:show_window_form_prop', this.show_window_form);
+      set(newValue) {
+        this.$emit('update:show_window_form_prop', newValue);
       }
     },
     vitals: {
