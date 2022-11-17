@@ -85,7 +85,7 @@
           <!-- Review -->
           <ReviewStep
             :collection_windows="collection_windows"
-            :create_project_url="api_urls.create_project"
+            :create_project_url="urls.create_project"
             :demographics="demographics"
             :project_info="project_info"
             :redcap_csrf_token="redcap_csrf_token"
@@ -98,12 +98,19 @@
           cols="auto"
           v-show="step == 1"
         >
+          <v-form
+            action="urls.new_project_intro"
+            method="post"
+            id="intro-form"
+          >
             <v-btn
               color="secondary"
               type="submit"
             >
               &lt; Back to DUSTER Intro
             </v-btn>
+          </v-form>
+
         </v-col>
         <v-col
           cols="auto"
@@ -149,9 +156,10 @@ export default {
   name: "NewProjectStepper",
   data: function () {
     return {
-      api_urls: {
+      urls: {
         create_project: "",
-        metadata: ""
+        metadata: "",
+        new_project_intro: ""
       },
       project_info: {
         surveys_enabled: "",
@@ -204,8 +212,9 @@ export default {
   mounted() {
     const postObj = JSON.parse(localStorage.getItem('postObj'));
     localStorage.removeItem('postObj');
-    this.api_urls.create_project = postObj.create_project_url;
-    this.api_urls.metadata = postObj.metadata_url;
+    this.urls.create_project = postObj.create_project_url;
+    this.urls.metadata = postObj.metadata_url;
+    this.urls.new_project_intro = postObj.new_project_intro_url;
     this.project_info.surveys_enabled = postObj.surveys_enabled;
     this.project_info.repeatforms = postObj.repeatforms;
     this.project_info.scheduling = postObj.scheduling;
@@ -224,10 +233,35 @@ export default {
     this.project_info.repeatforms_chk = postObj.repeatforms_chk;
     this.project_info.project_template_radio = postObj.project_template_radio;
     this.redcap_csrf_token = postObj.redcap_csrf_token;
-    this.create_project_url = postObj.create_project_url;
-
+/*
+    // append form data
+    const introForm = document.getElementById('intro-form');
+    for (const [key, value] of Object.entries(this.project_info)) {
+      let
+      introForm.appendChild();
+    }
+    let formData = new FormData();
+    formData.append('surveys_enabled',  this.project_info.surveys_enabled);
+    formData.append('repeatforms',  this.project_info.repeatforms);
+    formData.append('scheduling',  this.project_info.scheduling);
+    formData.append('randomization',  this.project_info.randomization);
+    formData.append('app_title',  this.project_info.app_title);
+    formData.append('purpose',  this.project_info.purpose);
+    formData.append('project_pi_firstname',  this.project_info.project_pi_firstname);
+    formData.append('project_pi_mi',  this.project_info.project_pi_mi);
+    formData.append('project_pi_lastname',  this.project_info.project_pi_lastname);
+    formData.append('project_pi_email',  this.project_info.project_pi_email);
+    formData.append('project_pi_alias',  this.project_info.project_pi_alias);
+    formData.append('project_irb_number',  this.project_info.project_irb_number);
+    formData.append('purpose_other',  this.project_info.purpose_other);
+    formData.append('project_note',  this.project_info.project_note);
+    formData.append('projecttype',  this.project_info.projecttype);
+    formData.append('repeatforms_chk',  this.project_info.repeatforms_chk);
+    formData.append('project_template_radio',  this.project_info.project_template_radio);
+    formData.append('redcap_csrf_token', this.redcap_csrf_token);
+*/
     // request metadata from STARR-API
-    axios.get(this.api_urls.metadata).then(response => {
+    axios.get(this.urls.metadata).then(response => {
       console.log(response.data);
 
       // add demographics

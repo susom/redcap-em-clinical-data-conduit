@@ -14,7 +14,7 @@ module.exports = {
     css: {
         extract: false
     },
-
+/*
     devServer: {
         overlay: {
             warnings: false,
@@ -29,6 +29,7 @@ module.exports = {
             },
         },
     },
+ */
 
     publicPath: "" ,
 

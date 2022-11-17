@@ -234,11 +234,15 @@ namespace Stanford\Duster;
             postObj['repeatforms_chk'] = "<?php echo htmlentities($_POST["repeatforms_chk"], ENT_QUOTES); ?>";
             postObj['project_template_radio'] = "<?php echo htmlentities($_POST["project_template_radio"], ENT_QUOTES); ?>";
 
-            // store URL for services/callMetadata.php
-            postObj['metadata_url'] = "<?php echo $module->getUrl("services/callMetadata.php"); ?>";
 
             // store URL for services/createProject.php
             postObj['create_project_url'] ="<?php echo $module->getUrl("services/createProject.php") ?>";
+
+            // store URL for services/callMetadata.php
+            postObj['metadata_url'] = "<?php echo $module->getUrl("services/callMetadata.php"); ?>";
+
+            // store URL for pages/newProjectIntro.php
+            postObj['new_project_intro_url'] ="<?php echo $module->getUrl("pages/newProjectIntro.php") ?>";
             localStorage.setItem('postObj', JSON.stringify(postObj));
 
 
