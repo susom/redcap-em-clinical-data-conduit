@@ -1085,7 +1085,7 @@
       </v-card>
       <v-btn
         color="primary"
-        @click="showWindow()"
+        @click="show_window_form = true, open_window_panel = null"
         v-show="show_window_form === false"
       >
         Add New Data Collection Window
@@ -1655,17 +1655,6 @@ export default {
       console.log(JSON.stringify(preset_choice));
       console.log("setPreset()");
       console.log(JSON.stringify(this.window));
-    },
-    closeWindow() {
-      console.log("closeWindow() called.");
-      console.log("this.show_window_form = " + this.show_window_form);
-      //this.show_window_form = false;
-      console.log("this.show_window_form = " + this.show_window_form);
-      this.open_window_panel = null;
-    },
-    showWindow() {
-      this.show_window_form = true;
-      this.open_window_panel = null;
     }
   }
 }

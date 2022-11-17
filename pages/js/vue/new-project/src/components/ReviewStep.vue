@@ -184,6 +184,7 @@ export default {
   },
   data: function() {
     return {
+      instruments: [],
       review_id_headers: [
         {text: 'Label', value: 'label', sortable: false},
         {text: 'REDCap field name', value: 'redcap_field_name', sortable: false},
@@ -478,11 +479,6 @@ export default {
         config.collection_windows = cwArr;
         return config;
       }
-    },
-    instruments: {
-      get: function() {
-        return Array.from(Array(2 + this.config.collection_windows.length).keys());
-      }
     }
   },
   methods: {
@@ -589,6 +585,11 @@ export default {
 
       return formName;
     },
+  },
+  watch: {
+    config: function() {
+      this.instruments = [];
+    }
   }
 }
 </script>

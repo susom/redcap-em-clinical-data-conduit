@@ -11,7 +11,6 @@
     <v-container
       v-if="metadata_loaded"
     >
-      {{collection_windows}}
       <v-stepper
         v-model="step"
         outlined
