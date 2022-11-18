@@ -37,7 +37,9 @@
             {{window.label}}
           </v-expansion-panel-header>
           <v-expansion-panel-content>
-            <v-card outlined>
+            <v-card
+              elevation="0"
+            >
               <v-row>
                 <v-col>
                   <!-- Display timing -->
@@ -232,6 +234,7 @@
             <v-btn
               v-show="edit_window_index === -1"
               color="primary"
+              class="mt-4"
               @click="editWindow(i)"
             >
               Edit
@@ -239,6 +242,7 @@
             <v-btn
               v-show="edit_window_index === -1"
               color="error"
+              class="mt-4"
               @click="delete_window_dialog = true"
             >
               Delete

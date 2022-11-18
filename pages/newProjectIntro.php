@@ -138,26 +138,12 @@ namespace Stanford\Duster;
                     <v-col
                         cols="auto"
                     >
-                        <v-form
-                            action="<?php echo $module->getUrl("pages/newProject", false, true) ?>"
-                            method="post"
-                            id="project-form"
-                        >
-                            <input type="hidden" name="type" value="module">
-                            <?php
-                            foreach($_POST as $name=>$value) {
-                                $value = is_array($value) ? implode(",", $value) : $value;
-                                echo "<input type=\"hidden\" name=\"" . htmlentities($name, ENT_QUOTES) . "\" value=\"" . htmlentities($value, ENT_QUOTES) . "\">";
-                            }
-                            echo "<input type=\"hidden\" name=\"redcap_csrf_token\"value=\"{$module->getCSRFToken()}\">";
-                            ?>
-                            <v-btn
-                                color="primary"
-                                type="submit"
-                            >
-                                Let's Get Started >
-                            </v-btn>
-                        </v-form>
+                      <v-btn
+                          color="primary"
+                          @click="goToNewProjectDesigner()"
+                      >
+                          Let's Get Started >
+                      </v-btn>
                     </v-col>
                     <v-spacer></v-spacer>
                 </v-row>
@@ -204,63 +190,66 @@ namespace Stanford\Duster;
 <script src="https://cdn.jsdelivr.net/npm/axios@0.27.2/dist/axios.min.js" crossorigin="anonymous"></script>
 
 <script>
-    new Vue({
-        el: '#intro',
-        vuetify: new Vuetify(),
-        data: {
-            irb_flag: 0 // 0 if checking IRB, -1 if IRB invalid, 1 if IRB valid
-        },
-        mounted () {
-          // storing $_POST parameters in local browser storage
-            localStorage.removeItem('postObj');
-            let postObj = {};
-            postObj['redcap_csrf_token'] = "<?php echo $module->getCSRFToken(); ?>";
-            // form data initially entered by user on initial create new project page (/index.php?action=create)
-            postObj['surveys_enabled'] = "<?php echo htmlentities($_POST["surveys_enabled"], ENT_QUOTES); ?>";
-            postObj['repeatforms'] = "<?php echo htmlentities($_POST["repeatforms"], ENT_QUOTES); ?>";
-            postObj['scheduling'] = "<?php echo htmlentities($_POST["scheduling"], ENT_QUOTES); ?>";
-            postObj['randomization'] = "<?php echo htmlentities($_POST["randomization"], ENT_QUOTES); ?>";
-            postObj['app_title'] = "<?php echo htmlentities($_POST["app_title"], ENT_QUOTES); ?>";
-            postObj['purpose'] = "<?php echo htmlentities($_POST["purpose"], ENT_QUOTES); ?>";
-            postObj['project_pi_firstname'] = "<?php echo htmlentities($_POST["project_pi_firstname"], ENT_QUOTES); ?>";
-            postObj['project_pi_mi'] = "<?php echo htmlentities($_POST["project_pi_mi"], ENT_QUOTES); ?>";
-            postObj['project_pi_lastname'] = "<?php echo htmlentities($_POST["project_pi_lastname"], ENT_QUOTES); ?>";
-            postObj['project_pi_email'] = "<?php echo htmlentities($_POST["project_pi_email"], ENT_QUOTES); ?>";
-            postObj['project_pi_alias'] = "<?php echo htmlentities($_POST["project_pi_alias"], ENT_QUOTES); ?>";
-            postObj['project_irb_number'] = "<?php echo htmlentities($_POST["project_irb_number"], ENT_QUOTES); ?>";
-            postObj['purpose_other'] = "<?php echo htmlentities(implode(",", $_POST["purpose_other"]), ENT_QUOTES); ?>";
-            postObj['project_note'] = "<?php echo htmlentities($_POST["project_note"], ENT_QUOTES); ?>";
-            postObj['projecttype'] = "<?php echo htmlentities($_POST["projecttype"], ENT_QUOTES); ?>";
-            postObj['repeatforms_chk'] = "<?php echo htmlentities($_POST["repeatforms_chk"], ENT_QUOTES); ?>";
-            postObj['project_template_radio'] = "<?php echo htmlentities($_POST["project_template_radio"], ENT_QUOTES); ?>";
+  new Vue({
+    el: '#intro',
+    vuetify: new Vuetify(),
+    data: {
+      irb_flag: 0 // 0 if checking IRB, -1 if IRB invalid, 1 if IRB valid
+    },
+    methods: {
+      goToNewProjectDesigner() {
+        window.location = "<?php echo $module->getUrl("pages/js/vue/new-project/dist/index.html") ?>";
+      }
+    },
+    mounted () {
+      // storing parameters in local browser storage
+      localStorage.removeItem('postObj');
+      let postObj = {};
+      postObj['redcap_csrf_token'] = "<?php echo $module->getCSRFToken(); ?>";
+      // form data initially entered by user on initial create new project page (/index.php?action=create)
+      postObj['surveys_enabled'] = "<?php echo htmlentities($_POST["surveys_enabled"], ENT_QUOTES); ?>";
+      postObj['repeatforms'] = "<?php echo htmlentities($_POST["repeatforms"], ENT_QUOTES); ?>";
+      postObj['scheduling'] = "<?php echo htmlentities($_POST["scheduling"], ENT_QUOTES); ?>";
+      postObj['randomization'] = "<?php echo htmlentities($_POST["randomization"], ENT_QUOTES); ?>";
+      postObj['app_title'] = "<?php echo htmlentities($_POST["app_title"], ENT_QUOTES); ?>";
+      postObj['purpose'] = "<?php echo htmlentities($_POST["purpose"], ENT_QUOTES); ?>";
+      postObj['project_pi_firstname'] = "<?php echo htmlentities($_POST["project_pi_firstname"], ENT_QUOTES); ?>";
+      postObj['project_pi_mi'] = "<?php echo htmlentities($_POST["project_pi_mi"], ENT_QUOTES); ?>";
+      postObj['project_pi_lastname'] = "<?php echo htmlentities($_POST["project_pi_lastname"], ENT_QUOTES); ?>";
+      postObj['project_pi_email'] = "<?php echo htmlentities($_POST["project_pi_email"], ENT_QUOTES); ?>";
+      postObj['project_pi_alias'] = "<?php echo htmlentities($_POST["project_pi_alias"], ENT_QUOTES); ?>";
+      postObj['project_irb_number'] = "<?php echo htmlentities($_POST["project_irb_number"], ENT_QUOTES); ?>";
+      postObj['purpose_other'] = "<?php echo htmlentities(implode(",", $_POST["purpose_other"]), ENT_QUOTES); ?>";
+      postObj['project_note'] = "<?php echo htmlentities($_POST["project_note"], ENT_QUOTES); ?>";
+      postObj['projecttype'] = "<?php echo htmlentities($_POST["projecttype"], ENT_QUOTES); ?>";
+      postObj['repeatforms_chk'] = "<?php echo htmlentities($_POST["repeatforms_chk"], ENT_QUOTES); ?>";
+      postObj['project_template_radio'] = "<?php echo htmlentities($_POST["project_template_radio"], ENT_QUOTES); ?>";
 
+      // store URL for services/createProject.php
+      postObj['create_project_url'] ="<?php echo $module->getUrl("services/createProject.php") ?>";
 
-            // store URL for services/createProject.php
-            postObj['create_project_url'] ="<?php echo $module->getUrl("services/createProject.php") ?>";
+      // store URL for services/callMetadata.php
+      postObj['metadata_url'] = "<?php echo $module->getUrl("services/callMetadata.php"); ?>";
 
-            // store URL for services/callMetadata.php
-            postObj['metadata_url'] = "<?php echo $module->getUrl("services/callMetadata.php"); ?>";
+      // store URL for pages/newProjectIntro.php
+      postObj['new_project_intro_url'] ="<?php echo $module->getUrl("pages/newProjectIntro.php") ?>";
+      localStorage.setItem('postObj', JSON.stringify(postObj));
 
-            // store URL for pages/newProjectIntro.php
-            postObj['new_project_intro_url'] ="<?php echo $module->getUrl("pages/newProjectIntro.php") ?>";
-            localStorage.setItem('postObj', JSON.stringify(postObj));
+      let formData = new FormData();
+      formData.append('redcap_csrf_token', "<?php echo $module->getCSRFToken(); ?>");
+      formData.append("project_irb_number", "<?php echo htmlentities($_POST["project_irb_number"], ENT_QUOTES) ?>");
 
+      let self = this;
 
-            let formData = new FormData();
-            formData.append('redcap_csrf_token', "<?php echo $module->getCSRFToken(); ?>");
-            formData.append("project_irb_number", "<?php echo htmlentities($_POST["project_irb_number"], ENT_QUOTES) ?>");
-
-            let self = this;
-
-            axios.post("<?php echo $module->getUrl("services/checkIRB.php"); ?>", formData)
-                .then(function(response) {
-                    self.irb_flag = response.data === 1 ? 1 : -1;
-                })
-                .catch(function(error) {
-                    // TODO
-                });
-        }
-    });
+      axios.post("<?php echo $module->getUrl("services/checkIRB.php"); ?>", formData)
+        .then(function(response) {
+            self.irb_flag = response.data === 1 ? 1 : -1;
+        })
+        .catch(function(error) {
+            // TODO
+        });
+    }
+  });
 
 </script>
 </body>
