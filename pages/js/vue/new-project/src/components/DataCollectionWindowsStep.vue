@@ -37,188 +37,187 @@
             {{window.label}}
           </v-expansion-panel-header>
           <v-expansion-panel-content>
-            <v-card
-              elevation="0"
-            >
-              <v-row>
-                <v-col>
-                  <!-- Display timing -->
-                  <v-card outlined>
-                    <v-card-title>Timing</v-card-title>
+            <v-row>
+              <v-col>
+                <!-- Display timing -->
+                <v-card
+                  outlined
+                  class="mt-4"
+                >
+                  <v-card-title>Timing</v-card-title>
 
-                    <!-- Display timing for nonrepeating data collection windows -->
-                    <v-card-text
-                      v-if="window.type === 'nonrepeating'"
+                  <!-- Display timing for nonrepeating data collection windows -->
+                  <v-card-text
+                    v-if="window.type === 'nonrepeating'"
+                  >
+
+                    <!-- Display starting parameter for nonrepeating data collection windows -->
+                    <p>
+                      Start: {{window.timing.start_type === 'date' ? 'At 00:00:00 on ' : ''}} {{window.timing.start.label}}
+                    </p>
+
+                    <!-- Display ending parameter for nonrepeating data collection windows -->
+                    <p
+                      v-if="window.timing.end_type === 'hours'"
                     >
-
-                      <!-- Display starting parameter for nonrepeating data collection windows -->
-                      <p>
-                        Start: {{window.timing.start_type === 'date' ? 'At 00:00:00 on ' : ''}} {{window.timing.start.label}}
-                      </p>
-
-                      <!-- Display ending parameter for nonrepeating data collection windows -->
-                      <p
-                        v-if="window.timing.end_type === 'hours'"
-                      >
-                        End: {{window.timing.num_hours}} hours after {{window.timing.start.label}}
-                      </p>
-                      <p
-                        v-else-if="window.timing.end_type === 'day'"
-                      >
-                        End: At 23:59:00 on {{window.timing.start.label}}
-                      </p>
-                      <p
-                        v-else-if="window.timing.end_type === 'dttm'"
-                      >
-                        End: {{window.timing.end.label}}
-                      </p>
-                    </v-card-text>
-
-                    <!-- Display timing for finite repeating collection windows -->
-                    <v-card-text
-                      v-else-if="window.type === 'finite_repeating'"
+                      End: {{window.timing.num_hours}} hours after {{window.timing.start.label}}
+                    </p>
+                    <p
+                      v-else-if="window.timing.end_type === 'day'"
                     >
-                      <p>
-                        This data collection window repeats for {{window.timing.num_instances}} consecutive {{window.timing.type === 'hours' ? window.timing.num_hours + '-hour instances.' : 'calendar day instances.'}}<br>
-                        The first instance begins at {{window.timing.start.label}}.<br>
-                        Each instance ends {{window.timing.type === 'hours' ? window.timing.num_hours + ' hours after it begins.' : 'at 23:59:00 on the calendar day it begins.'}}<br>
-                      </p>
-
-                    </v-card-text>
-
-                    <!-- Display timing for calculated repeating collection windows -->
-                    <v-card-text
-                      v-else-if="window.type === 'calculated_repeating'"
+                      End: At 23:59:00 on {{window.timing.start.label}}
+                    </p>
+                    <p
+                      v-else-if="window.timing.end_type === 'dttm'"
                     >
-                      <p>
-                        This data collection window repeats for consecutive {{window.timing.type === 'hours' ? '-hour instances.' : 'calendar day instances.'}}<br>
-                        The first instance begins at {{window.timing.start.label}}.<br>
-                        Each instance ends {{window.timing.type === 'hours' ? window.timing.num_hours + ' hours after it begins.' : 'at 23:59:00 on the calendar day it begins.'}}<br>
-                        The last instance ends at {{window.timing.end.label}}.<br>
-                      </p>
-                    </v-card-text>
-                  </v-card>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col>
-                  <v-card outlined>
-                    <v-card-subtitle>Default Aggregates</v-card-subtitle>
-                    <v-card-text>
-                      <v-chip
-                        v-if="window.aggregate_defaults.min == true"
-                      >
-                        Min
-                      </v-chip>
-                      <v-chip
-                        v-if="window.aggregate_defaults.max == true"
-                      >
-                        Max
-                      </v-chip>
-                      <v-chip
-                        v-if="window.aggregate_defaults.first == true"
-                      >
-                        First
-                      </v-chip>
-                      <v-chip
-                        v-if="window.aggregate_defaults.last == true"
-                      >
-                        Last
-                      </v-chip>
-                      <v-chip
-                        v-if="window.aggregate_defaults.closest_start == true"
-                      >
-                        Closest to {{window.timing.start.label}}
-                      </v-chip>
-                      <v-chip
-                        v-if="window.aggregate_defaults.closest_time == true"
-                      >
-                        Closest to {{window.aggregates.closest_timestamp}}
-                      </v-chip>
-                    </v-card-text>
-                  </v-card>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col>
-                  <v-card outlined>
-                    <v-tabs
-                      background-color="primary"
-                      dark
-                    >
-                      <v-tab>Labs & Vitals</v-tab>
-                      <!--
-                      <v-tab>Outcomes</v-tab>
-                      <v-tab>Scores</v-tab>
-                      -->
+                      End: {{window.timing.end.label}}
+                    </p>
+                  </v-card-text>
 
-                      <v-tab-item
-                      >
+                  <!-- Display timing for finite repeating collection windows -->
+                  <v-card-text
+                    v-else-if="window.type === 'finite_repeating'"
+                  >
+                    <p>
+                      This data collection window repeats for {{window.timing.num_instances}} consecutive {{window.timing.type === 'hours' ? window.timing.num_hours + '-hour instances.' : 'calendar day instances.'}}<br>
+                      The first instance begins at {{window.timing.start.label}}.<br>
+                      Each instance ends {{window.timing.type === 'hours' ? window.timing.num_hours + ' hours after it begins.' : 'at 23:59:00 on the calendar day it begins.'}}<br>
+                    </p>
+
+                  </v-card-text>
+
+                  <!-- Display timing for calculated repeating collection windows -->
+                  <v-card-text
+                    v-else-if="window.type === 'calculated_repeating'"
+                  >
+                    <p>
+                      This data collection window repeats for consecutive {{window.timing.type === 'hours' ? '-hour instances.' : 'calendar day instances.'}}<br>
+                      The first instance begins at {{window.timing.start.label}}.<br>
+                      Each instance ends {{window.timing.type === 'hours' ? window.timing.num_hours + ' hours after it begins.' : 'at 23:59:00 on the calendar day it begins.'}}<br>
+                      The last instance ends at {{window.timing.end.label}}.<br>
+                    </p>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-card outlined>
+                  <v-card-subtitle>Default Aggregates</v-card-subtitle>
+                  <v-card-text>
+                    <v-chip
+                      v-if="window.aggregate_defaults.min == true"
+                    >
+                      Min
+                    </v-chip>
+                    <v-chip
+                      v-if="window.aggregate_defaults.max == true"
+                    >
+                      Max
+                    </v-chip>
+                    <v-chip
+                      v-if="window.aggregate_defaults.first == true"
+                    >
+                      First
+                    </v-chip>
+                    <v-chip
+                      v-if="window.aggregate_defaults.last == true"
+                    >
+                      Last
+                    </v-chip>
+                    <v-chip
+                      v-if="window.aggregate_defaults.closest_start == true"
+                    >
+                      Closest to {{window.timing.start.label}}
+                    </v-chip>
+                    <v-chip
+                      v-if="window.aggregate_defaults.closest_time == true"
+                    >
+                      Closest to {{window.aggregates.closest_timestamp}}
+                    </v-chip>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-card outlined>
+                  <v-tabs
+                    background-color="primary"
+                    dark
+                  >
+                    <v-tab>Labs & Vitals</v-tab>
+                    <!--
+                    <v-tab>Outcomes</v-tab>
+                    <v-tab>Scores</v-tab>
+                    -->
+
+                    <v-tab-item
+                    >
+                      <v-card>
+                        <v-data-table
+                          :headers="lv_headers_viewonly"
+                          :items="window.data.labs_vitals"
+                          :items-per-page="10"
+                          fixed-header
+                          no-data-text="Use search bar above to start adding labs and vitals."
+                        >
+                          <template v-slot:[`item.aggregates`]="{ item }">
+                            <v-chip
+                              v-show="item.aggregates.default == true"
+                            >
+                              Using Default Aggregates
+                            </v-chip>
+                            <v-chip
+                              v-show="item.aggregates.default == false && item.aggregates.min == true"
+                            >
+                              Min
+                            </v-chip>
+                            <v-chip
+                              v-show="item.aggregates.default == false && item.aggregates.max == true"
+                            >
+                              Max
+                            </v-chip>
+                            <v-chip
+                              v-show="item.aggregates.default == false && item.aggregates.first == true"
+                            >
+                              First
+                            </v-chip>
+                            <v-chip
+                              v-show="item.aggregates.default == false && item.aggregates.last == true"
+                            >
+                              Last
+                            </v-chip>
+                            <v-chip
+                              v-show="item.aggregates.default == false && item.aggregates.closest_start == true"
+                            >
+                              Closest to {{window.timing.start.label}}
+                            </v-chip>
+                            <v-chip
+                              v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
+                            >
+                              Closest to {{item.aggregates.closest_timestamp}}
+                            </v-chip>
+                          </template>
+                        </v-data-table>
+                      </v-card>
+                    </v-tab-item>
+                    <!--
+                    <v-tab-item>
                         <v-card>
-                          <v-data-table
-                            :headers="lv_headers_viewonly"
-                            :items="window.data.labs_vitals"
-                            :items-per-page="10"
-                            fixed-header
-                            no-data-text="Use search bar above to start adding labs and vitals."
-                          >
-                            <template v-slot:[`item.aggregates`]="{ item }">
-                              <v-chip
-                                v-show="item.aggregates.default == true"
-                              >
-                                Using Default Aggregates
-                              </v-chip>
-                              <v-chip
-                                v-show="item.aggregates.default == false && item.aggregates.min == true"
-                              >
-                                Min
-                              </v-chip>
-                              <v-chip
-                                v-show="item.aggregates.default == false && item.aggregates.max == true"
-                              >
-                                Max
-                              </v-chip>
-                              <v-chip
-                                v-show="item.aggregates.default == false && item.aggregates.first == true"
-                              >
-                                First
-                              </v-chip>
-                              <v-chip
-                                v-show="item.aggregates.default == false && item.aggregates.last == true"
-                              >
-                                Last
-                              </v-chip>
-                              <v-chip
-                                v-show="item.aggregates.default == false && item.aggregates.closest_start == true"
-                              >
-                                Closest to {{window.timing.start.label}}
-                              </v-chip>
-                              <v-chip
-                                v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
-                              >
-                                Closest to {{item.aggregates.closest_timestamp}}
-                              </v-chip>
-                            </template>
-                          </v-data-table>
+                            <v-card-text>Outcomes</v-card-text>
                         </v-card>
-                      </v-tab-item>
-                      <!--
-                      <v-tab-item>
-                          <v-card>
-                              <v-card-text>Outcomes</v-card-text>
-                          </v-card>
-                      </v-tab-item>
-                      <v-tab-item>
-                          <v-card>
-                              <v-card-text>Scores</v-card-text>
-                          </v-card>
-                      </v-tab-item>
-                      -->
-                    </v-tabs>
-                  </v-card>
-                </v-col>
-              </v-row>
-            </v-card>
+                    </v-tab-item>
+                    <v-tab-item>
+                        <v-card>
+                            <v-card-text>Scores</v-card-text>
+                        </v-card>
+                    </v-tab-item>
+                    -->
+                  </v-tabs>
+                </v-card>
+              </v-col>
+            </v-row>
 
             <v-card-actions
               class="mt-4"
@@ -678,7 +677,6 @@
                         >
                         </v-checkbox>
                       </v-col>
-                      <!--
                       <v-col
                           cols="1"
                       >
@@ -699,7 +697,6 @@
                           >
                           </v-checkbox>
                       </v-col>
-                      -->
                     </v-row>
                     <!--
                     <v-row
@@ -836,7 +833,6 @@
                                   >
                                   </v-checkbox>
                                 </v-col>
-                                <!--
                                 <v-col
                                     cols="2"
                                 >
@@ -857,7 +853,8 @@
                                     >
                                     </v-checkbox>
                                 </v-col>
-                            </v-row>
+                              </v-row>
+                            <!--
                             <v-row
                                 no-gutters
                             >
@@ -909,8 +906,8 @@
                                         </template>
                                     </v-checkbox>
                                 </v-col>
-                                -->
                               </v-row>
+                              -->
                             </v-card>
                             <v-card-actions>
                               <v-spacer></v-spacer>
