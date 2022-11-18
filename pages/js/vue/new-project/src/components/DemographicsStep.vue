@@ -1,5 +1,5 @@
 <template>
-  <v-stepper-content step="2">
+  <v-container>
     <v-card-text
       flat
     >
@@ -28,7 +28,7 @@
         Select/Unselect All
       </v-btn>
     </v-container>
-  </v-stepper-content>
+  </v-container>
 </template>
 
 <script>

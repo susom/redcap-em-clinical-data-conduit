@@ -1,5 +1,5 @@
 <template>
-  <v-stepper-content step="5">
+  <v-container>
     <v-card
       flat
     >
@@ -166,7 +166,7 @@
     >
       Create Project
     </v-btn>
-  </v-stepper-content>
+  </v-container>
 </template>
 
 <script>

@@ -1,8 +1,6 @@
 <template>
   <v-container>
-    <v-stepper-content step="3">
-      <h1>ClinicalDatesStep.vue</h1>
-    </v-stepper-content>
+    <h1>ClinicalDatesStep.vue</h1>
   </v-container>
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-  <v-stepper-content step="4">
+  <v-container>
     <v-card-text>
       <p>
         Clinical data is partly defined by relative windows of time.
@@ -15,7 +15,9 @@
         You may create Data Collection Windows below with the options to choose among preset configurations or to configure from scratch.
       </p>
     </v-card-text>
-    <v-card>
+    <v-card
+      elevation="0"
+    >
       <v-card-subtitle
         v-show="collection_windows.length"
       >
@@ -1091,7 +1093,7 @@
         Add New Data Collection Window
       </v-btn>
     </v-card>
-  </v-stepper-content>
+  </v-container>
 </template>
 
 <script>
@@ -1473,9 +1475,6 @@ export default {
       this.collection_windows.splice(i, 1);
       this.delete_window_dialog = false;
       this.open_window_panel = null;
-      if(this.collection_windows.length < 1) {
-        this.show_window_form = true;
-      }
     },
     editLV(obj) {
       this.edit_lv_index = this.window.data.labs_vitals.indexOf(obj);

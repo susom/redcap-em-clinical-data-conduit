@@ -59,41 +59,53 @@
 
         <v-stepper-items>
           <!-- Researcher-Provided Info -->
-          <ResearcherProvidedInfoStep
-            :rp_identifiers_prop.sync="rp_identifiers"
-            :rp_dates_prop.sync="rp_dates"
-          />
+          <v-stepper-content step="1">
+            <ResearcherProvidedInfoStep
+              :rp_identifiers_prop.sync="rp_identifiers"
+              :rp_dates_prop.sync="rp_dates"
+            />
+          </v-stepper-content>
 
           <!-- Demographics -->
-          <DemographicsStep
-            :demographics_prop.sync="demographics"
-          />
+          <v-stepper-content step="2">
+            <DemographicsStep
+              :demographics_prop.sync="demographics"
+            />
+          </v-stepper-content>
 
           <!-- Clinical Dates -->
-          <ClinicalDatesStep/>
+          <v-stepper-content step="3">
+            <ClinicalDatesStep/>
+          </v-stepper-content>
 
           <!-- Data Collection Windows -->
-          <DataCollectionWindowsStep
-            :clinical_dates_prop="clinical_dates"
-            :collection_windows_prop.sync="collection_windows"
-            :labs_prop="labs"
-            :rp_dates_prop="rp_dates"
-            :show_window_form_prop.sync="show_window_form"
-            :vitals_prop="vitals"
-          />
+          <v-stepper-content step="4">
+            <DataCollectionWindowsStep
+              :clinical_dates_prop="clinical_dates"
+              :collection_windows_prop.sync="collection_windows"
+              :labs_prop="labs"
+              :rp_dates_prop="rp_dates"
+              :show_window_form_prop.sync="show_window_form"
+              :vitals_prop="vitals"
+            />
+          </v-stepper-content>
 
           <!-- Review -->
-          <ReviewStep
-            :collection_windows="collection_windows"
-            :create_project_url="urls.create_project"
-            :demographics="demographics"
-            :project_info="project_info"
-            :redcap_csrf_token="redcap_csrf_token"
-            :rp_dates="rp_dates"
-          />
+          <v-stepper-content step="5">
+            <ReviewStep
+              :collection_windows="collection_windows"
+              :create_project_url="urls.create_project"
+              :demographics="demographics"
+              :project_info="project_info"
+              :redcap_csrf_token="redcap_csrf_token"
+              :rp_dates="rp_dates"
+            />
+          </v-stepper-content>
         </v-stepper-items>
       </v-stepper>
-      <v-row>
+      <v-row
+        class="pt-4"
+      >
         <v-col
           cols="auto"
           v-show="step == 1"

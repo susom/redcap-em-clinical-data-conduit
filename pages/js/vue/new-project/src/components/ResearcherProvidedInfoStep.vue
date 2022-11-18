@@ -1,5 +1,5 @@
 <template>
-  <v-stepper-content step="1">
+  <v-container>
       <v-card-text>
           <p>
             There are identifiers and dates in your study cohort that you will provide for your REDCap project.
@@ -260,7 +260,7 @@
             </v-card>
           </v-dialog>
       </v-card>
-    </v-stepper-content>
+    </v-container>
 </template>
 
 <script>
