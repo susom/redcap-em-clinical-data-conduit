@@ -1,4 +1,5 @@
 # new-project
+Make sure you are in `pages/js/vue/new-project` directory before running any of the CLI commands below.
 
 ## Project setup
 ```
