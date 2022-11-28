@@ -153,6 +153,21 @@
               hide-default-footer
             ></v-data-table>
           </v-card>
+          <v-card
+              outlined
+              class="mb-4"
+          >
+          <v-card-subtitle><h2>Outcomes</h2></v-card-subtitle>
+          <v-data-table
+              :headers="review_cw_headers"
+              :items="cw.data.outcomes"
+              item-key="label"
+              no-data-text="No outcomes have been selected."
+              fixed-header
+              dense
+              hide-default-footer
+          ></v-data-table>
+          </v-card>
         </v-expansion-panel-content>
       </v-expansion-panel>
     </v-expansion-panels>
@@ -256,7 +271,8 @@ export default {
             },
             data: {
               labs: [],
-              vitals: []
+              vitals: [],
+              outcomes: []
             }
           };
 
@@ -471,6 +487,18 @@ export default {
 
           });
 
+          // outcomes
+          let outcomesArr = window.data.outcomes;
+          outcomesArr.forEach((item) => {
+              let rcField = item.duster_field_name + '_' + index;
+              newCW.data.outcomes.push({
+                duster_field_name: item.duster_field_name,
+                redcap_field_name: rcField,
+                label: item.label,
+                format: item.field_type,
+                options: item.options
+              });
+          });
 //                        console.log(newCW);
           cwArr.push(newCW);
         });

@@ -147,8 +147,8 @@
                     dark
                   >
                     <v-tab>Labs & Vitals</v-tab>
-                    <!--
                     <v-tab>Outcomes</v-tab>
+                    <!--
                     <v-tab>Scores</v-tab>
                     -->
 
@@ -202,13 +202,23 @@
                         </v-data-table>
                       </v-card>
                     </v-tab-item>
-                    <!--
+
                     <v-tab-item>
-                        <v-card>
-                            <v-card-text>Outcomes</v-card-text>
-                        </v-card>
+                      <v-card>
+                        <v-card-text>Outcomes</v-card-text>
+                        <v-data-table
+                            :headers="field_headers_viewonly"
+                            :items="window.data.outcomes"
+                            :items-per-page="10"
+                            fixed-header
+                            no-data-text="Use search bar above to start adding outcomes."
+                        >
+                        </v-data-table>
+                      </v-card>
+
                     </v-tab-item>
-                    <v-tab-item>
+                    <!--
+                     <v-tab-item>
                         <v-card>
                             <v-card-text>Scores</v-card-text>
                         </v-card>
@@ -1038,8 +1048,82 @@
                     <v-tab-item
                     >
                       <v-card>
-                        <v-card-text>Outcomes is not currently available.</v-card-text>
+                        <v-autocomplete
+                            v-model="new_field_obj"
+                            :items="outcomes"
+                            color="white"
+                            auto-select-first
+                            hide-no-data
+                            placeholder="Search for outcomes to add..."
+                            prepend-icon="mdi-magnify"
+                            item-text="label"
+                            return-object
+                            @change="addOutcome"
+                        ></v-autocomplete>
+                        <v-dialog
+                            v-model="delete_field_dialog"
+                            persistent
+                            max-width="600px"
+                        >
+                          <v-card>
+                            <v-card-title
+                                class="justify-center"
+                            >
+                              Are you sure you want to delete this outcome?
+                            </v-card-title>
+                            <v-card-actions>
+                              <v-spacer></v-spacer>
+                              <v-btn
+                                  color="error"
+                                  @click="confirmDeleteOutcome()"
+                              >
+                                Yes
+                              </v-btn>
+                              <v-btn
+                                  color="secondary"
+                                  @click="closeDeleteField()"
+                              >
+                                Cancel
+                              </v-btn>
+                              <v-spacer></v-spacer>
+                            </v-card-actions>
+                          </v-card>
+                        </v-dialog>
+
+                        <v-snackbar
+                            v-model="alert_outcomes_success"
+                            color="success"
+                            outlined
+                            timeout=1000
+                        >
+                          {{alert_field_label}} added.
+                        </v-snackbar>
+                        <v-snackbar
+                            v-model="alert_outcomes_error"
+                            color="error"
+                            outlined
+                            timeout=1000
+                        >
+                          {{alert_field_label}} was already added.
+                        </v-snackbar>
+                        <v-data-table
+                            :headers="field_headers"
+                            :items="window.data.outcomes"
+                            :items-per-page="10"
+                            fixed-header
+                            no-data-text="Use search bar above to start adding outcomes."
+                        >
+                          <template v-slot:[`item.actions`]="{ item }">
+                            <v-icon
+                                small
+                                @click="deleteOutcome(item)"
+                            >
+                              mdi-delete
+                            </v-icon>
+                          </template>
+                        </v-data-table>
                       </v-card>
+
                     </v-tab-item>
                     <v-tab-item
                     >
@@ -1106,6 +1190,7 @@ export default {
     'collection_windows_prop': Array,
     'labs_prop': Array,
     'vitals_prop': Array,
+    'outcomes_prop': Array,
     'rp_dates_prop': Array,
     'show_window_form_prop': Boolean
   },
@@ -1139,6 +1224,14 @@ export default {
         vitals_arr = [{header: "Vitals"}].concat(vitals_arr);
         let labs_vitals_arr = labs_arr.concat([{divider: true}]);
         return labs_vitals_arr.concat(vitals_arr);
+      }
+    },
+    outcomes: {
+      get() {
+        let outcomes_arr = this.outcomes_prop;
+        outcomes_arr.sort((a, b) => {return a.label.localeCompare(b.label)});
+        outcomes_arr = [{header: "Outcomes"}].concat(outcomes_arr);
+        return outcomes_arr;
       }
     },
     rp_dates: {
@@ -1179,6 +1272,10 @@ export default {
       alert_lv_error: false,
       alert_lv_label: null,
       delete_lv_dialog: false,
+      alert_outcomes_success: false,
+      alert_outcomes_error:false,
+      alert_field_label: null,
+      delete_field_dialog: false,
       delete_window_dialog: false,
       edit_lv_dialog: false,
       edit_lv_index: null,
@@ -1195,6 +1292,7 @@ export default {
           closest_timestamp: "08:00:00"
         }
       },
+      edit_field_index: null,
       edit_window_index: -1,
       lv_headers: [
         {text: 'Label', value: 'label'},
@@ -1205,10 +1303,24 @@ export default {
         {text: 'Label', value: 'label'},
         {text: 'Aggregates', value: 'aggregates', sortable: false}
       ],
+      field_headers: [
+        {text: 'Label', value: 'label'},
+        {text: 'Actions', value: 'actions', sortable: false}
+      ],
+      field_headers_viewonly :[
+        {text: 'Label', value: 'label'},
+      ],
       new_lv_obj : {
         duster_field_name: null,
         label: null,
         category: null
+      },
+      new_field_obj : {
+        duster_field_name: null,
+        label: null,
+        category: null,
+        field_type: null,
+        options: null
       },
       open_window_panel: null,
       window_stepper: 1,
@@ -1244,7 +1356,8 @@ export default {
             closest_timestamp: "08:00:00"
           },
           data: {
-            labs_vitals: []
+            labs_vitals: [],
+            outcomes: []
           }
         },
         {
@@ -1277,7 +1390,8 @@ export default {
             closest_timestamp: "08:00:00"
           },
           data: {
-            labs_vitals: []
+            labs_vitals: [],
+            outcomes: []
           }
         },
         {
@@ -1306,7 +1420,8 @@ export default {
             closest_timestamp: "08:00:00"
           },
           data: {
-            labs_vitals: []
+            labs_vitals: [],
+            outcomes: []
           }
         },
         {
@@ -1335,7 +1450,8 @@ export default {
             closest_timestamp: "08:00:00"
           },
           data: {
-            labs_vitals: []
+            labs_vitals: [],
+            outcomes: []
           }
         }
       ],
@@ -1362,7 +1478,8 @@ export default {
           closest_timestamp: "08:00:00"
         },
         data: {
-          labs_vitals: []
+          labs_vitals: [],
+          outcomes:[]
         }
       },
       rules: {
@@ -1398,6 +1515,28 @@ export default {
         label: null,
         category: null
       };
+    },
+    addOutcome() {
+        this.alert_field_label = this.new_field_obj.label;
+        if (!this.window.data.outcomes.map(value => value.label).includes(this.new_field_obj.label)) {
+          this.window.data.outcomes.push(JSON.parse(JSON.stringify({
+            duster_field_name: this.new_field_obj.duster_field_name,
+            label: this.new_field_obj.label,
+            category: this.new_field_obj.category,
+            field_type: this.new_field_obj.field_type,
+            options: this.new_field_obj.options
+          })));
+          this.alert_outcomes_success = true;
+        } else {
+          this.alert_outcomes_error = true;
+        }
+        this.new_field_obj = {
+          duster_field_name: null,
+          label: null,
+          category: null,
+          field_type: null,
+          options: null
+        };
     },
     // checks if the default aggregate needs to be set
     // returns true/false
@@ -1438,10 +1577,18 @@ export default {
     closeDeleteLV() {
       this.delete_lv_dialog = false;
     },
+    closeDeleteField() {
+      this.delete_field_dialog = false;
+    },
     confirmDeleteLV() {
       this.window.data.labs_vitals.splice(this.edit_lv_index, 1);
       this.edit_lv_index = null;
       this.closeDeleteLV();
+    },
+    confirmDeleteOutcome() {
+      this.window.data.outcomes.splice(this.edit_field_index, 1);
+      this.edit_field_index = null;
+      this.closeDeleteField();
     },
     confirmEditLV() {
       if (this.edit_lv_index !== null) {
@@ -1471,6 +1618,10 @@ export default {
     deleteLV(obj) {
       this.edit_lv_index = this.window.data.labs_vitals.indexOf(obj);
       this.delete_lv_dialog = true;
+    },
+    deleteOutcome(obj) {
+      this.edit_field_index = this.window.data.outcomes.indexOf(obj);
+      this.delete_field_dialog = true;
     },
     deleteWindow(i) {
       this.collection_windows.splice(i, 1);
@@ -1625,7 +1776,8 @@ export default {
           closest_timestamp: "08:00:00"
         },
         data: {
-          labs_vitals: []
+          labs_vitals: [],
+          outcomes:[]
         }
       }));
       this.alert_default_agg = false;

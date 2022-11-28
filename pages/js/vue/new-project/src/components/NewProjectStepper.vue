@@ -84,6 +84,7 @@
               :clinical_dates_prop="clinical_dates"
               :collection_windows_prop.sync="collection_windows"
               :labs_prop="labs"
+              :outcomes_prop="outcomes"
               :rp_dates_prop="rp_dates"
               :show_window_form_prop.sync="show_window_form"
               :vitals_prop="vitals"
@@ -218,7 +219,8 @@ export default {
         selected: []
       },
       labs: [],
-      vitals: []
+      vitals: [],
+      outcomes: []
     }
   },
   mounted() {
@@ -309,6 +311,19 @@ export default {
             label: vital.label,
             category: vital.category
           }
+        );
+      }
+
+      // add outcomes
+      for(const outcome of response.data.outcomes) {
+        this.outcomes.push(
+            {
+              duster_field_name: outcome.duster_field_name,
+              label: outcome.label,
+              category: outcome.category,
+              field_type: outcome.redcap_field_type,
+              options: outcome.redcap_options
+            }
         );
       }
 
