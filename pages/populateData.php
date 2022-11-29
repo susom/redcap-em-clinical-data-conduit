@@ -322,6 +322,9 @@ $project_id = PROJECT_ID;
               const dataSync = await axios.get("<?php echo $module->getUrl("services/getData.php?action=getData&pid=$project_id&query=");?>" + JSON.stringify(this.queries[i]));
               console.log(JSON.stringify(dataSync));
               this.saveProgress += saveSize;
+              if (this.saveProgress > 99.5) {
+                this.saveProgress = 100;
+              }
               if (!this.hasError(this, dataSync)) {
                 const resp_data2 = dataSync.data;
                 if (this.saveProgess === 100) {
