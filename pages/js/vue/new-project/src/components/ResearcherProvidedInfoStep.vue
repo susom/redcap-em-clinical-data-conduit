@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container pa-0>
       <v-card-text>
           <p>
             There are identifiers and dates in your study cohort that you will provide for your REDCap project.

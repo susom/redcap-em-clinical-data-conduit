@@ -1,15 +1,12 @@
 <template>
-  <v-container>
-    <v-container
-      v-if="!metadata_loaded"
-    >
-      <v-card-title>
-        <h2 class="primary--text">Retrieving DUSTER metadata...</h2>
-      </v-card-title>
-    </v-container>
+  <v-container pa-0>
+    
+    <DusterIntro @success="step = 1"  v-if="step == -1"/>
 
-    <v-container
-      v-if="metadata_loaded"
+    <h2 class="primary--text" v-if="!metadata_loaded && step > -1">Retrieving DUSTER metadata...</h2>
+    
+    <v-container pa-0
+      v-if="metadata_loaded && step > -1"
     >
       <v-stepper
         v-model="step"
@@ -112,7 +109,7 @@
           v-show="step == 1"
         >
           <v-form
-            action="urls.new_project_intro"
+            :action="urls.new_project_intro"
             method="post"
             id="intro-form"
           >
@@ -159,6 +156,7 @@
 <script>
 import axios from 'axios'
 
+import DusterIntro from "@/components/DusterIntro" ;
 import ResearcherProvidedInfoStep from "@/components/ResearcherProvidedInfoStep";
 import DemographicsStep from "@/components/DemographicsStep";
 import ClinicalDatesStep from "@/components/ClinicalDatesStep";
@@ -197,7 +195,7 @@ export default {
       clinical_dates: [],
       collection_windows: [],
       metadata_loaded: false,
-      step: 1,
+      step: -1,
       show_window_form: false,
       rp_identifiers: [
         {
@@ -350,7 +348,8 @@ export default {
     DemographicsStep,
     ClinicalDatesStep,
     DataCollectionWindowsStep,
-    ReviewStep
+    ReviewStep,
+    DusterIntro
   }
 }
 </script>

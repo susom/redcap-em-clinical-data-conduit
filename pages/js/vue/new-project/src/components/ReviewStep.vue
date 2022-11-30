@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container pa-0>
     <v-card
       flat
     >
@@ -181,6 +181,26 @@
     >
       Create Project
     </v-btn>
+    <v-dialog
+      v-model="createProjectDialog"
+      hide-overlay
+      persistent
+      width="350"
+    >
+      <v-card
+        color="primary"
+        dark
+      >
+        <v-card-text class="pt-3">
+          Creating REDCap Project. Please stand by...
+          <v-progress-linear
+            indeterminate
+            color="white"
+            class="mb-2 mt-3"
+          ></v-progress-linear>
+        </v-card-text>
+      </v-card>
+    </v-dialog>    
   </v-container>
 </template>
 
@@ -218,7 +238,8 @@ export default {
         {text: 'Label', value: 'label'},
         {text: 'REDCap field name', value: 'redcap_field_name'}
       ],
-      save_error: null
+      save_error: null,
+      createProjectDialog: false
     }
   },
   computed: {
@@ -511,7 +532,7 @@ export default {
   },
   methods: {
     createProject() {
-
+      this.createProjectDialog = true ;
       let data = {
         surveys_enabled: this.project_info.surveys_enabled,
         repeatforms: this.project_info.repeatforms,
@@ -551,6 +572,7 @@ export default {
               response.data.indexOf('Error message') > -1) {
               console.log("Found Error");
               self.save_error = response.data;
+              self.createProjectDialog = false ;
             } else {
               window.location.href = response.data;
               console.log(response.data);
@@ -558,6 +580,8 @@ export default {
           })
         .catch(function(error) {
           self.save_error=error.message;
+          self.createProjectDialog = false ;
+
           console.log("Catch: " + error);
         });
     },

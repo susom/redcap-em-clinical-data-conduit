@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container pa-0>
     <v-card-text
       flat
     >
