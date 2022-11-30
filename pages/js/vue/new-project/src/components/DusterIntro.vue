@@ -75,7 +75,7 @@
                     cols="6"
                 >
                     <v-img
-                        :src="getImageUrl('images/option_1_data_entry.png')"
+                        :src="getImageUrl('option_1_data_entry.png')"
                     >
                     </v-img>
 
@@ -84,7 +84,7 @@
                     cols="6"
                 >
                     <v-img
-                        :src="getImageUrl('images/option2_data_import.png')"
+                        :src="getImageUrl('option2_data_import.png')"
                     >
                     </v-img>
                 </v-col>
