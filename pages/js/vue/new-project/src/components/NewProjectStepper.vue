@@ -1,7 +1,7 @@
 <template>
   <v-container pa-0>
     
-    <DusterIntro @success="step = 1"  v-if="step == -1"/>
+    <DusterIntro @success="step = 1"  v-show="step == -1"/>
 
     <h2 class="primary--text" v-if="!metadata_loaded && step > -1">Retrieving DUSTER metadata...</h2>
     
@@ -108,19 +108,12 @@
           cols="auto"
           v-show="step == 1"
         >
-          <v-form
-            :action="urls.new_project_intro"
-            method="post"
-            id="intro-form"
-          >
             <v-btn
               color="secondary"
-              type="submit"
+              @click="step = -1"
             >
               &lt; Back to DUSTER Intro
             </v-btn>
-          </v-form>
-
         </v-col>
         <v-col
           cols="auto"
