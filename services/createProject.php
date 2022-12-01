@@ -62,6 +62,8 @@ if(array_key_exists("collection_windows", $config)) {
         $odm->addFields($collection_window["form_name"], null, null, "Labs", $collection_window["data"]["labs"]);
         // add vitals with its own section header
         $odm->addFields($collection_window["form_name"], null, null, "Vitals", $collection_window["data"]["vitals"]);
+        // add outcomes with its own section header
+        $odm->addFields($collection_window["form_name"], null, null, "Outcomes", $collection_window["data"]["outcomes"]);
     }
 }
 

@@ -151,7 +151,7 @@ class RedcapToStarrLinkConfig
                 'query_label' => $query_label);
         }
 
-        #$this->module->emDebug('queries: ' . print_r($queries, true));
+        //$this->module->emDebug('queries: ' . print_r($queries, true));
         return $queries;
     }
 

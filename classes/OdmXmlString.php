@@ -156,11 +156,42 @@ class OdmXmlString {
                     }
 
                     // add field to item def string
-                    $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"text\"{$text_validation}{$section_header}>\n"
-                               . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
-                               . "\t</ItemDef>\n";
-                    // add field to item group string
-                    $item_group_def .= "\t\t<ItemRef ItemOID=\"{$field["redcap_field_name"]}\" Mandatory=\"No\" redcap:Variable=\"{$field["redcap_field_name"]}\"/>\n";
+                    if ($field["format"] === "yesno") {
+                        $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"boolean\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"yesno\">\n"
+                            . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
+                            . "\t\t<CodeListRef CodeListOID=\"{$field["redcap_field_name"]}.choices\"/>\n"
+                            . "\t</ItemDef>\n";
+                        // add field to item group string
+                        $item_group_def .= "\t\t<ItemRef ItemOID=\"{$field["redcap_field_name"]}\" Mandatory=\"No\" redcap:Variable=\"{$field["redcap_field_name"]}\"/>\n";
+
+                        // add field to code list
+                        $code_list_def .= "\t<CodeList OID=\"{$field["redcap_field_name"]}.choices\" Name=\"{$field["redcap_field_name"]}\" DataType=\"boolean\" redcap:Variable=\"{$field["redcap_field_name"]}\">\n"
+                            . "\t\t<CodeListItem CodedValue=\"1\"><Decode><TranslatedText>Yes</TranslatedText></Decode></CodeListItem>\n"
+                            . "\t\t<CodeListItem CodedValue=\"0\"><Decode><TranslatedText>No</TranslatedText></Decode></CodeListItem>\n"
+                            . "\t</CodeList>\n";
+                    } else if ($field["format"] === "checkbox") {
+                        $options = explode("|", $field["options"]);
+                        for ($option_index=1; $option_index <= count($options); $option_index++) {
+                            $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}___{$option_index}\" Name=\"{$field["redcap_field_name"]}___{$option_index}\" DataType=\"boolean\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"checkbox\" {$section_header}>\n"
+                                . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
+                                . "\t\t<CodeListRef CodeListOID=\"{$field["redcap_field_name"]}___{$option_index}.choices\"/>\n"
+                                . "\t</ItemDef>\n";
+                            // add field to item group string
+                            $item_group_def .= "\t\t<ItemRef ItemOID=\"{$field["redcap_field_name"]}___{$option_index}\" Mandatory=\"No\" redcap:Variable=\"{$field["redcap_field_name"]}\"/>\n";
+
+                            // add field to code list
+                            $code_list_def .= "\t<CodeList OID=\"{$field["redcap_field_name"]}___{$option_index}.choices\" Name=\"{$field["redcap_field_name"]}___{$option_index}\" DataType=\"boolean\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:CheckboxChoices=\"{$field["options"]}\">\n"
+                                . "\t\t<CodeListItem CodedValue=\"1\"><Decode><TranslatedText>Checked</TranslatedText></Decode></CodeListItem>\n"
+                                . "\t\t<CodeListItem CodedValue=\"0\"><Decode><TranslatedText>Unchecked</TranslatedText></Decode></CodeListItem>\n"
+                                . "\t</CodeList>\n";
+                        }
+                    } else {
+                        $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"text\"{$text_validation}{$section_header}>\n"
+                            . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
+                            . "\t</ItemDef>\n";
+                        // add field to item group string
+                        $item_group_def .= "\t\t<ItemRef ItemOID=\"{$field["redcap_field_name"]}\" Mandatory=\"No\" redcap:Variable=\"{$field["redcap_field_name"]}\"/>\n";
+                    }
                     $section_header = "";
                 }
                 // closing tag to item group string

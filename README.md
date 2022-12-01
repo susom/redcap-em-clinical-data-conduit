@@ -165,6 +165,9 @@ This is because REDCap projects using the DUSTER EM have their DUSTER configurat
 #### Response Specifications
 TODO
 
+## New Project Creation UI
+The 'New Project Creation UI' is a Vue 2 Application with its own README.md in `pages/js/vue/new-project`.
+
 ## Psalm Taint Analysis
 You may refer to [Psalm's official documention](https://psalm.dev/docs/running_psalm/installation/) for more details, including PHP version requirements and Composer.
 

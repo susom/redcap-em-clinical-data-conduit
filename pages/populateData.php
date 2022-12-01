@@ -314,16 +314,19 @@ $project_id = PROJECT_ID;
           const cohortSync = await axios.get("<?php echo $module->getUrl("services/getData.php?action=syncCohort&pid=$project_id"); ?>");
 
           console.log(JSON.stringify(cohortSync));
+          this.saveProgress += saveSize;
           if (!this.hasError(this, cohortSync)) {
-            this.saveProgress += saveSize;
             this.saveMessage = "Cohort sync complete."
             for (let i = 0; i < this.queries.length; i++) {
               console.log(JSON.stringify(this.queries[i]));
               const dataSync = await axios.get("<?php echo $module->getUrl("services/getData.php?action=getData&pid=$project_id&query=");?>" + JSON.stringify(this.queries[i]));
               console.log(JSON.stringify(dataSync));
+              this.saveProgress += saveSize;
+              if (this.saveProgress > 99.5) {
+                this.saveProgress = 100;
+              }
               if (!this.hasError(this, dataSync)) {
                 const resp_data2 = dataSync.data;
-                this.saveProgress += saveSize;
                 if (this.saveProgess === 100) {
                   this.saveMessage = "Data save complete";
                 } else {
