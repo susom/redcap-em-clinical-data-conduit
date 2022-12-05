@@ -115,7 +115,7 @@
                 <v-spacer></v-spacer>
             </v-row>
         </v-card>
-        
+
 
         <!-- IRB is invalid -->
         <v-card
@@ -144,7 +144,7 @@
                 </v-col>
             </v-row>
         </v-card>
-    </v-container>   
+    </v-container>
 </template>
 
 <script>
@@ -153,17 +153,17 @@ import axios from 'axios'
 export default {
   name: "DataCollectionWindowsStep",
   data: function() {
-    return {        
+    return {
         redcapProjectConfig: {},
         irb_flag: 0 // 0 if checking IRB, -1 if IRB invalid, 1 if IRB valid
     }
   },
   mounted() {
-    
-    this.redcapProjectConfig = JSON.parse(localStorage.getItem("postObj")) ; 
-    
+
+    this.redcapProjectConfig = JSON.parse(localStorage.getItem("postObj")) ;
+
     var _self = this ;
-    
+
     let formData = new FormData();
     formData.append('redcap_csrf_token', this.redcapProjectConfig.redcap_csrf_token);
     formData.append("project_irb_number", this.redcapProjectConfig.project_irb_number);
@@ -174,8 +174,8 @@ export default {
     })
     .catch(function(error) {
         this.irb_flag = -1 ;
-        console.log(error) ;        
-    });       
+        console.log(error) ;
+    });
   },
   methods: {
     getImageUrl(imgName) {
