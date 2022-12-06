@@ -157,7 +157,7 @@ class OdmXmlString {
 
                     // add field to item def string
                     if ($field["format"] === "yesno") {
-                        $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"boolean\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"yesno\">\n"
+                        $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"boolean\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"yesno\"{$section_header}>\n"
                             . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
                             . "\t\t<CodeListRef CodeListOID=\"{$field["redcap_field_name"]}.choices\"/>\n"
                             . "\t</ItemDef>\n";
@@ -172,7 +172,7 @@ class OdmXmlString {
                     } else if ($field["format"] === "checkbox") {
                         $options = explode("|", $field["options"]);
                         for ($option_index=1; $option_index <= count($options); $option_index++) {
-                            $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}___{$option_index}\" Name=\"{$field["redcap_field_name"]}___{$option_index}\" DataType=\"boolean\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"checkbox\" {$section_header}>\n"
+                            $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}___{$option_index}\" Name=\"{$field["redcap_field_name"]}___{$option_index}\" DataType=\"boolean\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"checkbox\"{$section_header}>\n"
                                 . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
                                 . "\t\t<CodeListRef CodeListOID=\"{$field["redcap_field_name"]}___{$option_index}.choices\"/>\n"
                                 . "\t</ItemDef>\n";
