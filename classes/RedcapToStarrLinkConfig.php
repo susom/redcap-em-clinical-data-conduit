@@ -133,22 +133,31 @@ class RedcapToStarrLinkConfig
             $label_result = $this->module->query(
                 "select `form_menu_description` from redcap_metadata where `form_name`=? and `project_id`=? and `form_menu_description` is not null",
                 [$form_name, $this->project_id]);
-
             $query_label = $label_result->fetch_assoc()['form_menu_description'];
             // if this is a collection window query
             if (strpos($query_names[$index],'_cw') !== false) {
+                // get the substring after "cw" in the query name
+                $query_cw = substr($query_names[$index],
+                    strpos($query_names[$index],"_cw")  +3);
                 // get the substring after the "_" after "cw" in the query name
-                $query_substr = substr($query_names[$index],
-                    strpos($query_names[$index],"_",strpos($query_names[$index], '_cw') + 3)  +1);
+                $pos = strpos($query_cw,"_");
+
+                $query_substr = substr($query_cw, $pos+1);
                 $query_substr = ((strcmp($query_substr,'flow') ===0) ? 'Vitals' : $query_substr);
                 $query_substr = ((strpos($query_substr,'timing') !== false) ? 'Timing' : $query_substr);
 
-                $query_label = $query_label . " " . ucfirst($query_substr);
+                $query_label = $form_name . ": " . $query_substr;
                 #$this->module->emDebug("query_name =".$query_names[$index]." form_name = $form_name;
                 # label=$query_substr; form_label=$query_label");
             }
-            $queries[] = array('query_name' => $query_names[$index],
-                'query_label' => $query_label);
+            if (!key_exists($form_name, $queries)) {
+                $queries[$form_name] = [];
+            }
+            $queries[$form_name][] = array(
+                'query_name' => $query_names[$index],
+                'query_label' => $query_label
+            );
+
         }
 
         //$this->module->emDebug('queries: ' . print_r($queries, true));

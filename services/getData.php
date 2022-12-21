@@ -15,7 +15,12 @@ if ($action === 'cohort') {
     $duster_config = new DusterConfigClass($pid, $module);
     $return_obj = $duster_config->getDusterRequestObject();
     $return_obj["queries"]= $rtoslink_config->getQueries();
-    //$module->emDebug("cohort resp: " . print_r($return_obj, true));
+    $num_queries = 0;
+    foreach( $return_obj["queries"] as $query) {
+        $num_queries += count($query);
+    }
+    $return_obj['num_queries'] = $num_queries;
+    $module->emDebug("cohort resp: " . print_r($return_obj, true));
     $return_obj['status'] = 200;
 } else if ($action === 'syncCohort') {
     $resp = $rtoslink_config->syncCohort();

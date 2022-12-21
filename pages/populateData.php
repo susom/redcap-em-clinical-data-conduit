@@ -145,7 +145,7 @@ $project_id = PROJECT_ID;
 
             <v-btn
                 color="primary"
-                @click="getAndSaveData()"
+                @click="syncCohort()"
             >
               Submit
             </v-btn>
@@ -160,14 +160,34 @@ $project_id = PROJECT_ID;
 
           <v-stepper-content step="4">
             <div class="text-center" v-if="dusterData.rp_data">
-              <p>{{saveMessage}}</p>
-              <v-progress-linear
-                  v-model="saveProgress"
-                  height="25"
-                  stream
+              <p><strong>
+                  <span v-html="saveMessage"></span>
+                </strong>
+              </p>
+              <v-row>
+                <v-col md="3"><b>Cohort:</b>
+                  <span v-if="cohortMessage"><br>{{ cohortMessage }}</span>
+                </v-col>
+                <v-col md="8">
+                  <v-progress-linear
+                    v-model="cohortProgress"
+                    height="25"
+                    stream
+                  >
+                  <strong>{{ cohortProgress }}%</strong>
+                  </v-progress-linear>
+                </v-col>
+              </v-row>
+
+              <rc-progress-bar v-for="(value, key) in dusterData.queries"
+                               v-on:update:progress="updateProgress"
+                               :queries="value"
+                               :name="key"
+                               :cohort-progress="cohortProgress"
+                               :rtos-link-url="rtos_link_url"
               >
-                <strong>{{ Math.ceil(saveProgress) }}%</strong>
-              </v-progress-linear>
+              </rc-progress-bar>
+
             </div>
             <v-dialog
                 v-model="confirmCancel"
@@ -206,7 +226,7 @@ $project_id = PROJECT_ID;
             </v-dialog>
 
             <v-divider></v-divider>
-            <v-btn v-if="saveProgress < 100"
+            <v-btn v-if="totalProgress < 100"
                 color="error"
                 outlined
                 @click="confirmCancel = true">
@@ -222,9 +242,6 @@ $project_id = PROJECT_ID;
         </v-stepper-items>
       </v-stepper>
     </div>
-
-    <!--pre v-if="dusterData">{{ dusterData }}</pre-->
-
   </v-app>
 </div>
 <!-- Required scripts CDN -->
@@ -247,15 +264,21 @@ $project_id = PROJECT_ID;
       record_base_url : '<?php echo $record_base_url?>',
       designer_url: '<?php echo $designer_url?>',
       data_exports_url: '<?php echo $data_exports_url?>',
+      rtos_link_url: '<?php echo $module->getUrl("services/getData.php?action=getData&pid=$project_id&query=")?>',
       step: 0,
       errorMessage: "",
       isLoading: false,
       isLoaded: false,
       confirmCancel: false,
       dusterData: null,
-      saveProgress:0,
-      saveMessage:"Saving ...",
-      queries:null
+      cohortProgress:0,
+      totalProgress:0,
+      saveSize:0,
+      saveMessage: "Saving ...",
+      cohortMessage:"Cohort sync in progress.",
+      queries:null,
+      //queryProgress: {},
+      num_queries:0
     },
     methods: {
       goToUrl(url) {
@@ -280,6 +303,16 @@ $project_id = PROJECT_ID;
         }
         return false;
       },
+      toTitleCase(str) {
+        str = str.replaceAll('_',' ');
+        return str.replace(
+          /\w\S*/g,
+          function(txt) {
+            return txt.charAt(0).toUpperCase() +
+              txt.substr(1).toLowerCase();
+          }
+        );
+      },
       loadCohort() {
         this.isLoading = true;
         let self = this;
@@ -290,10 +323,13 @@ $project_id = PROJECT_ID;
           if (!self.hasError(self, response)) {
             self.dusterData = response.data;
             self.queries = response.data.queries;
+            console.log(JSON.stringify(self.queries));
+            self.num_queries = response.data.num_queries
+            self.saveSize = 100/(response.data.num_queries + 1);
             if (self.dusterData.missing_fields && self.dusterData.missing_fields.length > 0) {
               self.step = 1;
             } else
-            if (!this.dusterData.rp_data ||
+            if (!self.dusterData.rp_data ||
               (self.dusterData.missing_data != null && self.dusterData.missing_data.length > 0)) {
               self.step = 2;
             } else {
@@ -305,39 +341,35 @@ $project_id = PROJECT_ID;
           console.log(error);
         });
       },
-      async getAndSaveData() {
+      async syncCohort() {
         this.step = 4;
-        const numSaves = this.queries.length + 1;
-        const saveSize = 100 / numSaves;
-        let self = this;
         try {
           const cohortSync = await axios.get("<?php echo $module->getUrl("services/getData.php?action=syncCohort&pid=$project_id"); ?>");
 
           console.log(JSON.stringify(cohortSync));
-          this.saveProgress += saveSize;
+          this.cohortProgress = 100;
+          this.totalProgress = this.saveSize;
           if (!this.hasError(this, cohortSync)) {
-            this.saveMessage = "Cohort sync complete."
-            for (let i = 0; i < this.queries.length; i++) {
-              console.log(JSON.stringify(this.queries[i]));
-              const dataSync = await axios.get("<?php echo $module->getUrl("services/getData.php?action=getData&pid=$project_id&query=");?>" + JSON.stringify(this.queries[i]));
-              console.log(JSON.stringify(dataSync));
-              this.saveProgress += saveSize;
-              if (this.saveProgress > 99.5) {
-                this.saveProgress = 100;
-              }
-              if (!this.hasError(this, dataSync)) {
-                const resp_data2 = dataSync.data;
-                if (this.saveProgess === 100) {
-                  this.saveMessage = "Data save complete";
-                } else {
-                  this.saveMessage = resp_data2.message;
-                }
-              }
-            }
+            this.saveMessage = "Cohort sync complete.";
+            this.cohortMessage = "Complete";
           }
         } catch (error) {
           this.errorMessage += error.message + '<br>';
           console.log(error);
+        }
+      },
+      updateProgress(dataSync) {
+        this.totalProgress += this.saveSize;
+        if (this.totalProgress > 99.5) {
+          this.totalProgress = 100;
+        }
+        if (!this.hasError(this, dataSync)) {
+          const resp_data = dataSync.data;
+          if (this.totalProgress === 100) {
+            this.saveMessage = "Data save complete";
+          } else {
+            this.saveMessage = this.toTitleCase(resp_data.message);
+          }
         }
       }
     }
