@@ -297,7 +297,7 @@ $project_id = PROJECT_ID;
             data_str.indexOf('syntax error') !== -1 ||
             data_str.indexOf('fatal error') !== -1) {
             self.errorMessage += data_str;
-            console.log("error data_str:" + data_str);
+            //console.log("error:" + data_str);
             return true;
           }
         }
@@ -323,7 +323,6 @@ $project_id = PROJECT_ID;
           if (!self.hasError(self, response)) {
             self.dusterData = response.data;
             self.queries = response.data.queries;
-            console.log(JSON.stringify(self.queries));
             self.num_queries = response.data.num_queries
             self.saveSize = 100/(response.data.num_queries + 1);
             if (self.dusterData.missing_fields && self.dusterData.missing_fields.length > 0) {
@@ -338,15 +337,13 @@ $project_id = PROJECT_ID;
           }
         }).catch(function(error) {
           this.errorMessage +=error.message + '<br>';
-          console.log(error);
+          //console.log(error);
         });
       },
       async syncCohort() {
         this.step = 4;
         try {
           const cohortSync = await axios.get("<?php echo $module->getUrl("services/getData.php?action=syncCohort&pid=$project_id"); ?>");
-
-          console.log(JSON.stringify(cohortSync));
           this.cohortProgress = 100;
           this.totalProgress = this.saveSize;
           if (!this.hasError(this, cohortSync)) {
@@ -355,7 +352,7 @@ $project_id = PROJECT_ID;
           }
         } catch (error) {
           this.errorMessage += error.message + '<br>';
-          console.log(error);
+          //console.log(error);
         }
       },
       updateProgress(dataSync) {

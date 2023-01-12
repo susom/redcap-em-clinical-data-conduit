@@ -20,7 +20,6 @@ if ($action === 'cohort') {
         $num_queries += count($query);
     }
     $return_obj['num_queries'] = $num_queries;
-    $module->emDebug("cohort resp: " . print_r($return_obj, true));
     $return_obj['status'] = 200;
 } else if ($action === 'syncCohort') {
     $resp = $rtoslink_config->syncCohort();

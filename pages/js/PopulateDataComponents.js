@@ -122,34 +122,34 @@ var RcProgressBar = Vue.component('rc-progress-bar', {
       }
     }
   },
-    computed: {
-      numQueries: function() {
-        return this.queries.length;
-      },
-      progress: function() {
-        var pctComplete=100* this.numComplete / this.numQueries;
-        if (isNaN(pctComplete))
-          pctComplete = 0;
-        else if (pctComplete > 99.5) {
-          pctComplete = 100;
-        }
-        return pctComplete;
-      },
-      label: function() {
-        return this.toTitleCase(this.name);
-      }
+  computed: {
+    numQueries: function() {
+      return this.queries.length;
     },
+    progress: function() {
+      var pctComplete=100* this.numComplete / this.numQueries;
+      if (isNaN(pctComplete))
+        pctComplete = 0;
+      else if (pctComplete > 99.5) {
+        pctComplete = 100;
+      }
+      return pctComplete;
+      },
+    label: function() {
+      return this.toTitleCase(this.name);
+    }
+  },
   methods: {
-      toTitleCase(str) {
-        str = str.replaceAll('_',' ');
-        return str.replace(
-          /\w\S*/g,
-          function(txt) {
-            return txt.charAt(0).toUpperCase() +
-              txt.substr(1).toLowerCase();
+    toTitleCase(str) {
+      str = str.replaceAll('_',' ');
+      return str.replace(
+        /\w\S*/g,
+        function(txt) {
+           return txt.charAt(0).toUpperCase() +
+             txt.substr(1).toLowerCase();
           }
         );
-      },
+    },
     queryLabel(str) {
       var index = str.indexOf(":");
       str = str.substr(index + 1);
@@ -157,13 +157,10 @@ var RcProgressBar = Vue.component('rc-progress-bar', {
     },
     async getAndSaveData() {
       for (var i = 0; i < this.queries.length; i++) {
-        console.log(this.queries[i].query_name + ":" + JSON.stringify(this.queries[i]));
-        console.log("progress :" + this.progress);
         this.updateMessage = this.queryLabel(this.queries[i].query_label) + " in progress.";
         const dataSync = await axios.get(this.rtosLinkUrl
           + JSON.stringify(this.queries[i]));
         this.numComplete++;
-        console.log(JSON.stringify(dataSync));
         this.$emit('update:progress', dataSync)
         if (this.numComplete === this.queries.length) {
           this.updateMessage = "Complete";
@@ -171,20 +168,19 @@ var RcProgressBar = Vue.component('rc-progress-bar', {
       }
     }
   },
-    template:
-      '<v-row> ' +
-      '     <v-col md="3"><b> {{ label }}: </b>' +
-      '<span v-if="updateMessage"><br>{{ updateMessage }}</span>'+
-      '     </v-col>' +
-      '     <v-col md="8">' +
-      '         <v-progress-linear' +
-      '             v-model="progress"' +
-      '             height="25"' +
-      '             stream' +
-      '             >' +
-      '           <strong>{{ Math.ceil(progress) }}%</strong>' +
-      '         </v-progress-linear>' +
-  '     </v-col>' +
-      '</v-row>'
-
+  template:
+    '<v-row> ' +
+    '     <v-col md="3"><b> {{ label }}: </b>' +
+    '         <span v-if="updateMessage"><br>{{ updateMessage }}</span>'+
+    '     </v-col>' +
+    '     <v-col md="8">' +
+    '         <v-progress-linear' +
+    '             v-model="progress"' +
+    '             height="25"' +
+    '             stream' +
+    '          >' +
+    '             <strong>{{ Math.ceil(progress) }}%</strong>' +
+    '         </v-progress-linear>' +
+    '     </v-col>' +
+    '</v-row>'
 })
