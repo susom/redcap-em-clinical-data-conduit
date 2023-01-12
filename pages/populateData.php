@@ -368,20 +368,6 @@ $project_id = PROJECT_ID;
             this.saveMessage = this.toTitleCase(resp_data.message);
           }
         }
-      },
-      updateProgress(dataSync) {
-        this.totalProgress += this.saveSize;
-        if (this.totalProgress > 99.5) {
-          this.totalProgress = 100;
-        }
-        if (!this.hasError(this, dataSync)) {
-          const resp_data = dataSync.data;
-          if (this.totalProgress === 100) {
-            this.saveMessage = "Data save complete";
-          } else {
-            this.saveMessage = this.toTitleCase(resp_data.message);
-          }
-        }
       }
     }
   })
