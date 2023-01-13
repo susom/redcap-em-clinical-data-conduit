@@ -102,125 +102,85 @@ var MissingFieldsTable = Vue.component('missing-fields-table', {
     '      </v-data-table></div>'
 })
 
-var SavedDataTable = Vue.component('saved-data-table', {
+var RcProgressBar = Vue.component('rc-progress-bar', {
     props:{
-      recordBaseUrl:String,
-      rpData: Array,
-      savedData: Object
+      queries: Array,
+      rtosLinkUrl: String,
+      name: String,
+      cohortProgress: Number
     },
-  methods: {
-    getTableHeaders: function (saved_col) {
-      let dataObj;
-      if (this.rpData != null && this.rpData[0] != null) {
-        dataObj = this.rpData[0];
-        let colHeaders = [
-          {"text": "redcap_record_id", "value": "redcap_record_id"},
-          {"text": "mrn", "value": "mrn"}];
-        dataObj.dates.forEach(function (dateObj) {
-          colHeaders.push(
-            {
-              "text": dateObj.redcap_field_name,
-              "value": dateObj.redcap_field_name
-            });
-        });
-        if (saved_col) {
-          colHeaders.push(
-            {"text": "Saved Fields", "value": "saved_data"}
-          );
-        }
-        return colHeaders;
+  data() {
+      return {
+        numComplete:0,
+        updateMessage: null
       }
-    },
-    getTableRows: function (data, saved_col) {
-      recordBaseUrl = this.recordBaseUrl;
-      savedData = this.savedData.data;
-      return data
-        .map(function (data) {
-          let row = {};
-          row['redcap_record_id'] = '<a href="' + recordBaseUrl + '&arm=1&id=' +
-            data.redcap_record_id + '">' + data.redcap_record_id + '</a>';
-          row['mrn'] = data.mrn;
-          data.dates.forEach(function (dateObj) {
-            row[dateObj.redcap_field_name] = dateObj.value;
-          });
-          if (saved_col) {
-            row['saved_data'] = savedData
-              .filter(function (saved) {
-                return data.redcap_record_id == saved.redcap_record_id;
-              })
-              .map(function (saved) {
-                return Object.keys(saved)
-                  .filter(function (key) {
-                    return saved[key] != null && saved[key].length > 0;
-                  }).join(", ")
-              });
-            return row;
-          }
-        });
+  },
+  watch: {
+    cohortProgress: function() {
+      if (this.cohortProgress === 100) {
+        this.getAndSaveData();
+      }
     }
   },
-    computed: {
-      noDataHeaders: function () {
-        return this.getTableHeaders(false);
+  computed: {
+    numQueries: function() {
+      return this.queries.length;
+    },
+    progress: function() {
+      var pctComplete=100* this.numComplete / this.numQueries;
+      if (isNaN(pctComplete))
+        pctComplete = 0;
+      else if (pctComplete > 99.5) {
+        pctComplete = 100;
+      }
+      return pctComplete;
       },
-      tableHeaders: function () {
-        return this.getTableHeaders(true);
-      },
-      noDataRows: function () {
-        if (this.savedData && this.savedData.ids && Object.values(this.savedData.ids).length > 0) {
-          ids = Object.values(this.savedData.ids);
-          filteredData = this.rpData
-            .filter(function (data) {
-              return (ids.indexOf(data.redcap_record_id) == -1)
-            });
-          return this.getTableRows(filteredData, false);
-        } else {
-          return null;
-        }
-      },
-      tableRows: function () {
-        if (this.savedData != null && this.savedData.ids && Object.values(this.savedData.ids).length > 0) {
-          ids = Object.values(this.savedData.ids);
-          filteredData = this.rpData
-            .filter(function (data) {
-              return (ids.indexOf(data.redcap_record_id) > -1)
-            });
-          return this.getTableRows(filteredData, true);
-        } else {
-          return null;
+    label: function() {
+      return this.toTitleCase(this.name);
+    }
+  },
+  methods: {
+    toTitleCase(str) {
+      str = str.replaceAll('_',' ');
+      return str.replace(
+        /\w\S*/g,
+        function(txt) {
+           return txt.charAt(0).toUpperCase() +
+             txt.substr(1).toLowerCase();
+          }
+        );
+    },
+    queryLabel(str) {
+      var index = str.indexOf(":");
+      str = str.substr(index + 1);
+      return this.toTitleCase(str.trim());
+    },
+    async getAndSaveData() {
+      for (var i = 0; i < this.queries.length; i++) {
+        this.updateMessage = this.queryLabel(this.queries[i].query_label) + " in progress.";
+        const dataSync = await axios.get(this.rtosLinkUrl
+          + JSON.stringify(this.queries[i]));
+        this.numComplete++;
+        this.$emit('update:progress', dataSync)
+        if (this.numComplete === this.queries.length) {
+          this.updateMessage = "Complete";
         }
       }
-    },
-    template: '     <div> <h3>Data Saved</h3>' +
-      '    <div v-if="noDataRows && noDataRows.length > 0">' +
-      '      <v-alert  type="warning">' +
-      '        These records were not updated' +
-      '      </v-alert>' +
-      '      <v-data-table' +
-      '          :headers="tableHeaders"' +
-      '          :items="noDataRows"' +
-      '          fixed-header' +
-      '          dense' +
-      '          hide-default-footer>' +
-      '      <template v-slot:item.redcap_record_id="{ item }">' +
-      '          <span v-html="item.redcap_record_id"></span>' +
-      '        </template>' +
-      '      </v-data-table></div>' +
-      '       <div v-if="tableRows">' +
-      '      <v-alert type="info">' +
-      '        These records have been updated.' +
-      '      </v-alert>' +
-      '      <v-data-table' +
-      '          :headers="tableHeaders"' +
-      '          :items="tableRows"' +
-      '          fixed-header' +
-      '          dense' +
-      '          hide-default-footer>' +
-      '      <template v-slot:item.redcap_record_id="{ item }">' +
-      '          <span v-html="item.redcap_record_id"></span>' +
-      '        </template>' +
-      '      </v-data-table></div>' +
-      //'     <pre>No Data Rows : {{noDataRows}}</pre>' +
-      //'     <pre>Table Rows : {{tableRows}}</pre>' +
-      '</div>'
-  })
+    }
+  },
+  template:
+    '<v-row> ' +
+    '     <v-col md="3"><b> {{ label }}: </b>' +
+    '         <span v-if="updateMessage"><br>{{ updateMessage }}</span>'+
+    '     </v-col>' +
+    '     <v-col md="8">' +
+    '         <v-progress-linear' +
+    '             v-model="progress"' +
+    '             height="25"' +
+    '             stream' +
+    '          >' +
+    '             <strong>{{ Math.ceil(progress) }}%</strong>' +
+    '         </v-progress-linear>' +
+    '     </v-col>' +
+    '</v-row>'
+})
