@@ -232,9 +232,10 @@ $result = curl_exec($ch);
 curl_close($ch);
 
 $module->emDebug('Setting up REDCap to STARR Link');
-if ($result['success'] && $result['rcToStarrLinkConfig']) {
-    $em_config = json_decode($result, true);
-    $module->emDebug('em_config: '. $em_config);
+$em_config = json_decode($result, true);
+$module->emDebug('em_config: '. $em_config);
+
+if ($em_config['success'] && !empty($em_config['rcToStarrLinkConfig'])) {
     $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module);
     $rctostarr_config->enableRedcapToStarrLink();
     $rctostarr_config->configureRedcapToStarrLink($em_config);

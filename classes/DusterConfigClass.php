@@ -53,7 +53,7 @@ class DusterConfigClass
      * @return Json encoded string
      */
     public function getDusterRequestObject() {
-        if ($this->duster_config == null) {
+        if (empty($this->duster_config)) {
             $this->loadConfig();
         }
         $rp_data['redcap_project_id'] = intval($this->project_id);
@@ -61,11 +61,11 @@ class DusterConfigClass
 
         if (empty($rp_data['missing_fields'])) {
             // add rp_identifiers to request fields
-            foreach ($$this->duster_config['rp_info']['rp_identifiers'] as $identifier) {
+            foreach ($this->duster_config['rp_info']['rp_identifiers'] as $identifier) {
                 $rp_fields[] = $identifier['redcap_field_name'];
             }
             // add rp_dates to request fields
-            foreach ($$this->duster_config['rp_info']['rp_dates'] as $rp_dates) {
+            foreach ($this->duster_config['rp_info']['rp_dates'] as $rp_dates) {
                 $rp_fields[] = $rp_dates['redcap_field_name'];
             }
             $this->module->emDebug('$request_fields: ' . print_r($rp_fields, true));
