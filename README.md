@@ -22,9 +22,6 @@ insert time-series data into repeating forms if what you want is a dump of the r
 Another difference (initially at least) is that R2SL supports longitudinal as well as classic project design, whereas DUSTER is (initially) limited to classic projects.
 We plan to eventually support longitudinal projects.
 
-### Directory structure
-mockup/ contains HTML and some art assets for an initial prototype of the user interface
-
 ## User Instructions
 To use DUSTER, click on "+ New Project". On this page, enter a title, choose "Research" as the purpose, enter a valid IRB,
 then select "Create project using DUSTER" from the "Project creation option" radio button group
@@ -106,10 +103,29 @@ This section describes the purpose and specification of each service.
 ***IMPORTANT- As DUSTER's development progresses, specification requirements are subject to change.***
 
 ### Metadata Web Service
-TODO
+This endpoint retrieves DUSTER metadata in STARR-API.
+#### Request Specifications
+- URL pathname: `/duster/api/v1/metadata`
+- Request method: GET
+- Authorization: Bearer (using 'ddp' token via Vertx Token Lookup EM)
+- Content-Type: application/json
+- No GET parameters required
 
 ### Config Web Service
-TODO
+This endpoint is used to save and retrieve the configuration for a DUSTER project.
+
+#### Request Specifications
+- URL pathname: `/duster/api/v1/getData`
+- Request method: POST
+- Authorization: Bearer (using 'ddp' token via Vertx Token Lookup EM)
+- Content-Type: application/json
+- POST parameters
+  - `redcap_project_id` (integer)
+    - The REDCap project ID (i.e., REDCap pid)
+  - `config` (JSON-formatted string)
+    - The DUSTER configuration for the REDCap project
+  - `redcap_server_name` (string)
+    - The name of the REDCap server where the REDCap project resides
 
 ### Data Web Service
 This endpoint retrieves STARR data and performs any required post-processing before sending the results back to the DUSTER EM (at the project level).
@@ -161,9 +177,6 @@ This is because REDCap projects using the DUSTER EM have their DUSTER configurat
     ]
 }
 ```
-
-#### Response Specifications
-TODO
 
 ## New Project Creation UI
 The 'New Project Creation UI' is a Vue 2 Application with its own README.md in `pages/js/vue/new-project`.

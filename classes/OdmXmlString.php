@@ -7,7 +7,7 @@ use RCView;
 
 /**
  * Class OdmXmlString
- *
+ * Used to construct a string in ODM-XML format as a parameter for creating a REDCap project via REDCap API
  */
 class OdmXmlString {
     private $project_title;
@@ -18,8 +18,13 @@ class OdmXmlString {
     private $forms;
     private $fields;
 
-    // TODO purpose_other - what happens if only a single value was chosen at the beginning of creating a new project?
-    //                      one possibility - still require the parameter to be an array, just with a single element
+  /**
+   * constructor
+   * @param string $project_title
+   * @param string $purpose
+   * @param string $purpose_other
+   * @param string $project_note
+   */
     public function __construct(string $project_title, string $purpose, string $purpose_other = "", string $project_note = "") {
         $this->project_title = $project_title;
         $this->purpose = $purpose;
@@ -30,7 +35,6 @@ class OdmXmlString {
         $this->fields = array();
     }
 
-    // TODO repeatable
     /** adds an instrument form to the project
      * @param $label
      * @param $form_name
@@ -54,8 +58,6 @@ class OdmXmlString {
      * @param $fields_arr
      * @return void
      */
-    // TODO repeatable
-    // TODO date and datetime REDCap fields
     public function addFields($form_name, $item_group_name = null, $item_group_label = null, $section_header = "", $fields_arr) {
         if(array_key_exists($form_name, $this->forms)) {
             // only add fields that don't already exist in the project
@@ -91,8 +93,10 @@ class OdmXmlString {
         }
     }
 
-    // TODO should always return a valid odm xml string or generate an error (or empty string?)
-    // concatenate the pieces into a completed string
+  /**
+   * concatenates and returns the completed string in ODM-XML format
+   * @return string
+   */
     public function getOdmXmlString() {
         $odm_str = ODM::getOdmOpeningTag($this->project_title)
                  . "<Study OID=\"Project." . ODM::getStudyOID($this->project_title) . "\">\n"
@@ -111,8 +115,6 @@ class OdmXmlString {
                  . "\t<redcap:ProjectNotes>{$this->project_note}</redcap:ProjectNotes>\n"
                  . "</GlobalVariables>\n"
                  . "<MetaDataVersion OID=\"" . ODM::getMetadataVersionOID($this->project_title) . "\" Name=\"" . RCView::escape($this->project_title) . "\" redcap:RecordIdField=\"record_id\">\n";
-
-        // TODO repeatable forms
 
         // forms and fields
         // foreach form in forms
@@ -144,7 +146,6 @@ class OdmXmlString {
                 // add item group to item group string
                 $item_group_def .= "\t<ItemGroupDef OID=\"{$form["form_name"]}.{$item_group["name"]}\" Name=\"{$item_group["label"]}\" Repeating=\"No\">\n";
                 // foreach field in item group
-                // TODO date and datetime REDCap fields
                 $section_header = $item_group["section_header"] !== "" ? " redcap:SectionHeader=\"{$item_group["section_header"]}\"" : $item_group["section_header"];
                 foreach($item_group["items"] as $field) {
                     // text validation type for dates and datetimes
