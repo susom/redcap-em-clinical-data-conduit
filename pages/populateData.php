@@ -35,7 +35,7 @@ $project_id = PROJECT_ID;
         <v-alert type="error"><span v-html="errorMessage"></span></v-alert>
       </div>
 
-    <div v-if="!isLoading && !isLoaded">
+    <div v-if="isProduction && !isLoading && !isLoaded">
       <p>Click the button below to begin.</p>
       <v-btn  color="primary" max-width=200 @click="loadCohort">Begin</v-btn>
     </div>
@@ -267,6 +267,7 @@ $project_id = PROJECT_ID;
       rtos_link_url: '<?php echo $module->getUrl("services/getData.php?action=getData&pid=$project_id&query=")?>',
       step: 0,
       errorMessage: "",
+      isProduction: false,
       isLoading: false,
       isLoaded: false,
       confirmCancel: false,
@@ -279,6 +280,24 @@ $project_id = PROJECT_ID;
       queries:null,
       //queryProgress: {},
       num_queries:0
+    },
+    beforeMount: function() {
+      // check that project is in production mode before getting data
+        axios.get("<?php echo $module->getUrl("services/getData.php?action=projectStatus&pid=$project_id"); ?>").then
+        (response => {
+          if (!this.hasError(this, response)) {
+            console.log("response: " + JSON.stringify(response));
+            if (response.data.production_mode ===1) {
+              this.isProduction= true;
+            } else {
+              this.errorMessage = "Please move this Redcap project to production mode before getting data."
+            }
+          }
+        }).catch(function(error) {
+          this.errorMessage +=error.message + '<br>';
+          //console.log(error);
+        });
+        this.isProduction= false;
     },
     methods: {
       goToUrl(url) {
@@ -364,6 +383,7 @@ $project_id = PROJECT_ID;
           const resp_data = dataSync.data;
           if (this.totalProgress === 100) {
             this.saveMessage = "Data save complete";
+            axios.get("<?php echo $module->getUrl("services/getData.php?action=complete&pid=$project_id"); ?>");
           } else {
             this.saveMessage = this.toTitleCase(resp_data.message);
           }
