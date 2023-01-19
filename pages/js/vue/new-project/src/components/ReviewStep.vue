@@ -200,7 +200,7 @@
           ></v-progress-linear>
         </v-card-text>
       </v-card>
-    </v-dialog>    
+    </v-dialog>
   </v-container>
 </template>
 
@@ -565,24 +565,24 @@ export default {
       // console.log("pre axios");
       axios.post(this.create_project_url, formData)
         .then(function(response) {
-          console.log("ajax response");
-          console.log(response);
+          // console.log("ajax response");
+          // console.log(response);
             // console.log("Response data: " + response.data);
             if (response.data.indexOf('Uncaught Error') > -1 ||
               response.data.indexOf('Error message') > -1) {
-              console.log("Found Error");
+              // console.log("Found Error");
               self.save_error = response.data;
               self.createProjectDialog = false ;
             } else {
               window.location.href = response.data;
-              console.log(response.data);
+              // console.log(response.data);
             }
           })
         .catch(function(error) {
           self.save_error=error.message;
           self.createProjectDialog = false ;
 
-          console.log("Catch: " + error);
+         // console.log("Catch: " + error);
         });
     },
     getFormName(label, cwArr) {
@@ -617,7 +617,6 @@ export default {
 
       // ensure formName doesn't begin with a number and formName cannot be blank
       if(/^\d$/.test(formName.substring(0, 1)) || formName == '') {
-        // console.log("MD5");
         let md5 = require('md5');
         formName = md5(formName).replaceAll(/[0-9]/g, '').substring(0, 4) + formName;
       }

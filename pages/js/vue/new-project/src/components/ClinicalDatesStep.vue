@@ -17,21 +17,6 @@
 
 <script>
 export default {
-  name: "DataCollectionWindowsStep"
-}
-</script>
-
-<style scoped>
-
-</style>
-
-
-<template>
-
-</template>
-
-<script>
-export default {
   name: "ClinicalDatesStep.vue"
 }
 </script>
