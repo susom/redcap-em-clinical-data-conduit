@@ -396,6 +396,9 @@ export default {
     // checks if the entered REDCap Field already exists
     checkRCFieldName(field) {
       // check field is valid input
+      if (/^[0-9]/.test(field)) {
+        return 'CANNOT begin with a number.';
+      }
       if (!/^[a-z0-9_]+$/.test(field)) {
         return 'ONLY lowercase letters, numbers, and underscores.';
       }
