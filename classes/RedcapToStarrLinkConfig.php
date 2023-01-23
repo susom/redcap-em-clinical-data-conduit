@@ -2,6 +2,8 @@
 
 namespace Stanford\Duster;
 
+use Exception;
+
 class RedcapToStarrLinkConfig
 {
     private $project_id, $module;
@@ -61,8 +63,13 @@ class RedcapToStarrLinkConfig
         $url = APP_PATH_WEBROOT_FULL .
             'api/?type=module&prefix=redcap_to_starr_link&page=src%2FRedcapProjectToStarrLink&NOAUTH' .
             '&action=' . $action . // should be either data or records
-            '&pid=' . $this->project_id .
-            '&user=' . $this->module->getUser()->getUserName();
+            '&pid=' . $this->project_id;
+        try {
+          $url .= '&user=' . $this->module->getUser()->getUserName();
+        } catch(Exception $e) {
+          $this->module->emError($e);
+          return 0;
+        }
         if ($query) {
             $url = $url . '&query='.$query;
         }
