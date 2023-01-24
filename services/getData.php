@@ -13,14 +13,12 @@ $rtoslink_config = new RedcapToStarrLinkConfig($pid, $module);
 $return_obj = array();
 
 if ($action === 'projectStatus') {
-    $module->emDebug('check projectStatus');
     $result = $module->query(
         "select `status` from redcap_projects where `project_id`=?",
         [$pid]);
     if ($result->num_rows > 0) {
         $return_obj['status'] = 200;
         $return_obj['production_mode'] = json_decode($result->fetch_assoc()['status'], true);
-        $module->emDebug('check projectStatus return_obj ' . print_r($return_obj, true));
     } else {
         $return_obj['status'] = 400;
         $return_obj['message'] = 'Unable to verify project status';
