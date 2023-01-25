@@ -171,8 +171,9 @@ $project_info_sql_result = $module->query(
     $project_id // project_id
   ]
 );
+$module->emDebug($project_info_sql_result);
 if($project_info_sql_result->num_rows !== 1) {
-
+  // TODO error handle failed to add project info correctly
 }
 
 $data_arr['redcap_server_name'] = SERVER_NAME;
