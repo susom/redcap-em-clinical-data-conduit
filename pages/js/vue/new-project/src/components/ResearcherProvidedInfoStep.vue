@@ -48,24 +48,41 @@
             <template v-slot:[`item.format`]="{ item }">
               <span>{{item.format}} [{{item.format=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM:SS'}}]</span>
             </template>
-            <template
-              v-slot:[`item.actions`]="{ item }"
-            >
-              <v-icon
-                v-show="item.id > 0"
-                small
-                class="mr-2"
-                @click="editRPDate(item.id)"
-              >
-                mdi-pencil
-              </v-icon>
-              <v-icon
-                v-show="item.id > 0"
-                small
-                @click="delete_date_index = item.id, delete_date_dialog = true"
-              >
-                mdi-delete
-              </v-icon>
+            <template v-slot:[`item.actions`]="{ item, index }">
+              <v-tooltip bottom>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-icon
+                    v-show="index > 0"
+                    v-bind="attrs"
+                    v-on="on"
+                    small
+                    class="mr-2"
+                    @click="editRPDate(index)"
+                  >
+                    mdi-pencil
+                  </v-icon>
+                </template>
+                <span>
+                  Edit '{{item.label}}'
+                </span>
+              </v-tooltip>
+
+              <v-tooltip bottom>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-icon
+                    v-show="index > 0"
+                    v-bind="attrs"
+                    v-on="on"
+                    small
+                    @click="delete_date_index = index, delete_date_dialog = true"
+                  >
+                    mdi-delete
+                  </v-icon>
+                </template>
+                <span>
+                  Delete '{{item.label}}'
+                </span>
+              </v-tooltip>
             </template>
           </v-data-table>
 
@@ -304,7 +321,6 @@ export default {
       delete_date_index: null,
       delete_date_dialog: false,
       new_date: {
-        id: null,
         label: null,
         redcap_field_name: null,
         format: null
@@ -322,25 +338,21 @@ export default {
   methods: {
     saveDateForm() {
       this.$refs.date_form.validate();
-      this.new_date.id = this.rp_dates.length;
       this.rp_dates.push(this.new_date);
       this.resetDateForm();
     },
     resetDateForm() {
       this.new_date_dialog = false;
       this.new_date = {
-        id: null,
         label: null,
         redcap_field_name: null,
         format: null
       };
       this.$refs.date_form.resetValidation();
     },
-    editRPDate(id) {
-      // console.log(id);
-      // console.log(this.rp_dates.length);
-      this.edit_date_index = this.rp_dates.findIndex((element) => element.id === id);
-      this.edit_date = JSON.parse(JSON.stringify(this.rp_dates[this.edit_date_index]));
+    editRPDate(i) {
+      this.edit_date_index = i;
+      this.edit_date = JSON.parse(JSON.stringify(this.rp_dates[i]));
       this.edit_date_dialog = true;
     },
     saveEditRPDate() {
@@ -352,7 +364,6 @@ export default {
       this.edit_date_dialog = false;
       this.edit_date_index = null;
       this.edit_date = {
-        id: null,
         label: null,
         redcap_field_name: null,
         format: null
@@ -385,6 +396,9 @@ export default {
     // checks if the entered REDCap Field already exists
     checkRCFieldName(field) {
       // check field is valid input
+      if (/^[0-9]/.test(field)) {
+        return 'CANNOT begin with a number.';
+      }
       if (!/^[a-z0-9_]+$/.test(field)) {
         return 'ONLY lowercase letters, numbers, and underscores.';
       }
@@ -401,7 +415,7 @@ export default {
       if (!/^[a-z0-9_]+$/.test(field)) {
         return 'ONLY letters, numbers, and underscores.';
       }
-      let fields_arr = this.rp_dates.map(value => value.redcap_field);
+      let fields_arr = this.rp_dates.map(value => value.redcap_field_name);
       // TODO this needs to check all REDCap field names, not just what's in dates
       if (fields_arr.includes(field) && field !== this.rp_dates[this.edit_date_index].redcap_field_name) {
         return 'Enter another field name. This field name is already taken.';

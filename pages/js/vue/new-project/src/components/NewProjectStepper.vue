@@ -1,10 +1,10 @@
 <template>
   <v-container pa-0>
-    
+
     <DusterIntro @success="step = 1"  v-show="step == -1"/>
 
     <h2 class="primary--text" v-if="!metadata_loaded && step > -1">Retrieving DUSTER metadata...</h2>
-    
+
     <v-container pa-0
       v-if="metadata_loaded && step > -1"
     >
@@ -199,7 +199,6 @@ export default {
       ],
       rp_dates: [
         {
-          id: 0,
           label: "Study Enrollment Date",
           redcap_field_name: "enroll_date",
           format: "date"
@@ -267,7 +266,7 @@ export default {
 */
     // request metadata from STARR-API
     axios.get(this.urls.metadata).then(response => {
-      console.log(response.data);
+      // console.log(response.data);
 
       // add demographics
       for(const demographic of response.data.demographics) {
