@@ -49,6 +49,7 @@ namespace Stanford\Duster;
   postObj['new_project_intro_url'] ="<?php echo $module->getUrl("pages/newProjectIntro.php") ?>";
   localStorage.setItem('postObj', JSON.stringify(postObj));
 
+  // redirect to 'new-project' Vue app for creating a new project
   window.location = "<?php echo $module->getUrl("pages/js/vue/new-project/dist/index.html") ?>";
 
 </Script>
