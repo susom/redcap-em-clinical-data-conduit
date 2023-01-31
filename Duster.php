@@ -28,7 +28,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
           echo $some;
   }}*/
 
-  // public function redcap_every_page_top($project_id) {
   /**
    * Hook to show DUSTER as an option in the 'New Project' page
    * Only shows DUSTER option if:
@@ -36,25 +35,28 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    *  2) purpose selected on 'New Project' page is 'Research'
    * @return void
    */
-  public function redcap_every_page_top() {
+  public function redcap_every_page_top($project_id) {
     // $this->emDebug(" Page is " . PAGE . " action is " . $_GET['action']);
-
-    // add DUSTER option to REDCap's Create New Project page if user is allowlisted
-    if (strpos(PAGE, "index.php") !== false && $_GET['action'] === 'create') {
-      // check user is allowed to use DUSTER
-      $allowlist = $this->getSystemSetting('sunet')[0];
-      $sunet = $this->getUser()->getUsername();
-      $allow_duster = in_array($sunet, $allowlist);
-      if ($allow_duster === true) {
+    if ($this->isUserAllowed() === true
+      && $project_id === null
+      && strpos(PAGE, "index.php") !== false
+      && $_GET['action'] === 'create') {
         // $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
         $some = "<script> let dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
         echo $some;
         $script = <<<EOD
                 <script>
                     $(document).ready(function() {
+                        const dusterLabel = "Create project using DUSTER";
+                        const dusterDesc = "DUSTER is a self-service clinical dataset designer/import tool for research studies utilizing STARR data. For more information, visit https://med.stanford.edu/duster/tech.html.";
                         let div = "<div id='duster_option' style='text-indent: -1.5em; margin-left: 1.5em; display: none;'><input name='project_template_radio' id='project_template_duster' type='radio'>" ;
-                        div += "<label style='text-indent:3px;margin-top:4px;margin-bottom:0;cursor:pointer;' for='project_template_duster'>Create project using DUSTER</label>" ;
+                        div += "<label style='text-indent:3px;margin-top:4px;margin-bottom:0;cursor:pointer;' for='project_template_duster'>" + dusterLabel + "</label>" ;
+                        div += "<a href=\"javascript:;\" class=\"help\" onclick=\"simpleDialog('" + dusterDesc + "','" + dusterLabel + "');\">?</a>";
                         div += "</div>" ;
+                        div += "<div tabindex=\"-1\" role=\"dialog\" class=\"simpleDialog ui-dialog-content ui-widget-content\">";
+                        div += dusterDesc;
+                        div += "</div>";
+
                         $("#project_template_radio0").closest('td').append(div) ;
 
                         // show DUSTER radio button option if purpose is research
@@ -80,22 +82,22 @@ class Duster extends \ExternalModules\AbstractExternalModule {
                 </script>
                 EOD;
         echo $script;
-      }
     }
   }
 
   /**
-   * Hook to prevent DUSTER links to appear unless user is in Allowlist
-   * @param $project_id
-   * @param $link
-   * @return array|null
+   * check user is allowed to use DUSTER based on DUSTER's allowlist
+   * @return bool
    */
-  public function redcap_module_link_check_display($project_id, $link) {
-    // check user is allowed to use DUSTER
+  private function isUserAllowed(): bool {
     $allowlist = $this->getSystemSetting('sunet')[0];
-    $sunet = $this->getUser()->getUsername();
-    $allow_duster = in_array($sunet, $allowlist);
-    return $allow_duster === true ? $link : null;
+    try {
+      $sunet = $this->getUser()->getUsername();
+      return in_array($sunet, $allowlist);
+    } catch(Exception $e) {
+      $this->emError($e);
+    }
+    return false;
   }
 
   /**

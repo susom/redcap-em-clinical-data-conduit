@@ -114,13 +114,13 @@ $fields = array(
 
 $ch = curl_init();
 $api_url = APP_PATH_WEBROOT_FULL . "api/";
-//$api_url= "http://localhost:80/redcap/api/";
+// $api_url= "http://localhost:80/redcap/api/";
 
 $module->emDebug("API URL is " . $api_url . "\n");
 curl_setopt($ch, CURLOPT_URL, $api_url);
 curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields, '', '&'));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // Set to TRUE for production use TODO ??
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
 curl_setopt($ch, CURLOPT_VERBOSE, 0);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 curl_setopt($ch, CURLOPT_AUTOREFERER, true);
@@ -133,35 +133,47 @@ $module->emDebug($project_token);
 //echo $output;
 curl_close($ch);
 
-
 // use the user's token for the newly created project to identify the pid
 $project_id = $module->getUserProjectFromToken($project_token);
 $module->emDebug($project_id);
 
 // add project info via SQL
 // since not all project info could be added via the REDCap create project call with ODM XML due to API limitations
-// TODO consider using createQuery() instead
-$sql = "
-        UPDATE redcap_projects
-            SET
-                purpose = '{$data['purpose']}',
-                purpose_other = " .  checkNull($data['purpose_other']) . ",
-		        project_pi_firstname = " . ((!isset($data['project_pi_firstname']) || $data['project_pi_firstname'] == "") ? "NULL" : "'".db_escape($data['project_pi_firstname'])."'") . ",
-                project_pi_mi = " . ((!isset($data['project_pi_mi']) || $data['project_pi_mi'] == "") ? "NULL" : "'".db_escape($data['project_pi_mi'])."'") . ",
-                project_pi_lastname = " . ((!isset($data['project_pi_lastname']) || $data['project_pi_lastname'] == "") ? "NULL" : "'".db_escape($data['project_pi_lastname'])."'") . ",
-                project_pi_email = " . ((!isset($data['project_pi_email']) || $data['project_pi_email'] == "") ? "NULL" : "'".db_escape($data['project_pi_email'])."'") . ",
-                project_pi_alias = " . ((!isset($data['project_pi_alias']) || $data['project_pi_alias'] == "") ? "NULL" : "'".db_escape($data['project_pi_alias'])."'") . ",
-                project_pi_username = " . ((!isset($data['project_pi_username']) || $data['project_pi_username'] == "") ? "NULL" : "'".db_escape($data['project_pi_username'])."'") . ",
-                project_irb_number = " . ((!isset($data['project_irb_number']) || $data['project_irb_number'] == "") ? "NULL" : "'".db_escape($data['project_irb_number'])."'") . ",
-		        project_grant_number = " . ((!isset($data['project_grant_number']) || $data['project_grant_number'] == "") ? "NULL" : "'".db_escape($data['project_grant_number'])."'") . ",
-                project_note= " . checkNull(trim($data['project_note'])) . "
-        WHERE project_id = {$project_id}
-        ";
-$q = db_query($sql);
-// TODO consider revising error handling here when using createQuery() above
-if (!$q) {
-  print db_error();
-  queryFail($sql);
+$project_info_sql_result = $module->query(
+  '
+    UPDATE redcap_projects
+      SET
+        purpose = ?,
+        purpose_other = ?,
+        project_pi_firstname = ?,
+        project_pi_mi = ?,
+        project_pi_lastname = ?,
+        project_pi_email = ?,
+        project_pi_alias = ?,
+        project_pi_username = ?,
+        project_irb_number = ?,
+        project_grant_number = ?,
+        project_note = ?
+    WHERE project_id = ?
+  ',
+  [
+    $data['purpose'], // purpose
+    trim($data['purpose_other']), // purpose_other
+    !isset($data['project_pi_firstname']) || $data['project_pi_firstname'] == "" ? NULL : db_escape($data['project_pi_firstname']), // project_pi_firstname
+    !isset($data['project_pi_mi']) || $data['project_pi_mi'] == "" ? NULL : db_escape($data['project_pi_mi']), // project_pi_mi
+    !isset($data['project_pi_lastname']) || $data['project_pi_lastname'] == "" ? NULL : db_escape($data['project_pi_lastname']), // project_pi_lastname
+    !isset($data['project_pi_email']) || $data['project_pi_email'] == "" ? NULL : db_escape($data['project_pi_email']), // project_pi_email
+    !isset($data['project_pi_alias']) || $data['project_pi_alias'] == "" ? NULL : db_escape($data['project_pi_alias']), // project_pi_alias
+    !isset($data['project_pi_username']) || $data['project_pi_username'] == "" ? NULL : db_escape($data['project_pi_username']), // project_pi_username
+    !isset($data['project_irb_number']) || $data['project_irb_number'] == "" ? NULL : db_escape($data['project_irb_number']), // project_irb_number
+    !isset($data['project_grant_number']) || $data['project_grant_number'] == "" ? NULL : db_escape($data['project_grant_number']), // project_grant_number
+    trim($data['project_note']), // project_note
+    $project_id // project_id
+  ]
+);
+$module->emDebug($project_info_sql_result);
+if($project_info_sql_result->num_rows !== 1) {
+  // TODO error handle failed to add project info correctly
 }
 
 $data_arr['redcap_server_name'] = SERVER_NAME;
@@ -213,7 +225,6 @@ $config_data = json_encode(array(
   'config' => $data['config'],
   'linkinfo' => $data_arr
 ));
-// $config_data = htmlentities($config_data, ENT_QUOTES);
 
 // Create a new cURL resource
 $ch = curl_init($config_url);
@@ -235,7 +246,8 @@ curl_close($ch);
 $module->emDebug('Setting up REDCap to STARR Link');
 
 $em_config = json_decode($result, true);
-$module->emDebug('em_config: '. $em_config);
+// $module->emDebug('em_config: '. $em_config);
+$module->emDebug('em_config: '. $result);
 
 if ($em_config['success'] && !empty($em_config['rcToStarrLinkConfig'])) {
     $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module);
