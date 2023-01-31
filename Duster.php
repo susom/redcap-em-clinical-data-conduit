@@ -49,15 +49,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
                     $(document).ready(function() {
                         const dusterLabel = "Create project using DUSTER";
                         const dusterDesc = "DUSTER is a self-service clinical dataset designer/import tool for research studies utilizing STARR data. For more information, visit https://med.stanford.edu/duster/tech.html.";
-                        /*
-                        const dusterDesc1 =
-                            "DUSTER is a self-service clinical dataset designer/import tool for research studies utilizing STARR data. " +
-                            "If you choose this option, you will be sent to DUSTER's designer to create a new REDCap project. " +
-                            "When your REDCap project is created and populate it with records, you will be able to fetch STARR data for your project's records. " +
-                            "For more information, visit https://med.stanford.edu/duster/tech.html.";
-                        console.log(dusterDesc1);
-                       */
-                        // const dusterDesc1 = "DUSTER is a self-service clinical dataset designer/import tool for research studies utilizing STARR data. For more information, visit <a href=\"https://med.stanford.edu/duster/tech.html\" target=\"_blank\">DUSTER's website</a>.";
                         let div = "<div id='duster_option' style='text-indent: -1.5em; margin-left: 1.5em; display: none;'><input name='project_template_radio' id='project_template_duster' type='radio'>" ;
                         div += "<label style='text-indent:3px;margin-top:4px;margin-bottom:0;cursor:pointer;' for='project_template_duster'>" + dusterLabel + "</label>" ;
                         div += "<a href=\"javascript:;\" class=\"help\" onclick=\"simpleDialog('" + dusterDesc + "','" + dusterLabel + "');\">?</a>";
