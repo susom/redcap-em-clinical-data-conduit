@@ -282,8 +282,8 @@ $project_id = PROJECT_ID;
       num_queries:0
     },
     beforeMount: function() {
-      // bypass the production status check if the server is localhost or redcap-dev.stanford.edu
-      if(['localhost', 'redcap-dev.stanford.edu'].includes("<?php echo SERVER_NAME; ?>")) {
+      // bypass the production status check if the server is localhost or contains "-dev" (i.e., a dev server)
+      if(["<?php echo SERVER_NAME; ?>" == "localhost" || ("<?php echo SERVER_NAME; ?>").includes("-dev")) {
         this.isProduction = true;
       }
       else {
