@@ -37,10 +37,10 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    */
   public function redcap_every_page_top($project_id) {
     // $this->emDebug(" Page is " . PAGE . " action is " . $_GET['action']);
-    if ($this->isUserAllowed() === true
-      && $project_id === null
+    if ($project_id === null
       && strpos(PAGE, "index.php") !== false
-      && $_GET['action'] === 'create') {
+      && $_GET['action'] === 'create'
+      && $this->isUserAllowed() === true) {
         // $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
         $some = "<script> let dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
         echo $some;
@@ -48,7 +48,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
                 <script>
                     $(document).ready(function() {
                         const dusterLabel = "Create project using DUSTER";
-                        const dusterDesc = "DUSTER is a self-service clinical dataset designer/import tool for research studies utilizing STARR data. For more information, visit https://med.stanford.edu/duster/tech.html.";
+                        const dusterDesc = "DUSTER is a self-service clinical dataset designer/import tool for research studies utilizing STARR data. For more information, visit https://med.stanford.edu/duster.html.";
                         let div = "<div id='duster_option' style='text-indent: -1.5em; margin-left: 1.5em; display: none;'><input name='project_template_radio' id='project_template_duster' type='radio'>" ;
                         div += "<label style='text-indent:3px;margin-top:4px;margin-bottom:0;cursor:pointer;' for='project_template_duster'>" + dusterLabel + "</label>" ;
                         div += "<a href=\"javascript:;\" class=\"help\" onclick=\"simpleDialog('" + dusterDesc + "','" + dusterLabel + "');\">?</a>";
