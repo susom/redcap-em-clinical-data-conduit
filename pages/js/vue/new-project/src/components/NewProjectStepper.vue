@@ -210,7 +210,9 @@ export default {
       },
       labs: [],
       vitals: [],
-      outcomes: []
+      outcomes: [],
+      scores: [],
+      subscores: []
     }
   },
   mounted() {
@@ -237,37 +239,9 @@ export default {
     this.project_info.repeatforms_chk = postObj.repeatforms_chk;
     this.project_info.project_template_radio = postObj.project_template_radio;
     this.redcap_csrf_token = postObj.redcap_csrf_token;
-/*
-    // append form data
-    const introForm = document.getElementById('intro-form');
-    for (const [key, value] of Object.entries(this.project_info)) {
-      let
-      introForm.appendChild();
-    }
-    let formData = new FormData();
-    formData.append('surveys_enabled',  this.project_info.surveys_enabled);
-    formData.append('repeatforms',  this.project_info.repeatforms);
-    formData.append('scheduling',  this.project_info.scheduling);
-    formData.append('randomization',  this.project_info.randomization);
-    formData.append('app_title',  this.project_info.app_title);
-    formData.append('purpose',  this.project_info.purpose);
-    formData.append('project_pi_firstname',  this.project_info.project_pi_firstname);
-    formData.append('project_pi_mi',  this.project_info.project_pi_mi);
-    formData.append('project_pi_lastname',  this.project_info.project_pi_lastname);
-    formData.append('project_pi_email',  this.project_info.project_pi_email);
-    formData.append('project_pi_alias',  this.project_info.project_pi_alias);
-    formData.append('project_irb_number',  this.project_info.project_irb_number);
-    formData.append('purpose_other',  this.project_info.purpose_other);
-    formData.append('project_note',  this.project_info.project_note);
-    formData.append('projecttype',  this.project_info.projecttype);
-    formData.append('repeatforms_chk',  this.project_info.repeatforms_chk);
-    formData.append('project_template_radio',  this.project_info.project_template_radio);
-    formData.append('redcap_csrf_token', this.redcap_csrf_token);
-*/
+
     // request metadata from STARR-API
     axios.get(this.urls.metadata).then(response => {
-      // console.log(response.data);
-
       // add demographics
       for(const demographic of response.data.demographics) {
         this.demographics.options.push(
@@ -315,6 +289,27 @@ export default {
               options: outcome.redcap_options
             }
         );
+      }
+
+      // add scores
+      for(const score of response.data.scores) {
+        this.scores.push(
+          {
+            duster_field_name: score.duster_field_name,
+            label: score.label,
+            category: score.category
+          }
+        )
+      }
+
+      // subscores
+      for(const score of response.data.score_meta) {
+        this.subscores.push(
+          {
+            score_duster_field_name: score.duster_field_name,
+            subscores: score.subscores
+          }
+        )
       }
 
       this.metadata_loaded = true;
