@@ -282,8 +282,8 @@ $project_id = PROJECT_ID;
       num_queries:0
     },
     beforeMount: function() {
-      // bypass the production status check if the server is localhost or redcap-dev
-      if(['localhost', 'redcap-dev'].includes("<?php echo SERVER_NAME; ?>")) {
+      // bypass the production status check if the server is localhost or redcap-dev.stanford.edu
+      if(['localhost', 'redcap-dev.stanford.edu'].includes("<?php echo SERVER_NAME; ?>")) {
         this.isProduction = true;
       }
       else {
@@ -291,16 +291,14 @@ $project_id = PROJECT_ID;
         axios.get("<?php echo $module->getUrl("services/getData.php?action=projectStatus&pid=$project_id"); ?>").then
         (response => {
           if (!this.hasError(this, response)) {
-            console.log("response: " + JSON.stringify(response));
             if (response.data.production_status === 1) {
               this.isProduction = true;
             } else {
-              this.errorMessage = "Please move this REDCap project to production status before requesting data."
+              this.errorMessage = "Please move this REDCap project to production status before requesting data.";
             }
           }
         }).catch(function (error) {
           this.errorMessage += error.message + '<br>';
-          //console.log(error);
         });
       }
     },
@@ -361,7 +359,6 @@ $project_id = PROJECT_ID;
           }
         }).catch(function(error) {
           this.errorMessage +=error.message + '<br>';
-          //console.log(error);
         });
       },
       async syncCohort() {
@@ -376,7 +373,6 @@ $project_id = PROJECT_ID;
           }
         } catch (error) {
           this.errorMessage += error.message + '<br>';
-          //console.log(error);
         }
       },
       updateProgress(dataSync) {
