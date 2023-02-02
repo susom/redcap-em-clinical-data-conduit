@@ -282,22 +282,27 @@ $project_id = PROJECT_ID;
       num_queries:0
     },
     beforeMount: function() {
-      // check that project is in production mode before getting data
+      // bypass the production status check if the server is localhost or redcap-dev
+      if(['localhost', 'redcap-dev'].includes("<?php echo SERVER_NAME; ?>")) {
+        this.isProduction = true;
+      }
+      else {
+        // check that project is in production status before getting data
         axios.get("<?php echo $module->getUrl("services/getData.php?action=projectStatus&pid=$project_id"); ?>").then
         (response => {
           if (!this.hasError(this, response)) {
             console.log("response: " + JSON.stringify(response));
-            if (response.data.production_mode ===1) {
-              this.isProduction= true;
+            if (response.data.production_status === 1) {
+              this.isProduction = true;
             } else {
-              this.errorMessage = "Please move this Redcap project to production mode before getting data."
+              this.errorMessage = "Please move this REDCap project to production status before requesting data."
             }
           }
-        }).catch(function(error) {
-          this.errorMessage +=error.message + '<br>';
+        }).catch(function (error) {
+          this.errorMessage += error.message + '<br>';
           //console.log(error);
         });
-        this.isProduction= false;
+      }
     },
     methods: {
       goToUrl(url) {
