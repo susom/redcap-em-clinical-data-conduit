@@ -83,6 +83,7 @@
               :labs_prop="labs"
               :outcomes_prop="outcomes"
               :rp_dates_prop="rp_dates"
+              :scores_prop="scores"
               :show_window_form_prop.sync="show_window_form"
               :vitals_prop="vitals"
             />

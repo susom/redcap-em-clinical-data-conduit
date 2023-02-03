@@ -160,7 +160,7 @@
                           :items="window.data.labs_vitals"
                           :items-per-page="10"
                           fixed-header
-                          no-data-text="Use search bar above to start adding labs and vitals."
+                          no-data-text="No labs or vitals selected."
                         >
                           <template v-slot:[`item.aggregates`]="{ item }">
                             <v-chip
@@ -211,19 +211,25 @@
                             :items="window.data.outcomes"
                             :items-per-page="10"
                             fixed-header
-                            no-data-text="Use search bar above to start adding outcomes."
+                            no-data-text="No outcomes selected."
                         >
                         </v-data-table>
                       </v-card>
+                    </v-tab-item>
 
+                    <v-tab-item>
+                      <v-card>
+                        <v-card-text>Scores</v-card-text>
+                        <v-data-table
+                          :headers="score_headers_viewonly"
+                          :items="window.data.scores"
+                          :items-per-page="10"
+                          fixed-header
+                          no-data-text="No scores selected."
+                        >
+                        </v-data-table>
+                      </v-card>
                     </v-tab-item>
-                    <!--
-                     <v-tab-item>
-                        <v-card>
-                            <v-card-text>Scores</v-card-text>
-                        </v-card>
-                    </v-tab-item>
-                    -->
                   </v-tabs>
                 </v-card>
               </v-col>
@@ -766,6 +772,7 @@
                 </v-card>
               </v-col>
             </v-row>
+
             <v-row>
               <v-col>
                 <v-card outlined>
@@ -777,6 +784,7 @@
                     <v-tab>Outcomes</v-tab>
                     <v-tab>Scores</v-tab>
 
+                    <!-- labs and vitals -->
                     <v-tab-item
                     >
                       <v-card>
@@ -1045,6 +1053,8 @@
                         </v-data-table>
                       </v-card>
                     </v-tab-item>
+
+                    <!-- outcomes -->
                     <v-tab-item
                     >
                       <v-card>
@@ -1125,11 +1135,89 @@
                       </v-card>
 
                     </v-tab-item>
+
+                    <!-- scores -->
                     <v-tab-item
                     >
                       <v-card>
                         <v-card-text>Scores is not currently available.</v-card-text>
                       </v-card>
+                      <v-card>
+                      <v-autocomplete
+                        v-model=""
+                        :items="scores"
+                        color="white"
+                        auto-select-first
+                        hide-no-data
+                        placeholder="Search for scores to add..."
+                        prepend-icon="mdi-magnify"
+                        item-text="label"
+                        return-object
+                        @change="addScore()"
+                      ></v-autocomplete>
+                      <v-dialog
+                        v-model="delete_score_dialog"
+                        persistent
+                        max-width="600px"
+                      >
+                        <v-card>
+                          <v-card-title
+                            class="justify-center"
+                          >
+                            Are you sure you want to delete this score?
+                          </v-card-title>
+                          <v-card-actions>
+                            <v-spacer></v-spacer>
+                            <v-btn
+                              color="error"
+                              @click="confirmDeleteScore()"
+                            >
+                              Yes
+                            </v-btn>
+                            <v-btn
+                              color="secondary"
+                              @click="closeDeleteScore()"
+                            >
+                              Cancel
+                            </v-btn>
+                            <v-spacer></v-spacer>
+                          </v-card-actions>
+                        </v-card>
+                      </v-dialog>
+
+                      <v-snackbar
+                        v-model="alert_score_success"
+                        color="success"
+                        outlined
+                        timeout=1000
+                      >
+                        {{alert_score_label}} added.
+                      </v-snackbar>
+                      <v-snackbar
+                        v-model="alert_score_error"
+                        color="error"
+                        outlined
+                        timeout=1000
+                      >
+                        {{alert_score_label}} was already added.
+                      </v-snackbar>
+                      <v-data-table
+                        :headers="score_headers"
+                        :items="window.data.scores"
+                        :items-per-page="10"
+                        fixed-header
+                        no-data-text="Use search bar above to start adding scores."
+                      >
+                        <template v-slot:[`item.actions`]="{ item }">
+                          <v-icon
+                            small
+                            @click="deleteScore(item)"
+                          >
+                            mdi-delete
+                          </v-icon>
+                        </template>
+                      </v-data-table>
+                    </v-card>
                     </v-tab-item>
                   </v-tabs>
 
@@ -1192,6 +1280,7 @@ export default {
     'vitals_prop': Array,
     'outcomes_prop': Array,
     'rp_dates_prop': Array,
+    'scores_prop': Array,
     'show_window_form_prop': Boolean
   },
   computed: {
@@ -1244,6 +1333,11 @@ export default {
         return this.rp_dates.map(value => value.redcap_field_name);
       }
     },
+    scores: {
+      get() {
+        return this.scores_prop;
+      }
+    },
     show_window_form: {
       get() {
         return this.show_window_form_prop;
@@ -1268,10 +1362,14 @@ export default {
   data: function() {
     return {
       alert_default_agg: false,
-      alert_lv_success: false,
       alert_lv_error: false,
       alert_lv_label: null,
+      alert_lv_success: false,
+      alert_score_error: false,
+      alert_score_label: null,
+      alert_score_success: false,
       delete_lv_dialog: false,
+      delete_score_dialog: false,
       alert_outcomes_success: false,
       alert_outcomes_error:false,
       alert_field_label: null,
@@ -1299,7 +1397,7 @@ export default {
         {text: 'Aggregates', value: 'aggregates', sortable: false},
         {text: 'Actions', value: 'actions', sortable: false}
       ],
-      lv_headers_viewonly :[
+      lv_headers_viewonly : [
         {text: 'Label', value: 'label'},
         {text: 'Aggregates', value: 'aggregates', sortable: false}
       ],
@@ -1307,8 +1405,15 @@ export default {
         {text: 'Label', value: 'label'},
         {text: 'Actions', value: 'actions', sortable: false}
       ],
-      field_headers_viewonly :[
+      field_headers_viewonly: [
         {text: 'Label', value: 'label'},
+      ],
+      score_headers: [
+        {text: 'Label', value: 'label'},
+        {text: 'Actions', value: 'actions', sortable: false}
+      ],
+      score_headers_viewonly: [
+        {text: 'Label', value: 'label'}
       ],
       new_lv_obj : {
         duster_field_name: null,
@@ -1357,7 +1462,8 @@ export default {
           },
           data: {
             labs_vitals: [],
-            outcomes: []
+            outcomes: [],
+            scores: []
           }
         },
         {
@@ -1391,7 +1497,8 @@ export default {
           },
           data: {
             labs_vitals: [],
-            outcomes: []
+            outcomes: [],
+            scores: []
           }
         },
         {
@@ -1421,7 +1528,8 @@ export default {
           },
           data: {
             labs_vitals: [],
-            outcomes: []
+            outcomes: [],
+            scores: []
           }
         },
         {
@@ -1451,7 +1559,8 @@ export default {
           },
           data: {
             labs_vitals: [],
-            outcomes: []
+            outcomes: [],
+            scores: []
           }
         }
       ],
@@ -1479,7 +1588,8 @@ export default {
         },
         data: {
           labs_vitals: [],
-          outcomes:[]
+          outcomes:[],
+          scores:[]
         }
       },
       rules: {
@@ -1517,26 +1627,29 @@ export default {
       };
     },
     addOutcome() {
-        this.alert_field_label = this.new_field_obj.label;
-        if (!this.window.data.outcomes.map(value => value.label).includes(this.new_field_obj.label)) {
-          this.window.data.outcomes.push(JSON.parse(JSON.stringify({
-            duster_field_name: this.new_field_obj.duster_field_name,
-            label: this.new_field_obj.label,
-            category: this.new_field_obj.category,
-            field_type: this.new_field_obj.field_type,
-            options: this.new_field_obj.options
-          })));
-          this.alert_outcomes_success = true;
-        } else {
-          this.alert_outcomes_error = true;
-        }
-        this.new_field_obj = {
-          duster_field_name: null,
-          label: null,
-          category: null,
-          field_type: null,
-          options: null
-        };
+      this.alert_field_label = this.new_field_obj.label;
+      if (!this.window.data.outcomes.map(value => value.label).includes(this.new_field_obj.label)) {
+        this.window.data.outcomes.push(JSON.parse(JSON.stringify({
+          duster_field_name: this.new_field_obj.duster_field_name,
+          label: this.new_field_obj.label,
+          category: this.new_field_obj.category,
+          field_type: this.new_field_obj.field_type,
+          options: this.new_field_obj.options
+        })));
+        this.alert_outcomes_success = true;
+      } else {
+        this.alert_outcomes_error = true;
+      }
+      this.new_field_obj = {
+        duster_field_name: null,
+        label: null,
+        category: null,
+        field_type: null,
+        options: null
+      };
+    },
+    addScore() {
+      // TODO
     },
     // checks if the default aggregate needs to be set
     // returns true/false
@@ -1580,6 +1693,9 @@ export default {
     closeDeleteField() {
       this.delete_field_dialog = false;
     },
+    closeDeleteScore() {
+      // TODO
+    },
     confirmDeleteLV() {
       this.window.data.labs_vitals.splice(this.edit_lv_index, 1);
       this.edit_lv_index = null;
@@ -1589,6 +1705,9 @@ export default {
       this.window.data.outcomes.splice(this.edit_field_index, 1);
       this.edit_field_index = null;
       this.closeDeleteField();
+    },
+    confirmDeleteScore() {
+      // TODO
     },
     confirmEditLV() {
       if (this.edit_lv_index !== null) {
@@ -1622,6 +1741,9 @@ export default {
     deleteOutcome(obj) {
       this.edit_field_index = this.window.data.outcomes.indexOf(obj);
       this.delete_field_dialog = true;
+    },
+    deleteScore(obj) {
+      // TODO
     },
     deleteWindow(i) {
       this.collection_windows.splice(i, 1);
