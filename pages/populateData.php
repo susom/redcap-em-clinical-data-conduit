@@ -5,11 +5,13 @@ namespace Stanford\Duster;
 
 $redcap_version = explode('_',APP_PATH_WEBROOT)[1];
 $record_base_url = APP_PATH_WEBROOT_FULL
-    . "redcap_" . $redcap_version .'DataEntry/record_home.php?pid=' . PROJECT_ID;
+  . 'redcap_' . $redcap_version .'DataEntry/record_home.php?pid=' . PROJECT_ID;
 $designer_url = APP_PATH_WEBROOT_FULL
-    . "redcap_" . $redcap_version .'Design/online_designer.php?pid=' . PROJECT_ID;
+  . 'redcap_' . $redcap_version .'Design/online_designer.php?pid=' . PROJECT_ID;
 $data_exports_url = APP_PATH_WEBROOT_FULL
-    . "redcap_" . $redcap_version .'DataExport/index.php?pid=' . PROJECT_ID;
+  . 'redcap_' . $redcap_version .'DataExport/index.php?pid=' . PROJECT_ID;
+$project_setup_url = APP_PATH_WEBROOT_FULL
+  . 'redcap_' . $redcap_version . 'ProjectSetup/index.php?pid=' . PROJECT_ID;
 $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
 $project_id = PROJECT_ID;
 
@@ -32,8 +34,16 @@ $project_id = PROJECT_ID;
     <h1>DUSTER: Get Data</h1>
 
     <div v-if="errorMessage">
-        <v-alert type="error"><span v-html="errorMessage"></span></v-alert>
-      </div>
+      <v-alert type="error"><span v-html="errorMessage"></span></v-alert>
+      <!-- display button to Project Setup if error is due to production status -->
+      <v-btn
+        v-if="isProduction === false"
+        color="primary"
+        @click="goToUrl(project_setup_url)"
+      >
+        Go to Project Setup
+      </v-btn>
+    </div>
 
     <div v-if="isProduction && !isLoading && !isLoaded">
       <p>Click the button below to begin.</p>
@@ -260,10 +270,11 @@ $project_id = PROJECT_ID;
     },
     vuetify: new Vuetify(),
     data: {
-      project_id: <?php echo $project_id?>,
-      record_base_url : '<?php echo $record_base_url?>',
-      designer_url: '<?php echo $designer_url?>',
-      data_exports_url: '<?php echo $data_exports_url?>',
+      project_id: <?php echo $project_id; ?>,
+      record_base_url : '<?php echo $record_base_url; ?>',
+      designer_url: '<?php echo $designer_url; ?>',
+      data_exports_url: '<?php echo $data_exports_url; ?>',
+      project_setup_url: '<?php echo $project_setup_url; ?>',
       rtos_link_url: '<?php echo $module->getUrl("services/getData.php?action=getData&pid=$project_id&query=")?>',
       step: 0,
       errorMessage: "",
@@ -282,22 +293,25 @@ $project_id = PROJECT_ID;
       num_queries:0
     },
     beforeMount: function() {
-      // check that project is in production mode before getting data
+      // bypass the production status check if the server is localhost or contains "-dev" (i.e., a dev server)
+      if("<?php echo SERVER_NAME; ?>" == "localhost" || ("<?php echo SERVER_NAME; ?>").includes("-dev")) {
+        this.isProduction = true;
+      }
+      else {
+        // check that project is in production status before getting data
         axios.get("<?php echo $module->getUrl("services/getData.php?action=projectStatus&pid=$project_id"); ?>").then
         (response => {
           if (!this.hasError(this, response)) {
-            console.log("response: " + JSON.stringify(response));
-            if (response.data.production_mode ===1) {
-              this.isProduction= true;
+            if (response.data.production_status === 1) {
+              this.isProduction = true;
             } else {
-              this.errorMessage = "Please move this Redcap project to production mode before getting data."
+              this.errorMessage = "Please move this REDCap project to production status before requesting data.";
             }
           }
-        }).catch(function(error) {
-          this.errorMessage +=error.message + '<br>';
-          //console.log(error);
+        }).catch(function (error) {
+          this.errorMessage += error.message + '<br>';
         });
-        this.isProduction= false;
+      }
     },
     methods: {
       goToUrl(url) {
@@ -356,7 +370,6 @@ $project_id = PROJECT_ID;
           }
         }).catch(function(error) {
           this.errorMessage +=error.message + '<br>';
-          //console.log(error);
         });
       },
       async syncCohort() {
@@ -371,7 +384,6 @@ $project_id = PROJECT_ID;
           }
         } catch (error) {
           this.errorMessage += error.message + '<br>';
-          //console.log(error);
         }
       },
       updateProgress(dataSync) {

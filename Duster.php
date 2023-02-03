@@ -138,7 +138,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       $resp = curl_exec($curl);
       curl_close($curl);
       $resp_arr = json_decode($resp, true);
-
     }
     //$this->emLog("$url response = " . print_r($resp_arr, true));
     return $resp_arr;

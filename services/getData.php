@@ -18,7 +18,7 @@ if ($action === 'projectStatus') {
         [$pid]);
     if ($result->num_rows > 0) {
         $return_obj['status'] = 200;
-        $return_obj['production_mode'] = json_decode($result->fetch_assoc()['status'], true);
+        $return_obj['production_status'] = json_decode($result->fetch_assoc()['status'], true);
     } else {
         $return_obj['status'] = 400;
         $return_obj['message'] = 'Unable to verify project status';

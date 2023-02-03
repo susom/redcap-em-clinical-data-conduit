@@ -31,7 +31,7 @@ namespace Stanford\Duster;
   postObj['repeatforms_chk'] = "<?php echo htmlentities($_POST["repeatforms_chk"], ENT_QUOTES); ?>";
   postObj['project_template_radio'] = "<?php echo htmlentities($_POST["project_template_radio"], ENT_QUOTES); ?>";
 
-  postObj['img_base_path'] = "<?php echo $module->getUrl("images/") ?>";
+  postObj['img_base_path'] = "<?php echo $module->getUrl("images/"); ?>";
   postObj['img_base_path'] = postObj['img_base_path'].split("?")[0] ;
 
   postObj['redcap_new_project_url'] = "<?php echo APP_PATH_WEBROOT_FULL . "index.php?action=create"; ?>";
@@ -40,17 +40,17 @@ namespace Stanford\Duster;
   postObj['check_irb_url'] = "<?php echo $module->getUrl("services/checkIRB.php"); ?>" ;
 
   // store URL for services/createProject.php
-  postObj['create_project_url'] ="<?php echo $module->getUrl("services/createProject.php") ?>";
+  postObj['create_project_url'] ="<?php echo $module->getUrl("services/createProject.php"); ?>";
 
   // store URL for services/callMetadata.php
   postObj['metadata_url'] = "<?php echo $module->getUrl("services/callMetadata.php"); ?>";
 
   // store URL for pages/newProjectIntro.php
-  postObj['new_project_intro_url'] ="<?php echo $module->getUrl("pages/newProjectIntro.php") ?>";
+  postObj['new_project_intro_url'] ="<?php echo $module->getUrl("pages/newProjectIntro.php"); ?>";
   localStorage.setItem('postObj', JSON.stringify(postObj));
 
   // redirect to 'new-project' Vue app for creating a new project
-  window.location = "<?php echo $module->getUrl("pages/js/vue/new-project/dist/index.html") ?>";
+  window.location = "<?php echo $module->getUrl("pages/js/vue/new-project/dist/index.html"); ?>";
 
 </Script>
 
