@@ -65,6 +65,23 @@ if(array_key_exists("collection_windows", $config)) {
     $odm->addFields($collection_window["form_name"], null, null, "Vitals", $collection_window["data"]["vitals"]);
     // add outcomes with its own section header
     $odm->addFields($collection_window["form_name"], null, null, "Outcomes", $collection_window["data"]["outcomes"]);
+
+    // add each score with a section header
+    foreach($collection_window["data"]["scores"] as $score) {
+      $score_arr = [];
+      // add each subscore for score
+      foreach($score["subscores"] as $subscore) {
+        // add each clinical variable for subscore
+        foreach($subscore["dependencies"] as $clinical_var) {
+          $score_arr[] = $clinical_var;
+        }
+        unset($subscore["dependencies"]);
+        $score_arr[] = $subscore;
+      }
+      unset($score["subscores"]);
+      $score_arr[] = $score;
+      $odm->addFields($collection_window["form_name"], null, null, $score["label"], $score_arr);
+    }
   }
 }
 
