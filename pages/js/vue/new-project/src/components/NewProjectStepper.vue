@@ -213,7 +213,8 @@ export default {
       vitals: [],
       outcomes: [],
       scores: [],
-      subscores: []
+      scores_meta: {}
+      // subscores: []
     }
   },
   mounted() {
@@ -298,13 +299,17 @@ export default {
           {
             duster_field_name: score.duster_field_name,
             label: score.label,
-            category: score.category
+            category: score.category,
+            redcap_field_type: score.redcap_field_type,
+            redcap_option: score.redcap_option
           }
         )
       }
 
       // subscores
-      for(const score of response.data.score_meta) {
+      this.scores_meta = Object.assign({}, this.scores_meta, response.data.scores_meta);
+      /*
+      for(const score of response.data.scores_meta) {
         this.subscores.push(
           {
             score_duster_field_name: score.duster_field_name,
@@ -312,6 +317,7 @@ export default {
           }
         )
       }
+       */
 
       this.metadata_loaded = true;
     });

@@ -293,7 +293,8 @@ export default {
             data: {
               labs: [],
               vitals: [],
-              outcomes: []
+              outcomes: [],
+              scores: []
             }
           };
 
@@ -499,7 +500,6 @@ export default {
               // TODO
             }
 
-
             if(item.category === 'labs') {
               newCW.data.labs.push(...itemArr);
             } else {
@@ -520,6 +520,72 @@ export default {
                 options: item.options
               });
           });
+
+          // scores
+          let scoresArr = window.data.scores;
+          scoresArr.forEach((score) => {
+            const subscoresArr = [];
+            score.dependencies.forEach((subscore) => {
+              const clinicalVarArr = [];
+              subscore.dependencies.forEach((clinicalVar) => {
+
+                clinicalVar.aggregations.forEach((agg) => {
+                  let clinicalVarRCLabel = "";
+                  switch (agg) {
+                    case "min_agg":
+                      clinicalVarRCLabel += "Minimum ";
+                      break;
+                    case "max_agg":
+                      clinicalVarRCLabel += "Maximum ";
+                      break;
+                    case "first_agg":
+                      clinicalVarRCLabel += "First ";
+                      break;
+                    case "last_agg":
+                      clinicalVarRCLabel += "Last ";
+                      break;
+                    default:
+                      // TODO error this agg was not recognized
+                  }
+                  clinicalVarRCLabel += clinicalVar.label;
+
+                  clinicalVarArr.push({
+                    duster_field_name: clinicalVar.duster_field_name,
+                    redcap_field_name: score.duster_field_name + '_'
+                      + subscore.duster_field_name + '_'
+                      + clinicalVar.duster_field_name + '_'
+                      + agg.replace("_agg", "") + index,
+                    label: clinicalVarRCLabel,
+                    format: clinicalVar.redcap_field_type,
+                    field_note: clinicalVar.field_note,
+                    aggregation: agg
+                  });
+                });
+              });
+
+              subscoresArr.push({
+                duster_field_name: subscore.duster_field_name,
+                redcap_field_name: score.duster_field_name + '_' + subscore.duster_field_name + '_' + index,
+                label: subscore.label,
+                format: subscore.format,
+                field_note: subscore.field_note,
+                redcap_option: subscore.redcap_option,
+                dependencies: clinicalVarArr
+              });
+            });
+
+            newCW.data.scores.push({
+              duster_field_name: score.duster_field_name,
+              redcap_field_name: score.duster_field_name + '_' + index,
+              label: score.label,
+              format: score.redcap_field_type,
+              field_note: score.field_note,
+              redcap_option: score.redcap_option,
+              subscores: subscoresArr
+            });
+          });
+
+
 //                        console.log(newCW);
           cwArr.push(newCW);
         });

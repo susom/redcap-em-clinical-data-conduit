@@ -1140,11 +1140,8 @@
                     <v-tab-item
                     >
                       <v-card>
-                        <v-card-text>Scores is not currently available.</v-card-text>
-                      </v-card>
-                      <v-card>
                       <v-autocomplete
-                        v-model=""
+                        v-model="new_score_obj"
                         :items="scores"
                         color="white"
                         auto-select-first
@@ -1170,13 +1167,13 @@
                             <v-spacer></v-spacer>
                             <v-btn
                               color="error"
-                              @click="confirmDeleteScore()"
+                              @click="deleteScore()"
                             >
                               Yes
                             </v-btn>
                             <v-btn
                               color="secondary"
-                              @click="closeDeleteScore()"
+                              @click="delete_score_index = null, delete_score_dialog = false"
                             >
                               Cancel
                             </v-btn>
@@ -1208,13 +1205,22 @@
                         fixed-header
                         no-data-text="Use search bar above to start adding scores."
                       >
-                        <template v-slot:[`item.actions`]="{ item }">
-                          <v-icon
-                            small
-                            @click="deleteScore(item)"
-                          >
-                            mdi-delete
-                          </v-icon>
+                        <template v-slot:[`item.actions`]="{ item, index }">
+                          <v-tooltip bottom>
+                            <template v-slot:activator="{ on, attrs }">
+                              <v-icon
+                                v-bind="attrs"
+                                v-on="on"
+                                small
+                                @click="delete_score_index = index, delete_score_dialog = true"
+                              >
+                                mdi-delete
+                              </v-icon>
+                            </template>
+                            <span>
+                              Delete '{{item.label}}'
+                            </span>
+                          </v-tooltip>
                         </template>
                       </v-data-table>
                     </v-card>
@@ -1370,6 +1376,7 @@ export default {
       alert_score_success: false,
       delete_lv_dialog: false,
       delete_score_dialog: false,
+      delete_score_index: null,
       alert_outcomes_success: false,
       alert_outcomes_error:false,
       alert_field_label: null,
@@ -1415,17 +1422,24 @@ export default {
       score_headers_viewonly: [
         {text: 'Label', value: 'label'}
       ],
-      new_lv_obj : {
+      new_lv_obj: {
         duster_field_name: null,
         label: null,
         category: null
       },
-      new_field_obj : {
+      new_field_obj: {
         duster_field_name: null,
         label: null,
         category: null,
         field_type: null,
         options: null
+      },
+      new_score_obj: {
+        duster_field_name: null,
+        label: null,
+        category: null,
+        redcap_field_type: null,
+        redcap_option: null
       },
       open_window_panel: null,
       window_stepper: 1,
@@ -1649,7 +1663,26 @@ export default {
       };
     },
     addScore() {
-      // TODO
+      this.alert_score_label = this.new_score_obj.label;
+      if (!this.window.data.scores.map(value => value.label).includes(this.new_score_obj.label)) {
+        this.window.data.scores.push(JSON.parse(JSON.stringify({
+          duster_field_name: this.new_score_obj.duster_field_name,
+          label: this.new_score_obj.label,
+          category: this.new_score_obj.category,
+          redcap_field_type: this.new_score_obj.redcap_field_type,
+          redcap_option: this.new_score_obj.redcap_option
+        })));
+        this.alert_score_success = true;
+      } else {
+        this.alert_score_error = true;
+      }
+      this.new_score_obj = {
+        duster_field_name: null,
+        label: null,
+        category: null,
+        redcap_field_type: null,
+        redcap_option: null
+      }
     },
     // checks if the default aggregate needs to be set
     // returns true/false
@@ -1706,9 +1739,6 @@ export default {
       this.edit_field_index = null;
       this.closeDeleteField();
     },
-    confirmDeleteScore() {
-      // TODO
-    },
     confirmEditLV() {
       if (this.edit_lv_index !== null) {
         Object.assign(this.window.data.labs_vitals[this.edit_lv_index], this.edit_lv_obj);
@@ -1742,8 +1772,10 @@ export default {
       this.edit_field_index = this.window.data.outcomes.indexOf(obj);
       this.delete_field_dialog = true;
     },
-    deleteScore(obj) {
-      // TODO
+    deleteScore() {
+      this.window.data.scores.splice(this.delete_score_index, 1);
+      this.delete_score_index = null;
+      this.delete_score_dialog = false;
     },
     deleteWindow(i) {
       this.collection_windows.splice(i, 1);
