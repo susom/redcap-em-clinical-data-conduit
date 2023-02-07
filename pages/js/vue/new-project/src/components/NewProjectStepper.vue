@@ -195,14 +195,14 @@ export default {
         {
           label: "MRN",
           redcap_field_name: "mrn",
-          format: "8-digit number (including leading zeros, e.g., '01234567')"
+          redcap_field_type: "8-digit number (including leading zeros, e.g., '01234567')"
         }
       ],
       rp_dates: [
         {
           label: "Study Enrollment Date",
           redcap_field_name: "enroll_date",
-          format: "date"
+          redcap_field_type: "date"
         }
       ],
       demographics: {
@@ -287,8 +287,8 @@ export default {
               duster_field_name: outcome.duster_field_name,
               label: outcome.label,
               category: outcome.category,
-              field_type: outcome.redcap_field_type,
-              options: outcome.redcap_options
+              redcap_field_type: outcome.redcap_field_type,
+              redcap_options: outcome.redcap_options
             }
         );
       }
@@ -301,23 +301,12 @@ export default {
             label: score.label,
             category: score.category,
             redcap_field_type: score.redcap_field_type,
-            redcap_option: score.redcap_option
-          }
-        )
-      }
-
-      // subscores
-      this.scores_meta = Object.assign({}, this.scores_meta, response.data.scores_meta);
-      /*
-      for(const score of response.data.scores_meta) {
-        this.subscores.push(
-          {
-            score_duster_field_name: score.duster_field_name,
+            redcap_field_note: score.redcap_field_note,
+            redcap_options: score.redcap_options,
             subscores: score.subscores
           }
         )
       }
-       */
 
       this.metadata_loaded = true;
     });
