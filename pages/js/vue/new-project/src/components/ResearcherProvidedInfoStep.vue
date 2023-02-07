@@ -45,8 +45,8 @@
             hide-default-footer
             class="mb-4"
           >
-            <template v-slot:[`item.format`]="{ item }">
-              <span>{{item.format}} [{{item.format=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM:SS'}}]</span>
+            <template v-slot:[`item.redcap_field_type`]="{ item }">
+              <span>{{item.redcap_field_type}} [{{item.redcap_field_type=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM:SS'}}]</span>
             </template>
             <template v-slot:[`item.actions`]="{ item, index }">
               <v-tooltip bottom>
@@ -133,7 +133,7 @@
                   <v-row>
                     <v-col cols="12">
                       <v-radio-group
-                        v-model="new_date.format"
+                        v-model="new_date.redcap_field_type"
                         :rules="[rules.required]"
                         required
                         label="Format"
@@ -208,7 +208,7 @@
                   <v-row>
                     <v-col cols="12">
                       <v-radio-group
-                        v-model="edit_date.format"
+                        v-model="edit_date.redcap_field_type"
                         :rules="[rules.required]"
                         required
                         label="Format"
@@ -307,12 +307,12 @@ export default {
       rp_id_headers: [
         {text: 'Label', value: 'label'},
         {text: 'REDCap field name', value: 'redcap_field_name'},
-        {text: 'Format', value: 'format'}
+        {text: 'REDCap field type', value: 'redcap_field_type'}
       ],
       rp_date_headers: [
         {text: 'Label', value: 'label'},
         {text: 'REDCap field name', value: 'redcap_field_name'},
-        {text: 'Format', value: 'format'},
+        {text: 'REDCap field type', value: 'redcap_field_type'},
         {text: 'Actions', value: 'actions', sortable: false}
       ],
       new_date_dialog: false,
@@ -323,12 +323,12 @@ export default {
       new_date: {
         label: null,
         redcap_field_name: null,
-        format: null
+        redcap_field_type: null
       },
       edit_date: {
         label: null,
         redcap_field_name: null,
-        format: null
+        redcap_field_type: null
       },
       rules: {
         required: value => !!value || 'Required.'
@@ -346,7 +346,7 @@ export default {
       this.new_date = {
         label: null,
         redcap_field_name: null,
-        format: null
+        redcap_field_type: null
       };
       this.$refs.date_form.resetValidation();
     },
@@ -366,7 +366,7 @@ export default {
       this.edit_date = {
         label: null,
         redcap_field_name: null,
-        format: null
+        redap_field_type: null
       };
       this.$refs.edit_date_form.resetValidation();
     },

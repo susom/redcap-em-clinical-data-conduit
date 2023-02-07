@@ -1431,15 +1431,15 @@ export default {
         duster_field_name: null,
         label: null,
         category: null,
-        field_type: null,
-        options: null
+        redcap_field_type: null,
+        redcap_options: null
       },
       new_score_obj: {
         duster_field_name: null,
         label: null,
         category: null,
         redcap_field_type: null,
-        redcap_option: null
+        redcap_options: null
       },
       open_window_panel: null,
       window_stepper: 1,
@@ -1647,8 +1647,8 @@ export default {
           duster_field_name: this.new_field_obj.duster_field_name,
           label: this.new_field_obj.label,
           category: this.new_field_obj.category,
-          field_type: this.new_field_obj.field_type,
-          options: this.new_field_obj.options
+          redcap_field_type: this.new_field_obj.redcap_field_type,
+          redcap_options: this.new_field_obj.redcap_options
         })));
         this.alert_outcomes_success = true;
       } else {
@@ -1658,8 +1658,8 @@ export default {
         duster_field_name: null,
         label: null,
         category: null,
-        field_type: null,
-        options: null
+        redcap_field_type: null,
+        redcap_options: null
       };
     },
     addScore() {
@@ -1670,7 +1670,7 @@ export default {
           label: this.new_score_obj.label,
           category: this.new_score_obj.category,
           redcap_field_type: this.new_score_obj.redcap_field_type,
-          redcap_option: this.new_score_obj.redcap_option
+          redcap_options: this.new_score_obj.redcap_options
         })));
         this.alert_score_success = true;
       } else {
@@ -1681,7 +1681,7 @@ export default {
         label: null,
         category: null,
         redcap_field_type: null,
-        redcap_option: null
+        redcap_options: null
       }
     },
     // checks if the default aggregate needs to be set

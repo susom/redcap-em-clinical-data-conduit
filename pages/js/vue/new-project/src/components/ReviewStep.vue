@@ -48,7 +48,7 @@
               dense
               hide-default-footer
             >
-              <template v-slot:[`item.format`]="">
+              <template v-slot:[`item.redcap_field_type`]="">
                 <span>8-digit number (including leading zeros, e.g., '01234567')</span>
               </template>
             </v-data-table>
@@ -67,8 +67,8 @@
               dense
               hide-default-footer
             >
-              <template v-slot:[`item.format`]="{ item }">
-                <span>{{item.format}} [{{item.format=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM:SS'}}]</span>
+              <template v-slot:[`item.redcap_field_type`]="{ item }">
+                <span>{{item.redcap_field_type}} [{{item.redcap_field_type=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM:SS'}}]</span>
               </template>
             </v-data-table>
           </v-card>
@@ -223,12 +223,12 @@ export default {
       review_id_headers: [
         {text: 'Label', value: 'label', sortable: false},
         {text: 'REDCap field name', value: 'redcap_field_name', sortable: false},
-        {text: 'Format', value: 'format', sortable: false}
+        {text: 'REDCap field type', value: 'redcap_field_type', sortable: false}
       ],
       review_date_headers: [
         {text: 'Label', value: 'label'},
         {text: 'REDCap field name', value: 'redcap_field_name'},
-        {text: 'Format', value: 'format'}
+        {text: 'REDCap field type', value: 'redcap_field_type'}
       ],
       review_demo_headers: [
         {text: 'Label', value: 'label'},
@@ -251,7 +251,7 @@ export default {
               {
                 redcap_field_name: "mrn",
                 label: "Medical Record Number (MRN)",
-                format: "text"
+                redcap_field_type: "text"
               }
             ],
             rp_dates: {}
@@ -266,7 +266,7 @@ export default {
           datesArr.push([date.redcap_field_name, {
             redcap_field_name: date.redcap_field_name,
             label: date.label,
-            format: date.format
+            redcap_field_type: date.redcap_field_type
           }]);
         });
         config.rp_info.rp_dates = Object.fromEntries(datesArr);
@@ -277,7 +277,7 @@ export default {
             duster_field_name: demographic.duster_field_name,
             redcap_field_name: demographic.redcap_field_name,
             label: demographic.label,
-            format: "text"
+            redcap_field_type: "text"
           });
         });
 
@@ -323,7 +323,7 @@ export default {
 
             // get the REDCap label for the start parameter for timing
             let startLabel = timing.start.label;
-            if(timing.start_type === 'date' || timing.start.format === 'date') {
+            if(timing.start_type === 'date' || timing.start.redcap_field_type === 'date') {
               startLabel = '00:00:00 on the Calendar Day of ' + timing.start.label;
             }
 
@@ -352,7 +352,7 @@ export default {
             // get the REDCap label for the end parameter for timing
             let endLabel = "";
             if(timing.end_type === 'dttm') {
-              if(timing.end.format === 'date') {
+              if(timing.end.redcap_field_type === 'date') {
                 endLabel = 'Midnight on the Calendar Day of ' + timing.end.label;
               } else {
                 endLabel = timing.end.label;
@@ -415,7 +415,7 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: 'Minimum ' + item.label,
-                format: "text",
+                redcap_field_type: "text",
                 aggregate: "min_agg"
               });
             }
@@ -438,7 +438,7 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: 'Maximum ' + item.label,
-                format: "text",
+                redcap_field_type: "text",
                 aggregate: "max_agg"
               });
             }
@@ -461,7 +461,7 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: 'First ' + item.label,
-                format: "text",
+                redcap_field_type: "text",
                 aggregate: "first_agg"
               });
             }
@@ -485,7 +485,7 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: 'Last ' + item.label,
-                format: "text",
+                redcap_field_type: "text",
                 aggregate: "last_agg"
               });
             }
@@ -516,8 +516,8 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: item.label,
-                format: item.field_type,
-                options: item.options
+                redcap_field_type: item.redcap_field_type,
+                redcap_options: item.redcap_options
               });
           });
 
@@ -525,10 +525,9 @@ export default {
           let scoresArr = window.data.scores;
           scoresArr.forEach((score) => {
             const subscoresArr = [];
-            score.dependencies.forEach((subscore) => {
+            score.subscores.forEach((subscore) => {
               const clinicalVarArr = [];
               subscore.dependencies.forEach((clinicalVar) => {
-
                 clinicalVar.aggregations.forEach((agg) => {
                   let clinicalVarRCLabel = "";
                   switch (agg) {
@@ -554,10 +553,11 @@ export default {
                     redcap_field_name: score.duster_field_name + '_'
                       + subscore.duster_field_name + '_'
                       + clinicalVar.duster_field_name + '_'
-                      + agg.replace("_agg", "") + index,
+                      + agg.replace("_agg", "")
+                      + index,
                     label: clinicalVarRCLabel,
-                    format: clinicalVar.redcap_field_type,
-                    field_note: clinicalVar.field_note,
+                    redcap_field_type: clinicalVar.redcap_field_type,
+                    redcap_field_note: clinicalVar.redcap_field_note,
                     aggregation: agg
                   });
                 });
@@ -567,9 +567,9 @@ export default {
                 duster_field_name: subscore.duster_field_name,
                 redcap_field_name: score.duster_field_name + '_' + subscore.duster_field_name + '_' + index,
                 label: subscore.label,
-                format: subscore.format,
-                field_note: subscore.field_note,
-                redcap_option: subscore.redcap_option,
+                redcap_field_type: subscore.redcap_field_type,
+                redcap_field_note: subscore.redcap_field_note,
+                redcap_options: subscore.redcap_options,
                 dependencies: clinicalVarArr
               });
             });
@@ -578,9 +578,9 @@ export default {
               duster_field_name: score.duster_field_name,
               redcap_field_name: score.duster_field_name + '_' + index,
               label: score.label,
-              format: score.redcap_field_type,
-              field_note: score.field_note,
-              redcap_option: score.redcap_option,
+              redcap_field_type: score.redcap_field_type,
+              redcap_field_note: score.redcap_field_note,
+              redcap_options: score.redcap_options,
               subscores: subscoresArr
             });
           });

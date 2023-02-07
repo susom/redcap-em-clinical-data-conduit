@@ -31,7 +31,7 @@ if(array_key_exists("rp_info", $config)) {
   $rp_form_label = "Researcher-Provided Information";
   $odm->addForm($rp_form_name, $rp_form_label);
   // add field for REDCap Record ID
-  $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "format" => "text")));
+  $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "redcap_field_type" => "text")));
   // add fields for identifiers
   $odm->addFields($rp_form_name, null, null, "Identifiers", $config["rp_info"]["rp_identifiers"]);
   // add fields for dates
