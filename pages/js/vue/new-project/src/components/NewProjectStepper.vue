@@ -35,21 +35,12 @@
             :complete="step > 3"
             step="3"
           >
-            Clinical Dates
-          </v-stepper-step>
-
-          <v-divider></v-divider>
-
-          <v-stepper-step
-            :complete="step > 4"
-            step="4"
-          >
             Clinical Data
           </v-stepper-step>
 
           <v-divider></v-divider>
 
-          <v-stepper-step step="5">
+          <v-stepper-step step="4">
             Review
           </v-stepper-step>
         </v-stepper-header>
@@ -70,13 +61,8 @@
             />
           </v-stepper-content>
 
-          <!-- Clinical Dates -->
-          <v-stepper-content step="3">
-            <ClinicalDatesStep/>
-          </v-stepper-content>
-
           <!-- Data Collection Windows -->
-          <v-stepper-content step="4">
+          <v-stepper-content step="3">
             <DataCollectionWindowsStep
               :clinical_dates_prop="clinical_dates"
               :collection_windows_prop.sync="collection_windows"
@@ -90,7 +76,7 @@
           </v-stepper-content>
 
           <!-- Review -->
-          <v-stepper-content step="5">
+          <v-stepper-content step="4">
             <ReviewStep
               :collection_windows="collection_windows"
               :create_project_url="urls.create_project"
@@ -130,7 +116,7 @@
         </v-col>
         <v-col
           cols="auto"
-          v-show="step < 5"
+          v-show="step < 4"
         >
           <v-btn
             color="primary"
@@ -153,7 +139,6 @@ import axios from 'axios'
 import DusterIntro from "@/components/DusterIntro" ;
 import ResearcherProvidedInfoStep from "@/components/ResearcherProvidedInfoStep";
 import DemographicsStep from "@/components/DemographicsStep";
-import ClinicalDatesStep from "@/components/ClinicalDatesStep";
 import DataCollectionWindowsStep from "@/components/DataCollectionWindowsStep";
 import ReviewStep from "@/components/ReviewStep";
 
@@ -214,7 +199,6 @@ export default {
       outcomes: [],
       scores: [],
       scores_meta: {}
-      // subscores: []
     }
   },
   mounted() {
@@ -308,6 +292,10 @@ export default {
         )
       }
 
+      console.log("response.data: ");
+      console.log(response.data);
+      console.log(this.scores);
+
       this.metadata_loaded = true;
     });
   },
@@ -318,9 +306,9 @@ export default {
       }
     },
     nextStep() {
-      if (this.step < 5) {
+      if (this.step < 4) {
         this.step += 1;
-        if(this.step == 5) {
+        if(this.step == 4) {
           // this.instruments = Array.from(Array(2 + this.config.collection_windows.length).keys());
         }
       }
@@ -329,7 +317,6 @@ export default {
   components: {
     ResearcherProvidedInfoStep,
     DemographicsStep,
-    ClinicalDatesStep,
     DataCollectionWindowsStep,
     ReviewStep,
     DusterIntro

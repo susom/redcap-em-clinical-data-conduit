@@ -148,9 +148,7 @@
                   >
                     <v-tab>Labs & Vitals</v-tab>
                     <v-tab>Outcomes</v-tab>
-                    <!--
                     <v-tab>Scores</v-tab>
-                    -->
 
                     <v-tab-item
                     >
@@ -1439,7 +1437,8 @@ export default {
         label: null,
         category: null,
         redcap_field_type: null,
-        redcap_options: null
+        redcap_options: null,
+        subscores: null
       },
       open_window_panel: null,
       window_stepper: 1,
@@ -1670,7 +1669,8 @@ export default {
           label: this.new_score_obj.label,
           category: this.new_score_obj.category,
           redcap_field_type: this.new_score_obj.redcap_field_type,
-          redcap_options: this.new_score_obj.redcap_options
+          redcap_options: this.new_score_obj.redcap_options,
+          subscores: this.new_score_obj.subscores
         })));
         this.alert_score_success = true;
       } else {
@@ -1681,7 +1681,8 @@ export default {
         label: null,
         category: null,
         redcap_field_type: null,
-        redcap_options: null
+        redcap_options: null,
+        subscores: null
       }
     },
     // checks if the default aggregate needs to be set

@@ -197,16 +197,22 @@ class OdmXmlString {
               }
               break;
 
-            case "calculated":
-              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"float\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"calc\" redcap:FieldNote=\"{$field["redcap_field_note"]}\" redcap:Calculation=\"{$field["redcap_options"]}\"{$section_header}\n"
+            case "calc":
+              $field_note = htmlentities($field["redcap_field_note"]);
+              $calc = htmlentities($field["redcap_options"]);
+              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"float\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"calc\" redcap:FieldNote=\"{$field_note}\" redcap:Calculation=\"{$calc}\"{$section_header}>\n"
               . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
               . "\t</ItemDef>\n";
+
+              // add field to item group string
+              $item_group_def .= "\t\t<ItemRef ItemOID=\"{$field["redcap_field_name"]}\" Mandatory=\"No\" redcap:Variable=\"{$field["redcap_field_name"]}\"/>\n";
               break;
 
             default:
               $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"text\"{$text_validation}{$section_header}>\n"
                 . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
                 . "\t</ItemDef>\n";
+
               // add field to item group string
               $item_group_def .= "\t\t<ItemRef ItemOID=\"{$field["redcap_field_name"]}\" Mandatory=\"No\" redcap:Variable=\"{$field["redcap_field_name"]}\"/>\n";
           }
