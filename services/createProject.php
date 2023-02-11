@@ -23,8 +23,6 @@ $module->emLog($data);
 /* construct the ODM XML string */
 $odm = new OdmXmlString($data['app_title'], $data['purpose'], $data['purpose_other'], $data['project_note']);
 $config = $data['config'];
-$module->emLog($config["rp_info"]["rp_identifiers"]);
-$module->emLog($config["rp_info"]["rp_dates"]);
 // Researcher-Provided Information
 if(array_key_exists("rp_info", $config)) {
   $rp_form_name = "researcher_provided_information";
@@ -52,7 +50,6 @@ if(array_key_exists("demographics", $config)) {
 
 // Clinical Windows
 if(array_key_exists("collection_windows", $config)) {
-  $module->emLog($config['collection_windows']);
   foreach($config["collection_windows"] as $collection_window) {
     // add form
     $odm->addForm($collection_window["form_name"], $collection_window["label"]);
@@ -86,6 +83,7 @@ if(array_key_exists("collection_windows", $config)) {
 }
 
 $odm_str = $odm->getOdmXmlString();
+$module->emLog($odm_str);
 
 $data_arr = array(
   'project_title' => $data['app_title'],
