@@ -592,7 +592,7 @@ export default {
                       label: clinicalVarRCLabel,
                       redcap_field_type: clinicalVar.redcap_field_type,
                       redcap_field_note: clinicalVar.redcap_field_note,
-                      aggregates: agg
+                      aggregate: agg
                     });
                   });
                 } else {
