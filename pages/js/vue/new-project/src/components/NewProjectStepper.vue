@@ -292,10 +292,6 @@ export default {
         )
       }
 
-      console.log("response.data: ");
-      console.log(response.data);
-      console.log(this.scores);
-
       this.metadata_loaded = true;
     });
   },

@@ -199,8 +199,8 @@ class OdmXmlString {
 
             case "calc":
               $field_note = htmlentities($field["redcap_field_note"]);
-              $calc = htmlentities($field["redcap_options"]);
-              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"float\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"calc\" redcap:FieldNote=\"{$field_note}\" redcap:Calculation=\"{$calc}\"{$section_header}>\n"
+              $calculation = htmlentities($field["redcap_options"]);
+              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"float\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"calc\" redcap:FieldNote=\"{$field_note}\" redcap:Calculation=\"{$calculation}\"{$section_header}>\n"
               . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
               . "\t</ItemDef>\n";
 
