@@ -4,6 +4,7 @@ namespace Stanford\Duster;
 
 use ODM;
 use RCView;
+use Exception;
 
 /**
  * Class OdmXmlString
@@ -35,19 +36,22 @@ class OdmXmlString {
     $this->fields = array();
   }
 
-  /** adds an instrument form to the project
-   * @param $label
-   * @param $form_name
-   * @return void
-   */
-  public function addForm($form_name, $label) {
-    // TODO error handle, do nothing if there's already a pre-existing $form_name?
-    $this->forms[$form_name] = [
-      "form_name" => $form_name,
-      "label" => $label,
-      "item_groups" => []
-    ];
-  }
+    /** adds an instrument form to the project
+     * @param $label
+     * @param $form_name
+     * @return void
+     */
+    public function addForm($form_name, $label) {
+        if (!array_key_exists($form_name, $this->forms)) {
+            $this->forms[$form_name] = [
+                "form_name" => $form_name,
+                "label" => $label,
+                "item_groups" => []
+            ];
+        } else {
+            throw new Exception ("Unable to create form.  A form with this name already exists: '$form_name'.");
+        }
+    }
 
   /**
    * adds REDCap fields to a form if the given form exists
@@ -91,6 +95,8 @@ class OdmXmlString {
           }
         }
       }
+    } else {
+       throw new Exception("Unable to add fields to form $form_name.  Form does not exist.");
     }
   }
 
@@ -158,6 +164,9 @@ class OdmXmlString {
             case "datetime":
               $text_validation .= " redcap:TextValidationType=\"datetime_seconds_ymd\"";
               break;
+          }
+          if ($field["phi"]==='t') {
+                $text_validation .= " redcap:Identifier=\"y\"";
           }
 
           // add field to item def string

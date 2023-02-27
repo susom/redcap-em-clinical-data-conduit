@@ -180,14 +180,16 @@ export default {
         {
           label: "MRN",
           redcap_field_name: "mrn",
-          redcap_field_type: "8-digit number (including leading zeros, e.g., '01234567')"
+          redcap_field_type: "8-digit number (including leading zeros, e.g., '01234567')",
+          phi: "t"
         }
       ],
       rp_dates: [
         {
           label: "Study Enrollment Date",
           redcap_field_name: "enroll_date",
-          redcap_field_type: "date"
+          redcap_field_type: "date",
+          phi: "t"
         }
       ],
       demographics: {
@@ -234,7 +236,8 @@ export default {
           {
             label: demographic.label,
             duster_field_name: demographic.duster_field_name,
-            redcap_field_name: demographic.duster_field_name
+            redcap_field_name: demographic.duster_field_name,
+            phi: demographic.phi
           }
         );
       }

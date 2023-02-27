@@ -280,7 +280,8 @@ export default {
               {
                 redcap_field_name: "mrn",
                 label: "Medical Record Number (MRN)",
-                redcap_field_type: "text"
+                redcap_field_type: "text",
+                phi: "t"
               }
             ],
             rp_dates: {}
@@ -295,7 +296,8 @@ export default {
           datesArr.push([date.redcap_field_name, {
             redcap_field_name: date.redcap_field_name,
             label: date.label,
-            redcap_field_type: date.redcap_field_type
+            redcap_field_type: date.redcap_field_type,
+            phi: date.phi
           }]);
         });
         config.rp_info.rp_dates = Object.fromEntries(datesArr);
@@ -306,7 +308,8 @@ export default {
             duster_field_name: demographic.duster_field_name,
             redcap_field_name: demographic.redcap_field_name,
             label: demographic.label,
-            redcap_field_type: "text"
+            redcap_field_type: "text",
+            phi: demographic.phi
           });
         });
 
@@ -399,7 +402,8 @@ export default {
                 redcap_field_name: startRCField,
                 // based_on: timing.start_based,
                 rp_date: startRPDate,
-                label: startLabel
+                label: startLabel,
+                phi: "t"
               },
               end: {
                 type: timing.end_type,
@@ -408,7 +412,8 @@ export default {
                 redcap_field_name: endRCField,
                 // based_on: timing.end_based,
                 rp_date: endRPDate,
-                label: endLabel
+                label: endLabel,
+                phi: "t"
               }
             };
             newCW.timing = timingObj;

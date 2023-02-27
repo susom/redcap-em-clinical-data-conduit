@@ -323,12 +323,14 @@ export default {
       new_date: {
         label: null,
         redcap_field_name: null,
-        redcap_field_type: null
+        redcap_field_type: null,
+        phi: "t"
       },
       edit_date: {
         label: null,
         redcap_field_name: null,
-        redcap_field_type: null
+        redcap_field_type: null,
+        phi: "t"
       },
       rules: {
         required: value => !!value || 'Required.'

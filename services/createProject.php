@@ -3,6 +3,8 @@ namespace Stanford\Duster;
 /** @var $module Duster */
 
 use RedCapDB;
+use Throwable;
+use Exception;
 
 require_once $module->getModulePath() . "classes/OdmXmlString.php";
 require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
@@ -21,32 +23,36 @@ $data = json_decode($_POST['data'], true);
 $module->emLog($data);
 
 /* construct the ODM XML string */
-$odm = new OdmXmlString($data['app_title'], $data['purpose'], $data['purpose_other'], $data['project_note']);
-$config = $data['config'];
+try {
+    $odm = new OdmXmlString($data['app_title'], $data['purpose'], $data['purpose_other'], $data['project_note']);
+    $config = $data['config'];
 // Researcher-Provided Information
-if(array_key_exists("rp_info", $config)) {
-  $rp_form_name = "researcher_provided_information";
-  $rp_form_label = "Researcher-Provided Information";
-  $odm->addForm($rp_form_name, $rp_form_label);
-  // add field for REDCap Record ID
-  $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "redcap_field_type" => "text")));
-  // add fields for identifiers
-  $odm->addFields($rp_form_name, null, null, "Identifiers", $config["rp_info"]["rp_identifiers"]);
-  // add fields for dates
-  $dates_arr = [];
-  foreach($config["rp_info"]["rp_dates"] as $date) {
-    $dates_arr[] = $date;
-  }
-  $odm->addFields($rp_form_name, null, null, "Dates", $dates_arr);
-}
+    if (array_key_exists("rp_info", $config)) {
+        $rp_form_name = "researcher_provided_information";
+        $rp_form_label = "Researcher-Provided Information";
+        $odm->addForm($rp_form_name, $rp_form_label);
+        // add field for REDCap Record ID
+        $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "format" => "text")));
+        // add fields for identifiers
+        $odm->addFields($rp_form_name, null, null, "Identifiers", $config["rp_info"]["rp_identifiers"]);
+        // add fields for dates
+        $dates_arr = [];
+        foreach ($config["rp_info"]["rp_dates"] as $date) {
+            $dates_arr[] = $date;
+        }
+        $odm->addFields($rp_form_name, null, null, "Dates", $dates_arr);
+
+    } else {
+        throw new Exception ("Duster configuration is required to have Researcher provided values");
+    }
 
 // Demographics
-if(array_key_exists("demographics", $config)) {
-  $demo_form_name = "demographics";
-  $demo_form_label = "Demographics";
-  $odm->addForm($demo_form_name, $demo_form_label);
-  $odm->addFields($demo_form_name, null, null, "", $config["demographics"]);
-}
+    if (array_key_exists("demographics", $config)) {
+        $demo_form_name = "demographics";
+        $demo_form_label = "Demographics";
+        $odm->addForm($demo_form_name, $demo_form_label);
+        $odm->addFields($demo_form_name, null, null, "", $config["demographics"]);
+    }
 
 // Clinical Windows
 if(array_key_exists("collection_windows", $config)) {
@@ -84,7 +90,11 @@ if(array_key_exists("collection_windows", $config)) {
 
 $odm_str = $odm->getOdmXmlString();
 $module->emLog($odm_str);
-
+} catch (Throwable $ex) {
+  $msg = $module->handleError('Duster Error: Project Create',  "Unable to create ODM xml.", $ex );
+  print "Error message: Unable to create project. " . $msg;
+  exit();
+}
 $data_arr = array(
   'project_title' => $data['app_title'],
   'purpose' => $data['purpose']
@@ -113,8 +123,9 @@ if(!$super_token) {
     // Remember to delete the temporary token
     // register_shutdown_function(array($this, "deleteTempSuperToken"));
   } else {
-    $module->emError("Failed in creating super token");
-    // TODO exit/return since we cannot create a project without a super token
+      $msg = $module->handleError('Duster Error: Project Create',  "Failed in creating super token for userid " .  USERID );
+      print "Error message: Unable to create project. " . $msg;
+      exit();
   }
 }
 
@@ -145,12 +156,23 @@ curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
 
 $project_token = curl_exec($ch);
 $module->emDebug($project_token);
+if (empty($project_token)) {
+    $msg = $module->handleError('Duster Error: Project Create',  "Unable to retrieve project token." );
+    print "Error message: Unable to create project.  Unable to retrieve project token. " . $msg;
+    exit();
+}
 //echo $output;
 curl_close($ch);
 
 // use the user's token for the newly created project to identify the pid
-$project_id = $module->getUserProjectFromToken($project_token);
-$module->emDebug($project_id);
+try {
+    $project_id = $module->getUserProjectFromToken($project_token);
+    $module->emDebug($project_id);
+} catch (Throwable $ex) {
+    $msg = $module->email('Duster Error: Project Create',  "Unable to retrieve user token/project id.", $ex);
+    print "Error message: Unable to create project.  Unable to retrieve project id. " . $msg;
+    exit();
+}
 
 // add project info via SQL
 // since not all project info could be added via the REDCap create project call with ODM XML due to API limitations
@@ -187,8 +209,10 @@ $project_info_sql_result = $module->query(
   ]
 );
 $module->emDebug($project_info_sql_result);
-if($project_info_sql_result->num_rows !== 1) {
-  // TODO error handle failed to add project info correctly
+if(!$project_info_sql_result) {
+    $msg = $module->handleError('Duster Error: Project Create',  "Unable to add project info in createProject. Db insert failed with data=".print_r(data, true));
+    print "Error message: Unable to add project info. " . $msg;
+    exit();
 }
 
 $data_arr['redcap_server_name'] = SERVER_NAME;
@@ -201,8 +225,13 @@ $_GET['pid'] = $project_id;
 
 // enable DUSTER EM on the newly created project
 $external_module_id = $module->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = ?', ['duster']);
-$module->query('INSERT INTO `redcap_external_module_settings`(`external_module_id`, `project_id`, `key`, `type`, `value`) VALUES (?, ?, ?, ?, ?)',
+$em_module_sql_result = $module->query('INSERT INTO `redcap_external_module_settings`(`external_module_id`, `project_id`, `key`, `type`, `value`) VALUES (?, ?, ?, ?, ?)',
   [$external_module_id->fetch_assoc()['external_module_id'], $project_id, 'enabled', 'boolean', 'true']);
+if (!$em_module_sql_result) {
+    $msg = $module->handleError('Duster Error: Project Create',  "Unable to active Duster EM module on new project $project_id. Db insert failed with following values: external_module_id" .  $external_module_id->fetch_assoc()['external_module_id'] . ", project_id: $project_id, key: enabled, type: boolean, value: true");
+    print "Error message: Unable to active Duster EM module on new project $project_id. " . $msg;
+    exit();
+}
 
 // delete the project super token if needed
 if($delete_token) {
@@ -219,8 +248,10 @@ $token = false;
 try {
   $tokenMgnt = \ExternalModules\ExternalModules::getModuleInstance('vertx_token_manager');
   $token = $tokenMgnt->findValidToken('ddp');
-} catch (Exception $ex) {
-  $module->emError("Could not find a valid token for service ddp");
+} catch (Throwable $ex) {
+   $msg = $module->handleError('Duster Error: Project Create',  "Unable to find a valid vertx token for service ddp in createProject.", $ex);
+    print "Error message: Could not set up data queries. " . $msg;
+    exit();
 }
 
 // set up the headers
@@ -237,6 +268,7 @@ $headers = array(
 // set up the POST body as a JSON-encoded string
 $config_data = json_encode(array(
   'redcap_project_id' => $project_id,
+  'redcap_user' => $module->getUser()->getUserName(),
   'config' => $data['config'],
   'linkinfo' => $data_arr
 ));
@@ -255,6 +287,8 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 // Execute the POST request
 $result = curl_exec($ch);
+$module->emDebug('starr-api result: '. $result);
+
 // Close cURL resource
 curl_close($ch);
 
@@ -268,8 +302,11 @@ if ($em_config['success'] && !empty($em_config['rcToStarrLinkConfig'])) {
     $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module);
     $rctostarr_config->enableRedcapToStarrLink();
     $rctostarr_config->configureRedcapToStarrLink($em_config);
-}
 
-$module->emDebug(APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject");
-echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
-?>
+    $module->emDebug(APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject");
+    echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
+} else {
+    $msg = $module->handleError("Duster Error: Project Create",  "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $em_config['error']);
+
+    print "Error message: Could not set up data queries. " . $msg;
+}
