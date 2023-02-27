@@ -607,7 +607,8 @@ export default {
                     redcap_field_name: clinicalVarRCFieldName,
                     label: clinicalVar.label,
                     redcap_field_type: clinicalVar.redcap_field_type,
-                    redcap_field_note: clinicalVar.redcap_field_note
+                    redcap_field_note: clinicalVar.redcap_field_note,
+                    redcap_options: clinicalVar.redcap_options
                   });
                 }
               });

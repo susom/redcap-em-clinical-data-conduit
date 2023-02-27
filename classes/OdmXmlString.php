@@ -212,6 +212,9 @@ class OdmXmlString {
                 $code_list_def .= "\t\t<CodeListItem CodedValue=\"{$choice_arr[0]}\"><Decode><TranslatedText>{$choice_arr[1]}</TranslatedText></Decode></CodeListItem>\n";
               }
               $code_list_def .= "\t</CodeList>\n";
+
+              // add field to item group string
+              $item_group_def .= "\t\t<ItemRef ItemOID=\"{$field["redcap_field_name"]}\" Mandatory=\"No\" redcap:Variable=\"{$field["redcap_field_name"]}\"/>\n";
               break;
 
             case "calc":
