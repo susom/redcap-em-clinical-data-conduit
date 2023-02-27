@@ -18,16 +18,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
 
   use emLoggerTrait;
 
-  /* when duster is run post project creation*/
-  /*    public function redcap_every_page_top() {
-      // add query to see if it's a duster project from survey
-      if (strpos(PAGE, "index.php") !==false && $_GET['msg']==='newproject'
-          && !$_GET['dustercomplete']) {
-          $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
-          $some = "<script> window.location = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
-          echo $some;
-  }}*/
-
   /**
    * Hook to show DUSTER as an option in the 'New Project' page
    * Only shows DUSTER option if:
@@ -36,6 +26,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    * @return void
    */
   public function redcap_every_page_top($project_id) {
+      $this->test();
     // $this->emDebug(" Page is " . PAGE . " action is " . $_GET['action']);
     if ($project_id === null
       && strpos(PAGE, "index.php") !== false
@@ -183,6 +174,11 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     return $metadata;
   }
 
+    public function test() {
+        $resp = $this->starrApiGetRequest("http://host.docker.internal:8889/duster/api/v1/test/",'ddp');
+        $this->emDebug('test resp:' . print_r($resp, true));
+    }
+
   /*public function getDusterConfig() {
       // build and send GET request to config webservice
       $config_url = $this->getSystemSetting("starrapi-config-url") . $this->getProjectId();
@@ -215,4 +211,25 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       throw new Exception ("Returned $num_results in " . __METHOD__ . " from token '$token'");
     }
   }
+
+  public function handleError($subject, $message, $throwable=null) {
+    if (!empty($throwable)) {
+        $message .= "<br>Message: ".$throwable->getMessage()."<br>Trace: " .$throwable->getTraceAsString();
+    }
+    $this->emError("Duster Project Error Subject: $subject; Message: $message");
+    $duster_email = $this->getSystemSetting("duster-email");
+    if (!empty($duster_email)) {
+        $emailStatus = REDCap::email($duster_email,'no-reply@stanford.edu', $subject, $message);
+        if (!$emailStatus) {
+            $this->emError("Email Notification to $duster_email Failed.  Subject: $subject");
+            return "Unable to send notification email to $duster_email.  Please notify your redcap administrator.";
+        } else {
+            return "An email regarding this issue has been sent to $duster_email.";
+        }
+    } else {
+        $this->emLog("No email configured.");
+        return "No duster email has been configured.  Please notify your redcap administrator.";
+    }
+  }
+
 }

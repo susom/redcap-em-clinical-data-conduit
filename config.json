@@ -90,7 +90,13 @@
                     "repeatable": true
                 }
             ]
-        }
+        },
+		{
+			"key": "duster-email",
+			"name": "Error notification email",
+			"required": false,
+			"type": "text"
+		}
 	],
 
 	"compatibility": {
