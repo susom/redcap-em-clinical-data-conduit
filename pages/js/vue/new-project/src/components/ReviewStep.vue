@@ -306,7 +306,7 @@ export default {
             duster_field_name: demographic.duster_field_name,
             redcap_field_name: demographic.redcap_field_name,
             label: demographic.label,
-            redcap_field_type: "text"
+            redcap_field_type: demographic.redcap_field_type
           });
         });
 
@@ -578,8 +578,7 @@ export default {
                     }
                     clinicalVarRCLabel += clinicalVar.label;
 
-                    let clinicalVarRCFieldName = score.duster_field_name + '_'
-                      + subscore.duster_field_name + '_'
+                    let clinicalVarRCFieldName = subscore.duster_field_name + '_'
                       + clinicalVar.duster_field_name + '_'
                       + agg.replaceAll("_agg", "") + '_'
                       + index;
@@ -596,8 +595,7 @@ export default {
                     });
                   });
                 } else {
-                  let clinicalVarRCFieldName = score.duster_field_name + '_'
-                    + subscore.duster_field_name + '_'
+                  let clinicalVarRCFieldName = subscore.duster_field_name + '_'
                     + clinicalVar.duster_field_name + '_'
                     + index;
 
@@ -613,7 +611,7 @@ export default {
                 }
               });
 
-              let subscoreRCFieldName = score.duster_field_name + '_' + subscore.duster_field_name + '_' + index;
+              let subscoreRCFieldName = subscore.duster_field_name + '_' + index;
               scoreCalculation = scoreCalculation.replaceAll('[' + subscore.duster_field_name + ']', '[' + subscoreRCFieldName + ']');
               subscoresArr.push({
                 duster_field_name: subscore.duster_field_name,
