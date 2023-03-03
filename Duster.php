@@ -26,7 +26,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    * @return void
    */
   public function redcap_every_page_top($project_id) {
-      $this->test();
     // $this->emDebug(" Page is " . PAGE . " action is " . $_GET['action']);
     if ($project_id === null
       && strpos(PAGE, "index.php") !== false
@@ -173,11 +172,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     $metadata = $this->starrApiGetRequest($metadata_url,'ddp');
     return $metadata;
   }
-
-    public function test() {
-        $resp = $this->starrApiGetRequest("http://host.docker.internal:8889/duster/api/v1/test/",'ddp');
-        $this->emDebug('test resp:' . print_r($resp, true));
-    }
 
   /*public function getDusterConfig() {
       // build and send GET request to config webservice
