@@ -1932,7 +1932,8 @@ export default {
         },
         data: {
           labs_vitals: [],
-          outcomes:[]
+          outcomes:[],
+          scores:[]
         }
       }));
       this.alert_default_agg = false;

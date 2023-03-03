@@ -560,76 +560,77 @@ export default {
           scoresArr.forEach((score) => {
             const subscoresArr = [];
             let scoreCalculation = score.redcap_options;
-            score.subscores.forEach((subscore) => {
-              const clinicalVarArr = [];
-              let subscoreCalculation = subscore.redcap_options;
-              subscore.dependencies.forEach((clinicalVar) => {
-                if (Object.prototype.hasOwnProperty.call(clinicalVar, 'aggregates')) {
-                  clinicalVar.aggregates.forEach((agg) => {
-                    let clinicalVarRCLabel = "";
-                    switch (agg) {
-                      case "min_agg":
-                        clinicalVarRCLabel += "Minimum ";
-                        break;
-                      case "max_agg":
-                        clinicalVarRCLabel += "Maximum ";
-                        break;
-                      case "first_agg":
-                        clinicalVarRCLabel += "First ";
-                        break;
-                      case "last_agg":
-                        clinicalVarRCLabel += "Last ";
-                        break;
-                    }
-                    clinicalVarRCLabel += clinicalVar.label;
+            if (score.subscores !== null) {
+              score.subscores.forEach((subscore) => {
+                const clinicalVarArr = [];
+                let subscoreCalculation = subscore.redcap_options;
+                subscore.dependencies.forEach((clinicalVar) => {
+                  if (Object.prototype.hasOwnProperty.call(clinicalVar, 'aggregates')) {
+                    clinicalVar.aggregates.forEach((agg) => {
+                      let clinicalVarRCLabel = "";
+                      switch (agg) {
+                        case "min_agg":
+                          clinicalVarRCLabel += "Minimum ";
+                          break;
+                        case "max_agg":
+                          clinicalVarRCLabel += "Maximum ";
+                          break;
+                        case "first_agg":
+                          clinicalVarRCLabel += "First ";
+                          break;
+                        case "last_agg":
+                          clinicalVarRCLabel += "Last ";
+                          break;
+                      }
+                      clinicalVarRCLabel += clinicalVar.label;
 
+                      let clinicalVarRCFieldName = score.duster_field_name + '_'
+                          + subscore.duster_field_name + '_'
+                          + clinicalVar.duster_field_name + '_'
+                          + agg.replaceAll("_agg", "") + '_'
+                          + index;
+
+                      subscoreCalculation = subscoreCalculation.replaceAll('[' + clinicalVar.duster_field_name + '_' + agg.replaceAll("_agg", "") + ']', '[' + clinicalVarRCFieldName + ']');
+
+                      clinicalVarArr.push({
+                        duster_field_name: clinicalVar.duster_field_name,
+                        redcap_field_name: clinicalVarRCFieldName,
+                        label: clinicalVarRCLabel,
+                        redcap_field_type: clinicalVar.redcap_field_type,
+                        redcap_field_note: clinicalVar.redcap_field_note,
+                        aggregate: agg
+                      });
+                    });
+                  } else {
                     let clinicalVarRCFieldName = score.duster_field_name + '_'
-                      + subscore.duster_field_name + '_'
-                      + clinicalVar.duster_field_name + '_'
-                      + agg.replaceAll("_agg", "") + '_'
-                      + index;
+                        + subscore.duster_field_name + '_'
+                        + clinicalVar.duster_field_name + '_'
+                        + index;
 
-                    subscoreCalculation = subscoreCalculation.replaceAll('[' + clinicalVar.duster_field_name + '_' + agg.replaceAll("_agg", "") + ']', '[' + clinicalVarRCFieldName + ']');
-
+                    subscoreCalculation = subscoreCalculation.replaceAll('[' + clinicalVar.duster_field_name + ']', '[' + clinicalVarRCFieldName + ']');
                     clinicalVarArr.push({
                       duster_field_name: clinicalVar.duster_field_name,
                       redcap_field_name: clinicalVarRCFieldName,
-                      label: clinicalVarRCLabel,
+                      label: clinicalVar.label,
                       redcap_field_type: clinicalVar.redcap_field_type,
-                      redcap_field_note: clinicalVar.redcap_field_note,
-                      aggregate: agg
+                      redcap_field_note: clinicalVar.redcap_field_note
                     });
-                  });
-                } else {
-                  let clinicalVarRCFieldName = score.duster_field_name + '_'
-                    + subscore.duster_field_name + '_'
-                    + clinicalVar.duster_field_name + '_'
-                    + index;
+                  }
+                });
 
-                  subscoreCalculation = subscoreCalculation.replaceAll('[' + clinicalVar.duster_field_name + ']', '[' + clinicalVarRCFieldName + ']');
-                  clinicalVarArr.push({
-                    duster_field_name: clinicalVar.duster_field_name,
-                    redcap_field_name: clinicalVarRCFieldName,
-                    label: clinicalVar.label,
-                    redcap_field_type: clinicalVar.redcap_field_type,
-                    redcap_field_note: clinicalVar.redcap_field_note
-                  });
-                }
+                let subscoreRCFieldName = score.duster_field_name + '_' + subscore.duster_field_name + '_' + index;
+                scoreCalculation = scoreCalculation.replaceAll('[' + subscore.duster_field_name + ']', '[' + subscoreRCFieldName + ']');
+                subscoresArr.push({
+                  duster_field_name: subscore.duster_field_name,
+                  redcap_field_name: subscoreRCFieldName,
+                  label: subscore.label,
+                  redcap_field_type: subscore.redcap_field_type,
+                  redcap_field_note: subscore.redcap_field_note,
+                  redcap_options: subscoreCalculation,
+                  dependencies: clinicalVarArr
+                });
               });
-
-              let subscoreRCFieldName = score.duster_field_name + '_' + subscore.duster_field_name + '_' + index;
-              scoreCalculation = scoreCalculation.replaceAll('[' + subscore.duster_field_name + ']', '[' + subscoreRCFieldName + ']');
-              subscoresArr.push({
-                duster_field_name: subscore.duster_field_name,
-                redcap_field_name: subscoreRCFieldName,
-                label: subscore.label,
-                redcap_field_type: subscore.redcap_field_type,
-                redcap_field_note: subscore.redcap_field_note,
-                redcap_options: subscoreCalculation,
-                dependencies: clinicalVarArr
-              });
-            });
-
+            }
 
             newCW.data.scores.push({
               duster_field_name: score.duster_field_name,
@@ -762,25 +763,27 @@ export default {
     getScoreFields(score) {
       console.log(score);
       let fieldsArr = [];
-      score.subscores.forEach((subscore) => {
-        subscore.dependencies.forEach((clinicalVar) => {
+      if (score.subscores !== null) {
+        score.subscores.forEach((subscore) => {
+          subscore.dependencies.forEach((clinicalVar) => {
+            fieldsArr.push({
+              label: clinicalVar.label,
+              redcap_field_name: clinicalVar.redcap_field_name,
+              category: subscore.label
+            });
+          });
           fieldsArr.push({
-            label: clinicalVar.label,
-            redcap_field_name: clinicalVar.redcap_field_name,
+            label: subscore.label,
+            redcap_field_name: subscore.redcap_field_name,
             category: subscore.label
           });
         });
         fieldsArr.push({
-          label: subscore.label,
-          redcap_field_name: subscore.redcap_field_name,
-          category: subscore.label
+          label: score.label,
+          redcap_field_name: score.redcap_field_name,
+          category: score.label
         });
-      });
-      fieldsArr.push({
-        label: score.label,
-        redcap_field_name: score.redcap_field_name,
-        category: score.label
-      });
+      }
       return fieldsArr;
     }
   },

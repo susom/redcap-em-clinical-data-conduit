@@ -169,7 +169,7 @@ try {
     $project_id = $module->getUserProjectFromToken($project_token);
     $module->emDebug($project_id);
 } catch (Throwable $ex) {
-    $msg = $module->email('Duster Error: Project Create',  "Unable to retrieve user token/project id.", $ex);
+    $msg = $module->handleError('Duster Error: Project Create',  "Unable to retrieve user token/project id.", $ex);
     print "Error message: Unable to create project.  Unable to retrieve project id. " . $msg;
     exit();
 }

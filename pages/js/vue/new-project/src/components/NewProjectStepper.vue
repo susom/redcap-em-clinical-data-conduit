@@ -281,18 +281,20 @@ export default {
       }
 
       // add scores
-      for(const score of response.data.scores) {
-        this.scores.push(
-          {
-            duster_field_name: score.duster_field_name,
-            label: score.label,
-            category: score.category,
-            redcap_field_type: score.redcap_field_type,
-            redcap_field_note: score.redcap_field_note,
-            redcap_options: score.redcap_options,
-            subscores: score.subscores
-          }
-        )
+      if (response.data.scores) {
+        for (const score of response.data.scores) {
+          this.scores.push(
+              {
+                duster_field_name: score.duster_field_name,
+                label: score.label,
+                category: score.category,
+                redcap_field_type: score.redcap_field_type,
+                redcap_field_note: score.redcap_field_note,
+                redcap_options: score.redcap_options,
+                subscores: score.subscores
+              }
+          )
+        }
       }
 
       this.metadata_loaded = true;
