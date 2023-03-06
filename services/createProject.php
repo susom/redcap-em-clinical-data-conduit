@@ -23,15 +23,13 @@ $module->emLog($data);
 /* construct the ODM XML string */
 $odm = new OdmXmlString($data['app_title'], $data['purpose'], $data['purpose_other'], $data['project_note']);
 $config = $data['config'];
-$module->emLog($config["rp_info"]["rp_identifiers"]);
-$module->emLog($config["rp_info"]["rp_dates"]);
 // Researcher-Provided Information
 if(array_key_exists("rp_info", $config)) {
   $rp_form_name = "researcher_provided_information";
   $rp_form_label = "Researcher-Provided Information";
   $odm->addForm($rp_form_name, $rp_form_label);
   // add field for REDCap Record ID
-  $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "format" => "text")));
+  $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "redcap_field_type" => "text")));
   // add fields for identifiers
   $odm->addFields($rp_form_name, null, null, "Identifiers", $config["rp_info"]["rp_identifiers"]);
   // add fields for dates
@@ -52,7 +50,6 @@ if(array_key_exists("demographics", $config)) {
 
 // Clinical Windows
 if(array_key_exists("collection_windows", $config)) {
-  $module->emLog($config['collection_windows']);
   foreach($config["collection_windows"] as $collection_window) {
     // add form
     $odm->addForm($collection_window["form_name"], $collection_window["label"]);
@@ -65,10 +62,28 @@ if(array_key_exists("collection_windows", $config)) {
     $odm->addFields($collection_window["form_name"], null, null, "Vitals", $collection_window["data"]["vitals"]);
     // add outcomes with its own section header
     $odm->addFields($collection_window["form_name"], null, null, "Outcomes", $collection_window["data"]["outcomes"]);
+
+    // add each score with a section header
+    foreach($collection_window["data"]["scores"] as $score) {
+      $score_arr = [];
+      // add each subscore for score
+      foreach($score["subscores"] as $subscore) {
+        // add each clinical variable for subscore
+        foreach($subscore["dependencies"] as $clinical_var) {
+          $score_arr[] = $clinical_var;
+        }
+        unset($subscore["dependencies"]);
+        $score_arr[] = $subscore;
+      }
+      unset($score["subscores"]);
+      $score_arr[] = $score;
+      $odm->addFields($collection_window["form_name"], null, null, $score["label"], $score_arr);
+    }
   }
 }
 
 $odm_str = $odm->getOdmXmlString();
+$module->emLog($odm_str);
 
 $data_arr = array(
   'project_title' => $data['app_title'],

@@ -47,8 +47,9 @@
               fixed-header
               dense
               hide-default-footer
+              disable-pagination
             >
-              <template v-slot:[`item.format`]="">
+              <template v-slot:[`item.redcap_field_type`]="">
                 <span>8-digit number (including leading zeros, e.g., '01234567')</span>
               </template>
             </v-data-table>
@@ -66,9 +67,10 @@
               fixed-header
               dense
               hide-default-footer
+              disable-pagination
             >
-              <template v-slot:[`item.format`]="{ item }">
-                <span>{{item.format}} [{{item.format=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM:SS'}}]</span>
+              <template v-slot:[`item.redcap_field_type`]="{ item }">
+                <span>{{item.redcap_field_type}} [{{item.redcap_field_type=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM:SS'}}]</span>
               </template>
             </v-data-table>
           </v-card>
@@ -136,6 +138,7 @@
               fixed-header
               dense
               hide-default-footer
+              disable-pagination
             ></v-data-table>
           </v-card>
           <v-card
@@ -151,6 +154,7 @@
               fixed-header
               dense
               hide-default-footer
+              disable-pagination
             ></v-data-table>
           </v-card>
           <v-card
@@ -166,7 +170,27 @@
               fixed-header
               dense
               hide-default-footer
+              disable-pagination
           ></v-data-table>
+          </v-card>
+          <v-card
+            outlined
+            class="mb-4"
+            v-for="score in cw.data.scores"
+            :key="score.id"
+          >
+            <v-card-subtitle><h2>{{score.label}}</h2></v-card-subtitle>
+            <v-data-table
+              :headers="review_score_headers"
+              :items="getScoreFields(score)"
+              item-key="label"
+              no-data-text="No scores have been selected."
+              fixed-header
+              dense
+              hide-default-footer
+              disable-pagination
+              show-group-by
+            ></v-data-table>
           </v-card>
         </v-expansion-panel-content>
       </v-expansion-panel>
@@ -223,12 +247,12 @@ export default {
       review_id_headers: [
         {text: 'Label', value: 'label', sortable: false},
         {text: 'REDCap field name', value: 'redcap_field_name', sortable: false},
-        {text: 'Format', value: 'format', sortable: false}
+        {text: 'REDCap field type', value: 'redcap_field_type', sortable: false}
       ],
       review_date_headers: [
         {text: 'Label', value: 'label'},
         {text: 'REDCap field name', value: 'redcap_field_name'},
-        {text: 'Format', value: 'format'}
+        {text: 'REDCap field type', value: 'redcap_field_type'}
       ],
       review_demo_headers: [
         {text: 'Label', value: 'label'},
@@ -237,6 +261,11 @@ export default {
       review_cw_headers: [
         {text: 'Label', value: 'label'},
         {text: 'REDCap field name', value: 'redcap_field_name'}
+      ],
+      review_score_headers: [
+        {text: 'Label', value: 'label', groupable: false},
+        {text: 'REDCap field name', value: 'redcap_field_name', groupable: false},
+        {text: 'Category', value: 'category'}
       ],
       save_error: null,
       createProjectDialog: false
@@ -251,7 +280,7 @@ export default {
               {
                 redcap_field_name: "mrn",
                 label: "Medical Record Number (MRN)",
-                format: "text"
+                redcap_field_type: "text"
               }
             ],
             rp_dates: {}
@@ -266,7 +295,7 @@ export default {
           datesArr.push([date.redcap_field_name, {
             redcap_field_name: date.redcap_field_name,
             label: date.label,
-            format: date.format
+            redcap_field_type: date.redcap_field_type
           }]);
         });
         config.rp_info.rp_dates = Object.fromEntries(datesArr);
@@ -277,7 +306,7 @@ export default {
             duster_field_name: demographic.duster_field_name,
             redcap_field_name: demographic.redcap_field_name,
             label: demographic.label,
-            format: "text"
+            redcap_field_type: demographic.redcap_field_type
           });
         });
 
@@ -293,7 +322,8 @@ export default {
             data: {
               labs: [],
               vitals: [],
-              outcomes: []
+              outcomes: [],
+              scores: []
             }
           };
 
@@ -322,7 +352,7 @@ export default {
 
             // get the REDCap label for the start parameter for timing
             let startLabel = timing.start.label;
-            if(timing.start_type === 'date' || timing.start.format === 'date') {
+            if(timing.start_type === 'date' || timing.start.redcap_field_type === 'date') {
               startLabel = '00:00:00 on the Calendar Day of ' + timing.start.label;
             }
 
@@ -351,7 +381,7 @@ export default {
             // get the REDCap label for the end parameter for timing
             let endLabel = "";
             if(timing.end_type === 'dttm') {
-              if(timing.end.format === 'date') {
+              if(timing.end.redcap_field_type === 'date') {
                 endLabel = 'Midnight on the Calendar Day of ' + timing.end.label;
               } else {
                 endLabel = timing.end.label;
@@ -414,7 +444,7 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: 'Minimum ' + item.label,
-                format: "text",
+                redcap_field_type: "text",
                 aggregate: "min_agg"
               });
             }
@@ -437,7 +467,7 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: 'Maximum ' + item.label,
-                format: "text",
+                redcap_field_type: "text",
                 aggregate: "max_agg"
               });
             }
@@ -460,7 +490,7 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: 'First ' + item.label,
-                format: "text",
+                redcap_field_type: "text",
                 aggregate: "first_agg"
               });
             }
@@ -484,7 +514,7 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: 'Last ' + item.label,
-                format: "text",
+                redcap_field_type: "text",
                 aggregate: "last_agg"
               });
             }
@@ -498,7 +528,6 @@ export default {
             if(aggregates.closest_time === true) {
               // TODO
             }
-
 
             if(item.category === 'labs') {
               newCW.data.labs.push(...itemArr);
@@ -516,10 +545,98 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: item.label,
-                format: item.field_type,
-                options: item.options
+                redcap_field_type: item.redcap_field_type,
+                redcap_options: item.redcap_options
               });
           });
+
+          // scores
+          let scoresArr = window.data.scores;
+          scoresArr.forEach((score) => {
+            const subscoresArr = [];
+            let scoreCalculation = score.redcap_options;
+            score.subscores.forEach((subscore) => {
+              const clinicalVarArr = [];
+              let subscoreCalculation = subscore.redcap_options;
+              subscore.dependencies.forEach((clinicalVar) => {
+                if (Object.prototype.hasOwnProperty.call(clinicalVar, 'aggregates')) {
+                  clinicalVar.aggregates.forEach((agg) => {
+                    let clinicalVarRCLabel = "";
+                    switch (agg) {
+                      case "min_agg":
+                        clinicalVarRCLabel += "Minimum ";
+                        break;
+                      case "max_agg":
+                        clinicalVarRCLabel += "Maximum ";
+                        break;
+                      case "first_agg":
+                        clinicalVarRCLabel += "First ";
+                        break;
+                      case "last_agg":
+                        clinicalVarRCLabel += "Last ";
+                        break;
+                    }
+                    clinicalVarRCLabel += clinicalVar.label;
+
+                    let clinicalVarRCFieldName = subscore.duster_field_name + '_'
+                      + clinicalVar.duster_field_name + '_'
+                      + agg.replaceAll("_agg", "") + '_'
+                      + index;
+
+                    subscoreCalculation = subscoreCalculation.replaceAll('[' + clinicalVar.duster_field_name + '_' + agg.replaceAll("_agg", "") + ']', '[' + clinicalVarRCFieldName + ']');
+
+                    clinicalVarArr.push({
+                      duster_field_name: clinicalVar.duster_field_name,
+                      redcap_field_name: clinicalVarRCFieldName,
+                      label: clinicalVarRCLabel,
+                      redcap_field_type: clinicalVar.redcap_field_type,
+                      redcap_field_note: clinicalVar.redcap_field_note,
+                      aggregate: agg
+                    });
+                  });
+                } else {
+                  let clinicalVarRCFieldName = subscore.duster_field_name + '_'
+                    + clinicalVar.duster_field_name + '_'
+                    + index;
+
+                  subscoreCalculation = subscoreCalculation.replaceAll('[' + clinicalVar.duster_field_name + ']', '[' + clinicalVarRCFieldName + ']');
+                  clinicalVarArr.push({
+                    duster_field_name: clinicalVar.duster_field_name,
+                    redcap_field_name: clinicalVarRCFieldName,
+                    label: clinicalVar.label,
+                    redcap_field_type: clinicalVar.redcap_field_type,
+                    redcap_field_note: clinicalVar.redcap_field_note,
+                    redcap_options: clinicalVar.redcap_options
+                  });
+                }
+              });
+
+              let subscoreRCFieldName = subscore.duster_field_name + '_' + index;
+              scoreCalculation = scoreCalculation.replaceAll('[' + subscore.duster_field_name + ']', '[' + subscoreRCFieldName + ']');
+              subscoresArr.push({
+                duster_field_name: subscore.duster_field_name,
+                redcap_field_name: subscoreRCFieldName,
+                label: subscore.label,
+                redcap_field_type: subscore.redcap_field_type,
+                redcap_field_note: subscore.redcap_field_note,
+                redcap_options: subscoreCalculation,
+                dependencies: clinicalVarArr
+              });
+            });
+
+
+            newCW.data.scores.push({
+              duster_field_name: score.duster_field_name,
+              redcap_field_name: score.duster_field_name + '_' + index,
+              label: score.label,
+              redcap_field_type: score.redcap_field_type,
+              redcap_field_note: score.redcap_field_note,
+              redcap_options: scoreCalculation,
+              subscores: subscoresArr
+            });
+          });
+
+
 //                        console.log(newCW);
           cwArr.push(newCW);
         });
@@ -636,6 +753,30 @@ export default {
 
       return formName;
     },
+    getScoreFields(score) {
+      console.log(score);
+      let fieldsArr = [];
+      score.subscores.forEach((subscore) => {
+        subscore.dependencies.forEach((clinicalVar) => {
+          fieldsArr.push({
+            label: clinicalVar.label,
+            redcap_field_name: clinicalVar.redcap_field_name,
+            category: subscore.label
+          });
+        });
+        fieldsArr.push({
+          label: subscore.label,
+          redcap_field_name: subscore.redcap_field_name,
+          category: subscore.label
+        });
+      });
+      fieldsArr.push({
+        label: score.label,
+        redcap_field_name: score.redcap_field_name,
+        category: score.label
+      });
+      return fieldsArr;
+    }
   },
   watch: {
     config: function() {
