@@ -95,6 +95,7 @@ $module->emLog($odm_str);
   print "Error message: Unable to create project. " . $msg;
   exit();
 }
+
 $data_arr = array(
   'project_title' => $data['app_title'],
   'purpose' => $data['purpose']

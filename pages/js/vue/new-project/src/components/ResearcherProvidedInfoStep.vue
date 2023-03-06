@@ -325,6 +325,7 @@ export default {
         redcap_field_name: null,
         redcap_field_type: null,
         phi: "t"
+
       },
       edit_date: {
         label: null,

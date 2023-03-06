@@ -31,7 +31,6 @@ class OdmXmlString {
     $this->purpose = $purpose;
     $this->purpose_other = $purpose_other;
     $this->project_note = $project_note;
-
     $this->forms = array();
     $this->fields = array();
   }
@@ -204,6 +203,26 @@ class OdmXmlString {
                   . "\t\t<CodeListItem CodedValue=\"0\"><Decode><TranslatedText>Unchecked</TranslatedText></Decode></CodeListItem>\n"
                   . "\t</CodeList>\n";
               }
+              break;
+
+            case "radio":
+              // add field to item group string
+              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"radio\"{$section_header}>\n"
+                . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
+                . "\t\t<CodeListRef CodeListOID=\"{$field["redcap_field_name"]}.choices\"/>\n"
+                . "\t</ItemDef>\n";
+
+              // add field to code list
+              $code_list_def .= "\t<CodeList OID=\"{$field["redcap_field_name"]}.choices\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" redcap:Variable=\"{$field["redcap_field_name"]}\">\n";
+              $field_choices = explode("|", $field["redcap_options"]);
+              foreach($field_choices as $choice) {
+                $choice_arr = explode(",", $choice);
+                $code_list_def .= "\t\t<CodeListItem CodedValue=\"{$choice_arr[0]}\"><Decode><TranslatedText>{$choice_arr[1]}</TranslatedText></Decode></CodeListItem>\n";
+              }
+              $code_list_def .= "\t</CodeList>\n";
+
+              // add field to item group string
+              $item_group_def .= "\t\t<ItemRef ItemOID=\"{$field["redcap_field_name"]}\" Mandatory=\"No\" redcap:Variable=\"{$field["redcap_field_name"]}\"/>\n";
               break;
 
             case "calc":
