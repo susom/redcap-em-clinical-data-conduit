@@ -18,16 +18,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
 
   use emLoggerTrait;
 
-  /* when duster is run post project creation*/
-  /*    public function redcap_every_page_top() {
-      // add query to see if it's a duster project from survey
-      if (strpos(PAGE, "index.php") !==false && $_GET['msg']==='newproject'
-          && !$_GET['dustercomplete']) {
-          $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
-          $some = "<script> window.location = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
-          echo $some;
-  }}*/
-
   /**
    * Hook to show DUSTER as an option in the 'New Project' page
    * Only shows DUSTER option if:
@@ -215,4 +205,25 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       throw new Exception ("Returned $num_results in " . __METHOD__ . " from token '$token'");
     }
   }
+
+  public function handleError($subject, $message, $throwable=null) {
+    if (!empty($throwable)) {
+        $message .= "<br>Message: ".$throwable->getMessage()."<br>Trace: " .$throwable->getTraceAsString();
+    }
+    $this->emError("DUSTER Project Error Subject: $subject; Message: $message");
+    $duster_email = $this->getSystemSetting("duster-email");
+    if (!empty($duster_email)) {
+        $emailStatus = REDCap::email($duster_email,'no-reply@stanford.edu', $subject, $message);
+        if (!$emailStatus) {
+            $this->emError("Email Notification to $duster_email Failed. Subject: $subject");
+            return "Unable to send an error notification email to $duster_email. Please notify your REDCap administrator.";
+        } else {
+            return "An email regarding this issue has been sent to $duster_email.";
+        }
+    } else {
+        $this->emLog("No DUSTER email configured as a system-level setting.");
+        return "Unable to send an error notification email to DUSTER's development team. Please notify your REDCap administrator.";
+    }
+  }
+
 }
