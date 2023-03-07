@@ -210,19 +210,19 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     if (!empty($throwable)) {
         $message .= "<br>Message: ".$throwable->getMessage()."<br>Trace: " .$throwable->getTraceAsString();
     }
-    $this->emError("Duster Project Error Subject: $subject; Message: $message");
+    $this->emError("DUSTER Project Error Subject: $subject; Message: $message");
     $duster_email = $this->getSystemSetting("duster-email");
     if (!empty($duster_email)) {
         $emailStatus = REDCap::email($duster_email,'no-reply@stanford.edu', $subject, $message);
         if (!$emailStatus) {
-            $this->emError("Email Notification to $duster_email Failed.  Subject: $subject");
-            return "Unable to send notification email to $duster_email.  Please notify your redcap administrator.";
+            $this->emError("Email Notification to $duster_email Failed. Subject: $subject");
+            return "Unable to send an error notification email to $duster_email. Please notify your REDCap administrator.";
         } else {
             return "An email regarding this issue has been sent to $duster_email.";
         }
     } else {
-        $this->emLog("No email configured.");
-        return "No duster email has been configured.  Please notify your redcap administrator.";
+        $this->emLog("No DUSTER email configured as a system-level setting.");
+        return "Unable to send an error notification email to DUSTER's development team. Please notify your REDCap administrator.";
     }
   }
 

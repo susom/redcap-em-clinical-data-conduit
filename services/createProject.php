@@ -24,75 +24,75 @@ $module->emLog($data);
 
 /* construct the ODM XML string */
 try {
-    $odm = new OdmXmlString($data['app_title'], $data['purpose'], $data['purpose_other'], $data['project_note']);
-    $config = $data['config'];
-// Researcher-Provided Information
-    if (array_key_exists("rp_info", $config)) {
-        $rp_form_name = "researcher_provided_information";
-        $rp_form_label = "Researcher-Provided Information";
-        $odm->addForm($rp_form_name, $rp_form_label);
-        // add field for REDCap Record ID
-        $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "format" => "text")));
-        // add fields for identifiers
-        $odm->addFields($rp_form_name, null, null, "Identifiers", $config["rp_info"]["rp_identifiers"]);
-        // add fields for dates
-        $dates_arr = [];
-        foreach ($config["rp_info"]["rp_dates"] as $date) {
-            $dates_arr[] = $date;
-        }
-        $odm->addFields($rp_form_name, null, null, "Dates", $dates_arr);
-
-    } else {
-        throw new Exception ("Duster configuration is required to have Researcher provided values");
+  $odm = new OdmXmlString($data['app_title'], $data['purpose'], $data['purpose_other'], $data['project_note']);
+  $config = $data['config'];
+  // Researcher-Provided Information
+  if (array_key_exists("rp_info", $config)) {
+    $rp_form_name = "researcher_provided_information";
+    $rp_form_label = "Researcher-Provided Information";
+    $odm->addForm($rp_form_name, $rp_form_label);
+    // add field for REDCap Record ID
+    $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "format" => "text")));
+    // add fields for identifiers
+    $odm->addFields($rp_form_name, null, null, "Identifiers", $config["rp_info"]["rp_identifiers"]);
+    // add fields for dates
+    $dates_arr = [];
+    foreach ($config["rp_info"]["rp_dates"] as $date) {
+      $dates_arr[] = $date;
     }
+    $odm->addFields($rp_form_name, null, null, "Dates", $dates_arr);
 
-// Demographics
-    if (array_key_exists("demographics", $config)) {
-        $demo_form_name = "demographics";
-        $demo_form_label = "Demographics";
-        $odm->addForm($demo_form_name, $demo_form_label);
-        $odm->addFields($demo_form_name, null, null, "", $config["demographics"]);
-    }
+  } else {
+    throw new Exception ("DUSTER configuration requires Researcher-Provided values");
+  }
 
-// Clinical Windows
-if(array_key_exists("collection_windows", $config)) {
-  foreach($config["collection_windows"] as $collection_window) {
-    // add form
-    $odm->addForm($collection_window["form_name"], $collection_window["label"]);
-    // add timing fields with its own section header
-    $timing_fields_arr = [$collection_window["timing"]["start"], $collection_window["timing"]["end"]];
-    $odm->addFields($collection_window["form_name"], null, null, "Timing", $timing_fields_arr);
-    // add labs with its own section header
-    $odm->addFields($collection_window["form_name"], null, null, "Labs", $collection_window["data"]["labs"]);
-    // add vitals with its own section header
-    $odm->addFields($collection_window["form_name"], null, null, "Vitals", $collection_window["data"]["vitals"]);
-    // add outcomes with its own section header
-    $odm->addFields($collection_window["form_name"], null, null, "Outcomes", $collection_window["data"]["outcomes"]);
+  // Demographics
+  if (array_key_exists("demographics", $config)) {
+    $demo_form_name = "demographics";
+    $demo_form_label = "Demographics";
+    $odm->addForm($demo_form_name, $demo_form_label);
+    $odm->addFields($demo_form_name, null, null, "", $config["demographics"]);
+  }
 
-    // add each score with a section header
-    foreach($collection_window["data"]["scores"] as $score) {
-      $score_arr = [];
-      // add each subscore for score
-      foreach($score["subscores"] as $subscore) {
-        // add each clinical variable for subscore
-        foreach($subscore["dependencies"] as $clinical_var) {
-          $score_arr[] = $clinical_var;
+  // Clinical Windows
+  if(array_key_exists("collection_windows", $config)) {
+    foreach($config["collection_windows"] as $collection_window) {
+      // add form
+      $odm->addForm($collection_window["form_name"], $collection_window["label"]);
+      // add timing fields with its own section header
+      $timing_fields_arr = [$collection_window["timing"]["start"], $collection_window["timing"]["end"]];
+      $odm->addFields($collection_window["form_name"], null, null, "Timing", $timing_fields_arr);
+      // add labs with its own section header
+      $odm->addFields($collection_window["form_name"], null, null, "Labs", $collection_window["data"]["labs"]);
+      // add vitals with its own section header
+      $odm->addFields($collection_window["form_name"], null, null, "Vitals", $collection_window["data"]["vitals"]);
+      // add outcomes with its own section header
+      $odm->addFields($collection_window["form_name"], null, null, "Outcomes", $collection_window["data"]["outcomes"]);
+
+      // add each score with a section header
+      foreach($collection_window["data"]["scores"] as $score) {
+        $score_arr = [];
+        // add each subscore for score
+        foreach($score["subscores"] as $subscore) {
+          // add each clinical variable for subscore
+          foreach($subscore["dependencies"] as $clinical_var) {
+            $score_arr[] = $clinical_var;
+          }
+          unset($subscore["dependencies"]);
+          $score_arr[] = $subscore;
         }
-        unset($subscore["dependencies"]);
-        $score_arr[] = $subscore;
+        unset($score["subscores"]);
+        $score_arr[] = $score;
+        $odm->addFields($collection_window["form_name"], null, null, $score["label"], $score_arr);
       }
-      unset($score["subscores"]);
-      $score_arr[] = $score;
-      $odm->addFields($collection_window["form_name"], null, null, $score["label"], $score_arr);
     }
   }
-}
 
-$odm_str = $odm->getOdmXmlString();
-$module->emLog($odm_str);
+  $odm_str = $odm->getOdmXmlString();
+  $module->emLog($odm_str);
 } catch (Throwable $ex) {
-  $msg = $module->handleError('Duster Error: Project Create',  "Unable to create ODM xml.", $ex );
-  print "Error message: Unable to create project. " . $msg;
+  $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to create an ODM XML string.", $ex );
+  print "Error: Failed to create project. " . $msg;
   exit();
 }
 
@@ -123,10 +123,10 @@ if(!$super_token) {
     $delete_token = true;
     // Remember to delete the temporary token
     // register_shutdown_function(array($this, "deleteTempSuperToken"));
-  } else {
-      $msg = $module->handleError('Duster Error: Project Create',  "Failed in creating super token for userid " .  USERID );
-      print "Error message: Unable to create project. " . $msg;
-      exit();
+    } else {
+    $msg = $module->handleError('DUSTER Error: Project Create', "Failed to create a REDCap SUPER API Token for user " . USERID);
+    print "Error: Failed to create project. " . $msg;
+    exit();
   }
 }
 
@@ -158,21 +158,21 @@ curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
 $project_token = curl_exec($ch);
 $module->emDebug($project_token);
 if (empty($project_token)) {
-    $msg = $module->handleError('Duster Error: Project Create',  "Unable to retrieve project token." );
-    print "Error message: Unable to create project.  Unable to retrieve project token. " . $msg;
-    exit();
+  $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to retrieve project token." );
+  print "Error: Failed to create project. " . $msg;
+  exit();
 }
 //echo $output;
 curl_close($ch);
 
 // use the user's token for the newly created project to identify the pid
 try {
-    $project_id = $module->getUserProjectFromToken($project_token);
-    $module->emDebug($project_id);
+  $project_id = $module->getUserProjectFromToken($project_token);
+  $module->emDebug($project_id);
 } catch (Throwable $ex) {
-    $msg = $module->handleError('Duster Error: Project Create',  "Unable to retrieve user token/project id.", $ex);
-    print "Error message: Unable to create project.  Unable to retrieve project id. " . $msg;
-    exit();
+  $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to retrieve user token/project id.", $ex);
+  print "Error: Failed to create project. " . $msg;
+  exit();
 }
 
 // add project info via SQL
@@ -211,9 +211,9 @@ $project_info_sql_result = $module->query(
 );
 $module->emDebug($project_info_sql_result);
 if(!$project_info_sql_result) {
-    $msg = $module->handleError('Duster Error: Project Create',  "Unable to add project info in createProject. Db insert failed with data=".print_r(data, true));
-    print "Error message: Unable to add project info. " . $msg;
-    exit();
+  $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to add project info in services/createProject.php. Db insert failed with data=".print_r($data, true));
+  print "Error: A REDCap project was created (pid $project_id), but DUSTER failed to add project info to it. " . $msg;
+  exit();
 }
 
 $data_arr['redcap_server_name'] = SERVER_NAME;
@@ -229,9 +229,9 @@ $external_module_id = $module->query('SELECT external_module_id FROM redcap_exte
 $em_module_sql_result = $module->query('INSERT INTO `redcap_external_module_settings`(`external_module_id`, `project_id`, `key`, `type`, `value`) VALUES (?, ?, ?, ?, ?)',
   [$external_module_id->fetch_assoc()['external_module_id'], $project_id, 'enabled', 'boolean', 'true']);
 if (!$em_module_sql_result) {
-    $msg = $module->handleError('Duster Error: Project Create',  "Unable to active Duster EM module on new project $project_id. Db insert failed with following values: external_module_id" .  $external_module_id->fetch_assoc()['external_module_id'] . ", project_id: $project_id, key: enabled, type: boolean, value: true");
-    print "Error message: Unable to active Duster EM module on new project $project_id. " . $msg;
-    exit();
+  $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to enable DUSTER EM on new project $project_id. Db insert failed with following values: external_module_id" .  $external_module_id->fetch_assoc()['external_module_id'] . ", project_id: $project_id, key: enabled, type: boolean, value: true");
+  print "Error: A new REDCap project was created (pid $project_id), but the DUSTER EM failed to enable itself on the project. " . $msg;
+  exit();
 }
 
 // delete the project super token if needed
@@ -250,9 +250,9 @@ try {
   $tokenMgnt = \ExternalModules\ExternalModules::getModuleInstance('vertx_token_manager');
   $token = $tokenMgnt->findValidToken('ddp');
 } catch (Throwable $ex) {
-   $msg = $module->handleError('Duster Error: Project Create',  "Unable to find a valid vertx token for service ddp in createProject.", $ex);
-    print "Error message: Could not set up data queries. " . $msg;
-    exit();
+  $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to find a valid vertx token for service ddp in createProject.", $ex);
+  print "Error: A new REDCap project was created (pid $project_id), but DUSTER's data queries for this project failed to set up. " . $msg;
+  exit();
 }
 
 // set up the headers
@@ -300,14 +300,14 @@ $em_config = json_decode($result, true);
 $module->emDebug('em_config: '. $result);
 
 if ($em_config['success'] && !empty($em_config['rcToStarrLinkConfig'])) {
-    $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module);
-    $rctostarr_config->enableRedcapToStarrLink();
-    $rctostarr_config->configureRedcapToStarrLink($em_config);
+  $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module);
+  $rctostarr_config->enableRedcapToStarrLink();
+  $rctostarr_config->configureRedcapToStarrLink($em_config);
 
-    $module->emDebug(APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject");
-    echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
+  $module->emDebug(APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject");
+  echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
 } else {
-    $msg = $module->handleError("Duster Error: Project Create",  "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $em_config['error']);
+  $msg = $module->handleError("Duster Error: Project Create",  "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $em_config['error']);
 
-    print "Error message: Could not set up data queries. " . $msg;
+  print "Error: A new REDCap project was created (pid $project_id), but DUSTER's data queries for this project failed to set up. " . $msg;
 }
