@@ -35,21 +35,12 @@
             :complete="step > 3"
             step="3"
           >
-            Clinical Dates
-          </v-stepper-step>
-
-          <v-divider></v-divider>
-
-          <v-stepper-step
-            :complete="step > 4"
-            step="4"
-          >
             Clinical Data
           </v-stepper-step>
 
           <v-divider></v-divider>
 
-          <v-stepper-step step="5">
+          <v-stepper-step step="4">
             Review
           </v-stepper-step>
         </v-stepper-header>
@@ -70,26 +61,22 @@
             />
           </v-stepper-content>
 
-          <!-- Clinical Dates -->
-          <v-stepper-content step="3">
-            <ClinicalDatesStep/>
-          </v-stepper-content>
-
           <!-- Data Collection Windows -->
-          <v-stepper-content step="4">
+          <v-stepper-content step="3">
             <DataCollectionWindowsStep
               :clinical_dates_prop="clinical_dates"
               :collection_windows_prop.sync="collection_windows"
               :labs_prop="labs"
               :outcomes_prop="outcomes"
               :rp_dates_prop="rp_dates"
+              :scores_prop="scores"
               :show_window_form_prop.sync="show_window_form"
               :vitals_prop="vitals"
             />
           </v-stepper-content>
 
           <!-- Review -->
-          <v-stepper-content step="5">
+          <v-stepper-content step="4">
             <ReviewStep
               :collection_windows="collection_windows"
               :create_project_url="urls.create_project"
@@ -129,7 +116,7 @@
         </v-col>
         <v-col
           cols="auto"
-          v-show="step < 5"
+          v-show="step < 4"
         >
           <v-btn
             color="primary"
@@ -152,7 +139,6 @@ import axios from 'axios'
 import DusterIntro from "@/components/DusterIntro" ;
 import ResearcherProvidedInfoStep from "@/components/ResearcherProvidedInfoStep";
 import DemographicsStep from "@/components/DemographicsStep";
-import ClinicalDatesStep from "@/components/ClinicalDatesStep";
 import DataCollectionWindowsStep from "@/components/DataCollectionWindowsStep";
 import ReviewStep from "@/components/ReviewStep";
 
@@ -194,14 +180,16 @@ export default {
         {
           label: "MRN",
           redcap_field_name: "mrn",
-          format: "8-digit number (including leading zeros, e.g., '01234567')"
+          redcap_field_type: "8-digit number (including leading zeros, e.g., '01234567')",
+          phi: "t"
         }
       ],
       rp_dates: [
         {
           label: "Study Enrollment Date",
           redcap_field_name: "enroll_date",
-          format: "date"
+          redcap_field_type: "date",
+          phi: "t"
         }
       ],
       demographics: {
@@ -210,7 +198,9 @@ export default {
       },
       labs: [],
       vitals: [],
-      outcomes: []
+      outcomes: [],
+      scores: [],
+      scores_meta: {}
     }
   },
   mounted() {
@@ -237,44 +227,17 @@ export default {
     this.project_info.repeatforms_chk = postObj.repeatforms_chk;
     this.project_info.project_template_radio = postObj.project_template_radio;
     this.redcap_csrf_token = postObj.redcap_csrf_token;
-/*
-    // append form data
-    const introForm = document.getElementById('intro-form');
-    for (const [key, value] of Object.entries(this.project_info)) {
-      let
-      introForm.appendChild();
-    }
-    let formData = new FormData();
-    formData.append('surveys_enabled',  this.project_info.surveys_enabled);
-    formData.append('repeatforms',  this.project_info.repeatforms);
-    formData.append('scheduling',  this.project_info.scheduling);
-    formData.append('randomization',  this.project_info.randomization);
-    formData.append('app_title',  this.project_info.app_title);
-    formData.append('purpose',  this.project_info.purpose);
-    formData.append('project_pi_firstname',  this.project_info.project_pi_firstname);
-    formData.append('project_pi_mi',  this.project_info.project_pi_mi);
-    formData.append('project_pi_lastname',  this.project_info.project_pi_lastname);
-    formData.append('project_pi_email',  this.project_info.project_pi_email);
-    formData.append('project_pi_alias',  this.project_info.project_pi_alias);
-    formData.append('project_irb_number',  this.project_info.project_irb_number);
-    formData.append('purpose_other',  this.project_info.purpose_other);
-    formData.append('project_note',  this.project_info.project_note);
-    formData.append('projecttype',  this.project_info.projecttype);
-    formData.append('repeatforms_chk',  this.project_info.repeatforms_chk);
-    formData.append('project_template_radio',  this.project_info.project_template_radio);
-    formData.append('redcap_csrf_token', this.redcap_csrf_token);
-*/
+
     // request metadata from STARR-API
     axios.get(this.urls.metadata).then(response => {
-      // console.log(response.data);
-
       // add demographics
       for(const demographic of response.data.demographics) {
         this.demographics.options.push(
           {
             label: demographic.label,
             duster_field_name: demographic.duster_field_name,
-            redcap_field_name: demographic.duster_field_name
+            redcap_field_name: demographic.duster_field_name,
+            phi: demographic.phi
           }
         );
       }
@@ -311,10 +274,27 @@ export default {
               duster_field_name: outcome.duster_field_name,
               label: outcome.label,
               category: outcome.category,
-              field_type: outcome.redcap_field_type,
-              options: outcome.redcap_options
+              redcap_field_type: outcome.redcap_field_type,
+              redcap_options: outcome.redcap_options
             }
         );
+      }
+
+      // add scores
+      if (response.data.scores) {
+        for (const score of response.data.scores) {
+          this.scores.push(
+              {
+                duster_field_name: score.duster_field_name,
+                label: score.label,
+                category: score.category,
+                redcap_field_type: score.redcap_field_type,
+                redcap_field_note: score.redcap_field_note,
+                redcap_options: score.redcap_options,
+                subscores: score.subscores
+              }
+          )
+        }
       }
 
       this.metadata_loaded = true;
@@ -327,9 +307,9 @@ export default {
       }
     },
     nextStep() {
-      if (this.step < 5) {
+      if (this.step < 4) {
         this.step += 1;
-        if(this.step == 5) {
+        if(this.step == 4) {
           // this.instruments = Array.from(Array(2 + this.config.collection_windows.length).keys());
         }
       }
@@ -338,7 +318,6 @@ export default {
   components: {
     ResearcherProvidedInfoStep,
     DemographicsStep,
-    ClinicalDatesStep,
     DataCollectionWindowsStep,
     ReviewStep,
     DusterIntro
