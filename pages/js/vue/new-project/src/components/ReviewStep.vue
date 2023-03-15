@@ -450,6 +450,8 @@ export default {
                 redcap_field_name: rcField,
                 label: 'Minimum ' + item.label,
                 redcap_field_type: "text",
+                redcap_options: item.redcap_options,
+                redcap_field_note: item.redcap_field_note,
                 aggregate: "min_agg"
               });
             }
@@ -473,6 +475,8 @@ export default {
                 redcap_field_name: rcField,
                 label: 'Maximum ' + item.label,
                 redcap_field_type: "text",
+                redcap_options: item.redcap_options,
+                redcap_field_note: item.redcap_field_note,
                 aggregate: "max_agg"
               });
             }
@@ -496,6 +500,8 @@ export default {
                 redcap_field_name: rcField,
                 label: 'First ' + item.label,
                 redcap_field_type: "text",
+                redcap_options: item.redcap_options,
+                redcap_field_note: item.redcap_field_note,
                 aggregate: "first_agg"
               });
             }
@@ -520,6 +526,8 @@ export default {
                 redcap_field_name: rcField,
                 label: 'Last ' + item.label,
                 redcap_field_type: "text",
+                redcap_options: item.redcap_options,
+                redcap_field_note: item.redcap_field_note,
                 aggregate: "last_agg"
               });
             }
@@ -551,6 +559,7 @@ export default {
                 redcap_field_name: rcField,
                 label: item.label,
                 redcap_field_type: item.redcap_field_type,
+                redcap_field_note: item.redcap_field_note,
                 redcap_options: item.redcap_options
               });
           });
@@ -596,6 +605,7 @@ export default {
                         redcap_field_name: clinicalVarRCFieldName,
                         label: clinicalVarRCLabel,
                         redcap_field_type: clinicalVar.redcap_field_type,
+                        redcap_options: clinicalVar.redcap_options,
                         redcap_field_note: clinicalVar.redcap_field_note,
                         aggregate: agg
                       });
@@ -611,6 +621,7 @@ export default {
                       redcap_field_name: clinicalVarRCFieldName,
                       label: clinicalVar.label,
                       redcap_field_type: clinicalVar.redcap_field_type,
+                      redcap_options: clinicalVar.redcap_options,
                       redcap_field_note: clinicalVar.redcap_field_note
                     });
                   }
