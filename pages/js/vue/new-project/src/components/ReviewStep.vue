@@ -69,8 +69,8 @@
               hide-default-footer
               disable-pagination
             >
-              <template v-slot:[`item.redcap_field_type`]="{ item }">
-                <span>{{item.redcap_field_type}} [{{item.redcap_field_type=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM:SS'}}]</span>
+              <template v-slot:[`item.value_type`]="{ item }">
+                <span>{{item.value_type}} [{{item.value_type=="date" ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:MM:SS'}}]</span>
               </template>
             </v-data-table>
           </v-card>
@@ -252,7 +252,7 @@ export default {
       review_date_headers: [
         {text: 'Label', value: 'label'},
         {text: 'REDCap field name', value: 'redcap_field_name'},
-        {text: 'REDCap field type', value: 'redcap_field_type'}
+        {text: 'REDCap field type', value: 'value_type'}
       ],
       review_demo_headers: [
         {text: 'Label', value: 'label'},
@@ -296,6 +296,7 @@ export default {
           datesArr.push([date.redcap_field_name, {
             redcap_field_name: date.redcap_field_name,
             label: date.label,
+            value_type: date.value_type,
             redcap_field_type: date.redcap_field_type,
             phi: date.phi
           }]);
@@ -308,7 +309,8 @@ export default {
             duster_field_name: demographic.duster_field_name,
             redcap_field_name: demographic.redcap_field_name,
             label: demographic.label,
-            redcap_field_type: "text",
+            value_type: demographic.value_type,
+            redcap_field_type: demographic.redcap_field_type,
             phi: demographic.phi
           });
         });
@@ -355,7 +357,7 @@ export default {
 
             // get the REDCap label for the start parameter for timing
             let startLabel = timing.start.label;
-            if(timing.start_type === 'date' || timing.start.redcap_field_type === 'date') {
+            if(timing.start_type === 'date' || timing.start.value_type === 'date') {
               startLabel = '00:00:00 on the Calendar Day of ' + timing.start.label;
             }
 
@@ -384,7 +386,7 @@ export default {
             // get the REDCap label for the end parameter for timing
             let endLabel = "";
             if(timing.end_type === 'dttm') {
-              if(timing.end.redcap_field_type === 'date') {
+              if(timing.end.value_type === 'date') {
                 endLabel = 'Midnight on the Calendar Day of ' + timing.end.label;
               } else {
                 endLabel = timing.end.label;
@@ -400,6 +402,8 @@ export default {
                 type: timing.start_type,
                 duster_field_name: startDusterField,
                 redcap_field_name: startRCField,
+                redcap_field_type: "text",
+                value_type: "datetime",
                 // based_on: timing.start_based,
                 rp_date: startRPDate,
                 label: startLabel,
@@ -410,6 +414,8 @@ export default {
                 num_hours: timing.num_hours,
                 duster_field_name: endDusterField,
                 redcap_field_name: endRCField,
+                redcap_field_type: "text",
+                value_type: "datetime",
                 // based_on: timing.end_based,
                 rp_date: endRPDate,
                 label: endLabel,
@@ -606,6 +612,7 @@ export default {
                         label: clinicalVarRCLabel,
                         redcap_field_type: clinicalVar.redcap_field_type,
                         redcap_options: clinicalVar.redcap_options,
+                        value_type: clinicalVar.value_type,
                         redcap_field_note: clinicalVar.redcap_field_note,
                         aggregate: agg
                       });
@@ -622,6 +629,7 @@ export default {
                       label: clinicalVar.label,
                       redcap_field_type: clinicalVar.redcap_field_type,
                       redcap_options: clinicalVar.redcap_options,
+                      value_type: clinicalVar.value_type,
                       redcap_field_note: clinicalVar.redcap_field_note
                     });
                   }
@@ -636,6 +644,7 @@ export default {
                   redcap_field_type: subscore.redcap_field_type,
                   redcap_field_note: subscore.redcap_field_note,
                   redcap_options: subscoreCalculation,
+                  value_type: subscore.value_type,
                   dependencies: clinicalVarArr
                 });
               });
@@ -648,12 +657,11 @@ export default {
               redcap_field_type: score.redcap_field_type,
               redcap_field_note: score.redcap_field_note,
               redcap_options: scoreCalculation,
+              value_type: score.value_type,
               subscores: subscoresArr
             });
           });
 
-
-//                        console.log(newCW);
           cwArr.push(newCW);
         });
 
@@ -686,7 +694,6 @@ export default {
         project_template_radio: this.project_info.project_template_radio,
         config: this.config
       };
-      // console.log(JSON.stringify(data, null, 2));
 
       let formData = new FormData();
       formData.append('redcap_csrf_token', this.redcap_csrf_token);
@@ -770,7 +777,6 @@ export default {
       return formName;
     },
     getScoreFields(score) {
-      console.log(score);
       let fieldsArr = [];
       if (score.subscores !== null) {
         score.subscores.forEach((subscore) => {

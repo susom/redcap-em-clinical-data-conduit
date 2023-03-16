@@ -1423,14 +1423,20 @@ export default {
       new_lv_obj: {
         duster_field_name: null,
         label: null,
-        category: null
+        category: null,
+        redcap_field_type: null,
+        redcap_options: null,
+        redcap_field_note: null,
+        value_type: null
       },
       new_field_obj: {
         duster_field_name: null,
         label: null,
         category: null,
         redcap_field_type: null,
-        redcap_options: null
+        redcap_options: null,
+        redcap_field_note: null,
+        value_type: null
       },
       new_score_obj: {
         duster_field_name: null,
@@ -1438,6 +1444,8 @@ export default {
         category: null,
         redcap_field_type: null,
         redcap_options: null,
+        redcap_field_note: null,
+        value_type: null,
         subscores: null
       },
       open_window_panel: null,
@@ -1452,6 +1460,8 @@ export default {
             start: {
               category: "dates",
               duster_field_name: "ed_admission_dttm",
+              redcap_field_type: "text",
+              value_type: "datetime",
               label: "ED Admission Datetime"
             },
             start_based: "enroll_date",
@@ -1460,6 +1470,8 @@ export default {
             end: {
               category: "dates",
               duster_field_name: "ed_discharge_dttm",
+              redcap_field_type: "text",
+              value_type: "datetime",
               label: "ED Discharge Datetime"
             },
             end_based: "enroll_date"
@@ -1487,6 +1499,8 @@ export default {
             start: {
               category: "dates",
               duster_field_name: "hospital_admit_dttm",
+              redcap_field_type: "text",
+              value_type: "datetime",
               label: "Hospital Admission Datetime"
             },
             start_based: "enroll_date",
@@ -1495,6 +1509,8 @@ export default {
             end: {
               category: "dates",
               duster_field_name: "hospital_discharge_dttm",
+              redcap_field_type: "text",
+              value_type: "datetime",
               label: "Hospital Discharge Datetime"
             },
             end_based: "enroll_date"
@@ -1522,6 +1538,8 @@ export default {
             start: {
               category: "dates",
               duster_field_name: "hospital_admit_dttm",
+              redcap_field_type: "text",
+              value_type: "datetime",
               label: "Hospital Admission Datetime"
             },
             start_based: "enroll_date",
@@ -1553,6 +1571,8 @@ export default {
             start: {
               category: "dates",
               duster_field_name: "first_icu_admission_dttm",
+              redcap_field_type: "text",
+              value_type: "datetime",
               label: "First ICU Admission Datetime"
             },
             start_based: "enroll_date",
@@ -1617,6 +1637,10 @@ export default {
         this.window.data.labs_vitals.push(JSON.parse(JSON.stringify({
           duster_field_name: this.new_lv_obj.duster_field_name,
           label: this.new_lv_obj.label,
+          redcap_field_type: this.new_lv_obj.redcap_field_type,
+          value_type: this.new_lv_obj.value_type,
+          redcap_options: this.new_lv_obj.redcap_options,
+          redcap_field_note: this.new_lv_obj.redcap_field_note,
           category: this.new_lv_obj.category,
           aggregates: {
             default: true,
@@ -1635,6 +1659,10 @@ export default {
       }
       this.new_lv_obj = {
         duster_field_name: null,
+        redcap_field_type: null,
+        value_type: null,
+        redcap_options: null,
+        redcap_field_note: null,
         label: null,
         category: null
       };
@@ -1647,7 +1675,9 @@ export default {
           label: this.new_field_obj.label,
           category: this.new_field_obj.category,
           redcap_field_type: this.new_field_obj.redcap_field_type,
-          redcap_options: this.new_field_obj.redcap_options
+          value_type: this.new_field_obj.value_type,
+          redcap_options: this.new_field_obj.redcap_options,
+          redcap_field_note: this.new_field_obj.redcap_field_note
         })));
         this.alert_outcomes_success = true;
       } else {
@@ -1658,7 +1688,9 @@ export default {
         label: null,
         category: null,
         redcap_field_type: null,
-        redcap_options: null
+        value_type: null,
+        redcap_options: null,
+        redcap_field_note: null
       };
     },
     addScore() {
@@ -1669,7 +1701,9 @@ export default {
           label: this.new_score_obj.label,
           category: this.new_score_obj.category,
           redcap_field_type: this.new_score_obj.redcap_field_type,
+          value_type: this.new_field_obj.value_type,
           redcap_options: this.new_score_obj.redcap_options,
+          redcap_field_note: this.new_score_obj.redcap_field_note,
           subscores: this.new_score_obj.subscores
         })));
         this.alert_score_success = true;
@@ -1748,6 +1782,10 @@ export default {
       this.edit_lv_obj = {
         duster_field_name: null,
         label: null,
+        redcap_field_type: null,
+        value_type: null,
+        redcap_options: null,
+        redcap_field_note: null,
         category: null,
         aggregates: {
           default: true,
@@ -1829,13 +1867,13 @@ export default {
           // check this nonrepeating window's ending parameters
           if ((this.window.timing.end_type === 'hours' && this.window.timing.num_hours > 0)
             || this.window.timing.end_type === 'day') {
-            console.log("isValidNonRepeat(): valid, returning true");
+            // console.log("isValidNonRepeat(): valid, returning true");
             return true;
           } else if (this.window.timing.end_type === 'dttm') {
             if ((this.isClinicalDate(this.window.timing.end)
                 && this.rp_dates_rcfields.includes(this.window.timing.end_based))
               || this.isRPDate(this.window.timing.end)) {
-              console.log("isValidNonRepeat(): valid, returning true");
+              // console.log("isValidNonRepeat(): valid, returning true");
               return true;
             }
           }
@@ -1907,7 +1945,7 @@ export default {
       }
     },
     resetWindow(window, ref) {
-      console.log("resetWindow() called.");
+      // console.log("resetWindow() called.");
       this[window] = JSON.parse(JSON.stringify({
         label: null,
         // type: null, // nonrepeating || finite_repeating || calculated_repeating
@@ -1960,9 +1998,9 @@ export default {
     setPreset(preset_choice) {
       this.window = JSON.parse(JSON.stringify(preset_choice));
       this.$refs["preset_window"].reset();
-      console.log(JSON.stringify(preset_choice));
-      console.log("setPreset()");
-      console.log(JSON.stringify(this.window));
+      // console.log(JSON.stringify(preset_choice));
+      // console.log("setPreset()");
+      // console.log(JSON.stringify(this.window));
     }
   }
 }
