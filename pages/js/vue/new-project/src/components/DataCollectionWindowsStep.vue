@@ -1412,6 +1412,7 @@ export default {
       ],
       field_headers_viewonly: [
         {text: 'Label', value: 'label'},
+        {text: 'Actions', value: 'actions', sortable: false}
       ],
       score_headers: [
         {text: 'Label', value: 'label'},

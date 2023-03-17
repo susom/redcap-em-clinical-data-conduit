@@ -169,14 +169,12 @@ export default {
     formData.append("project_irb_number", this.redcapProjectConfig.project_irb_number);
     axios.post(this.redcapProjectConfig.check_irb_url, formData)
     .then(function(response) {
-      _self.irb_flag = response.data === 1 ? 1 : 1;
+      _self.irb_flag = response.data === 1 ? 1 : -1;
     })
     .catch(function(error) {
-        this.irb_flag = 1;
-        // this.irb_flag = -1 ;
+        this.irb_flag = -1 ;
         console.log(error) ;
     });
-    _self.irb_flag = 1;
   },
   methods: {
     getImageUrl(imgName) {
