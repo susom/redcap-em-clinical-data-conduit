@@ -129,6 +129,18 @@
             outlined
             class="mb-4"
           >
+            <v-card-subtitle><h2>Closest Event Aggregation</h2></v-card-subtitle>
+            <v-list-item three-line>
+              <v-list-item-content>
+                <v-list-item-subtitle>Label: {{cw.event.label}}</v-list-item-subtitle>
+                <v-list-item-subtitle>REDCap field name: {{cw.event.redcap_field_name}}</v-list-item-subtitle>
+              </v-list-item-content>
+            </v-list-item>
+          </v-card>
+          <v-card
+            outlined
+            class="mb-4"
+          >
             <v-card-subtitle><h2>Labs</h2></v-card-subtitle>
             <v-data-table
               :headers="review_cw_headers"
@@ -324,6 +336,7 @@ export default {
             type: window.type,
             timing: {
             },
+            event: null,
             data: {
               labs: [],
               vitals: [],
@@ -332,6 +345,7 @@ export default {
             }
           };
 
+          // timing and event
           let timing = window.timing;
           if(window.type === "nonrepeating") {
 
@@ -397,7 +411,7 @@ export default {
               endLabel = timing.num_hours + ' hours after ' + startLabel;
             }
 
-            let timingObj = {
+            const timingObj = {
               start: {
                 type: timing.start_type,
                 duster_field_name: startDusterField,
@@ -423,6 +437,23 @@ export default {
               }
             };
             newCW.timing = timingObj;
+
+            // event for 'closest to event' aggregation
+            // check if 'closest to event' aggregation is needed
+            if(this.windowHasClosestEvent(window) === true) {
+              let eventObj = {
+                type: "dttm",
+                duster_field_name: window.event !== null && Object.prototype.hasOwnProperty.call(window.event, 'duster_field_name') ? window.event.duster_field_name : null,
+                redcap_field_name: 'cw_' + index + '_closest_event_dttm',
+                redcap_field_type: "text",
+                value_type: "datetime",
+                rp_date: Object.prototype.hasOwnProperty.call(window.event, 'duster_field_name') ? null : window.event.redcap_field_name,
+                label: window.event.label,
+                phi: "t"
+              }
+              newCW.event = eventObj;
+            }
+
           }
 
           // labs and vitals
@@ -432,10 +463,7 @@ export default {
             let itemArr = [];
             let rcField = '';
             // let suffixNum = 0;
-            let aggregates = window.aggregate_defaults;
-            if(item.aggregates.default === false) {
-              aggregates = item.aggregates;
-            }
+            const aggregates = item.aggregates.default === false ? item.aggregates : window.aggregate_defaults;
 
             // minimum aggregate
             if(aggregates.min === true) {
@@ -455,7 +483,7 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: 'Minimum ' + item.label,
-                redcap_field_type: "text",
+                redcap_field_type: item.redcap_field_type,
                 redcap_options: item.redcap_options,
                 redcap_field_note: item.redcap_field_note,
                 aggregate: "min_agg"
@@ -480,7 +508,7 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: 'Maximum ' + item.label,
-                redcap_field_type: "text",
+                redcap_field_type: item.redcap_field_type,
                 redcap_options: item.redcap_options,
                 redcap_field_note: item.redcap_field_note,
                 aggregate: "max_agg"
@@ -505,7 +533,7 @@ export default {
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: 'First ' + item.label,
-                redcap_field_type: "text",
+                redcap_field_type: item.redcap_field_type,
                 redcap_options: item.redcap_options,
                 redcap_field_note: item.redcap_field_note,
                 aggregate: "first_agg"
@@ -527,25 +555,53 @@ export default {
               */
 
 
+
               itemArr.push({
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: rcField,
                 label: 'Last ' + item.label,
-                redcap_field_type: "text",
+                redcap_field_type: item.redcap_field_type,
                 redcap_options: item.redcap_options,
                 redcap_field_note: item.redcap_field_note,
                 aggregate: "last_agg"
               });
             }
 
-            // closest to start datetime aggregate
-            if(aggregates.closest_start === true) {
-              // TODO
+            // closest to event datetime aggregate
+            if(aggregates.closest_event === true) {
+              itemArr.push({
+                duster_field_name: item.duster_field_name,
+                redcap_field_name: item.duster_field_name + '_closest_event_' + index,
+                label: item.label + ' closest to ' + newCW.event.label,
+                redcap_field_type: item.redcap_field_type,
+                redcap_options: item.redcap_options,
+                redcap_field_note: item.redcap_field_note,
+                aggregate: "closest_event",
+                aggregate_options: {
+                  event: newCW.event.redcap_field_name
+                }
+              });
             }
 
             // closest to a specific time aggregate
             if(aggregates.closest_time === true) {
-              // TODO
+              itemArr.push({
+                duster_field_name: item.duster_field_name,
+                redcap_field_name: item.duster_field_name
+                  + '_closest_'
+                  + window.aggregate_options.time
+                    .replaceAll(/:/g, '')
+                    .substring(0,4)
+                  + '_' + index,
+                label: item.label + ' closest to ' + window.aggregate_options.time,
+                redcap_field_type: item.redcap_field_type,
+                redcap_options: item.redcap_options,
+                redcap_field_note: item.redcap_field_note,
+                aggregate: "closest_time",
+                aggregate_options: {
+                  time: window.aggregate_options.time
+                }
+              });
             }
 
             if(item.category === 'labs') {
@@ -800,6 +856,17 @@ export default {
         });
       }
       return fieldsArr;
+    },
+    windowHasClosestEvent(window) {
+      if(window.aggregate_defaults.closest_event === true) {
+        return true;
+      }
+      window.data.labs_vitals.forEach((item) => {
+        if(item.aggregates.default === false && item.aggregates.closest_event === true) {
+          return true;
+        }
+      });
+      return false;
     }
   },
   watch: {

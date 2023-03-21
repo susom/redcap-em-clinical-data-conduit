@@ -62,6 +62,8 @@ try {
       // add timing fields with its own section header
       $timing_fields_arr = [$collection_window["timing"]["start"], $collection_window["timing"]["end"]];
       $odm->addFields($collection_window["form_name"], null, null, "Timing", $timing_fields_arr);
+      // add closest to event with its own section header
+      $odm->addFields($collection_window["form_name"], null, null, "Closest Event Aggregation", [$collection_window["event"]]);
       // add labs with its own section header
       $odm->addFields($collection_window["form_name"], null, null, "Labs", $collection_window["data"]["labs"]);
       // add vitals with its own section header

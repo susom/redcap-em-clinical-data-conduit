@@ -106,34 +106,34 @@
                   <v-card-subtitle>Default Aggregates</v-card-subtitle>
                   <v-card-text>
                     <v-chip
-                      v-if="window.aggregate_defaults.min == true"
+                      v-if="window.aggregate_defaults.min === true"
                     >
                       Min
                     </v-chip>
                     <v-chip
-                      v-if="window.aggregate_defaults.max == true"
+                      v-if="window.aggregate_defaults.max === true"
                     >
                       Max
                     </v-chip>
                     <v-chip
-                      v-if="window.aggregate_defaults.first == true"
+                      v-if="window.aggregate_defaults.first === true"
                     >
                       First
                     </v-chip>
                     <v-chip
-                      v-if="window.aggregate_defaults.last == true"
+                      v-if="window.aggregate_defaults.last === true"
                     >
                       Last
                     </v-chip>
                     <v-chip
-                      v-if="window.aggregate_defaults.closest_start == true"
+                      v-if="window.aggregate_defaults.closest_event === true"
                     >
-                      Closest to {{window.timing.start.label}}
+                      Closest to {{window.event.label ? window.event.label : "N/A"}}
                     </v-chip>
                     <v-chip
-                      v-if="window.aggregate_defaults.closest_time == true"
+                      v-if="window.aggregate_defaults.closest_time === true"
                     >
-                      Closest to {{window.aggregates.closest_timestamp}}
+                      Closest to {{window.aggregate_options.time}}
                     </v-chip>
                   </v-card-text>
                 </v-card>
@@ -187,14 +187,14 @@
                               Last
                             </v-chip>
                             <v-chip
-                              v-show="item.aggregates.default == false && item.aggregates.closest_start == true"
+                              v-show="item.aggregates.default == false && item.aggregates.closest_event == true"
                             >
-                              Closest to {{window.timing.start.label}}
+                              Closest to {{window.event.label ? window.event.label : "N/A"}}
                             </v-chip>
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
                             >
-                              Closest to {{item.aggregates.closest_timestamp}}
+                              Closest to {{window.aggregate_options.time}}
                             </v-chip>
                           </template>
                         </v-data-table>
@@ -712,20 +712,56 @@
                           </v-checkbox>
                       </v-col>
                     </v-row>
-                    <!--
                     <v-row
                         no-gutters
                     >
-                        <v-col
-                            cols="4"
-                            v-if="canAggStart()"
+                      <v-col
+                        cols="auto"
+                        class="pr-4"
+                      >
+                        <v-checkbox
+                          ref="closest_event_default"
+                          v-model="window.aggregate_defaults.closest_event"
+                          label="Closest to"
+                          dense
+                          :rules="window.aggregate_defaults.closest_event ? [rules.aggEventSelect] : []"
+                          v-if="isValidNonRepeat()"
                         >
-                            <v-checkbox
-                                v-model="window.aggregate_defaults.closest_start"
-                                dense
-                                :label="`Closest to ${window.timing.start.label}`"
+                        </v-checkbox>
+                      </v-col>
+                      <v-col
+                        cols="auto"
+                        class="pr-4"
+                      >
+                        <v-select
+                          placeholder="Select an event"
+                          v-model="window.event"
+                          :items="window_datetimes"
+                          item-text="label"
+                          item-value="label"
+                          return-object
+                          dense
+                          @change="$refs['closest_event_default'].validate()"
+                        ></v-select>
+                      </v-col>
+                      <v-col>
+                        <v-tooltip bottom>
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-icon
+                              color="primary"
+                              dark
+                              v-bind="attrs"
+                              v-on="on"
                             >
-                            </v-checkbox>
+                              mdi-information-outline
+                            </v-icon>
+                          </template>
+                            <span>
+                              If the selected event occurs multiple times within this data collection window, this will be based on its first occurrence.
+                              <br>
+                              If the event doesn't occur within this data collection window, then clinical variable aggregations for this will not be possible.
+                            </span>
+                          </v-tooltip>
                         </v-col>
                     </v-row>
                     <v-row
@@ -737,7 +773,7 @@
                             <v-checkbox
                                 v-model="window.aggregate_defaults.closest_time"
                                 dense
-                                v-if="canAggTime()"
+                                v-if="isWindowCalendarDay()"
                             >
                                 <template v-slot:label>
                                     <v-row
@@ -754,7 +790,7 @@
                                             cols="auto"
                                         >
                                             <v-text-field
-                                                v-model="window.aggregate_defaults.closest_timestamp"
+                                                v-model="window.aggregate_options.time"
                                                 type="time"
                                                 value="08:00:00"
                                                 dense
@@ -765,7 +801,6 @@
                             </v-checkbox>
                         </v-col>
                     </v-row>
-                    -->
                   </v-card-text>
                 </v-card>
               </v-col>
@@ -870,21 +905,57 @@
                                     </v-checkbox>
                                 </v-col>
                               </v-row>
-                            <!--
                             <v-row
                                 no-gutters
                             >
-                                <v-col
-                                    cols="8"
+                              <v-col
+                                cols="auto"
+                                class="pr-4"
+                              >
+                                <v-checkbox
+                                  ref="closest_event_edit"
+                                  v-model="edit_lv_obj.aggregates.closest_event"
+                                  label="Closest to"
+                                  dense
+                                  :rules="edit_lv_obj.aggregates.closest_event ? [rules.aggEventSelect] : []"
+                                  v-if="isValidNonRepeat()"
                                 >
-                                    <v-checkbox
-                                        v-model="edit_lv_obj.aggregates.closest_start"
-                                        dense
-                                        :label="`Closest to ${window.timing.start.label}`"
-                                        v-if="canAggStart()"
+                                </v-checkbox>
+                              </v-col>
+                              <v-col
+                                cols="auto"
+                                class="pr-4"
+                              >
+                                <v-select
+                                  placeholder="Select an event"
+                                  v-model="window.event"
+                                  :items="window_datetimes"
+                                  item-text="label"
+                                  item-value="label"
+                                  return-object
+                                  dense
+                                  @change="$refs['closest_event_edit'].validate()"
+                                ></v-select>
+                              </v-col>
+                              <v-col>
+                                <v-tooltip bottom>
+                                  <template v-slot:activator="{ on, attrs }">
+                                    <v-icon
+                                      color="primary"
+                                      dark
+                                      v-bind="attrs"
+                                      v-on="on"
                                     >
-                                    </v-checkbox>
-                                </v-col>
+                                      mdi-information-outline
+                                    </v-icon>
+                                  </template>
+                                  <span>
+                                    If the selected event occurs multiple times within this data collection window, this will be based on its first occurrence.
+                                    <br>
+                                    If the event doesn't occur within this data collection window, then clinical variable aggregations for this will not be possible.
+                                  </span>
+                                </v-tooltip>
+                              </v-col>
                             </v-row>
                             <v-row
                                 no-gutters
@@ -895,7 +966,7 @@
                                     <v-checkbox
                                         v-model="edit_lv_obj.aggregates.closest_time"
                                         dense
-                                        v-if="canAggTime()"
+                                        v-if="isWindowCalendarDay()"
                                     >
                                         <template v-slot:label>
                                             <v-row
@@ -912,7 +983,7 @@
                                                     cols="auto"
                                                 >
                                                     <v-text-field
-                                                        v-model="edit_lv_obj.aggregates.closest_timestamp"
+                                                        v-model="window.aggregate_options.time"
                                                         type="time"
                                                         value="08:00:00"
                                                         dense
@@ -923,7 +994,6 @@
                                     </v-checkbox>
                                 </v-col>
                               </v-row>
-                              -->
                             </v-card>
                             <v-card-actions>
                               <v-spacer></v-spacer>
@@ -1023,14 +1093,14 @@
                               Last
                             </v-chip>
                             <v-chip
-                              v-show="item.aggregates.default == false && item.aggregates.closest_start == true"
+                              v-show="item.aggregates.default == false && item.aggregates.closest_event == true"
                             >
-                              Closest to {{window.timing.start.label}}
+                              Closest to {{window.event.label ? window.event.label : "N/A"}}
                             </v-chip>
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
                             >
-                              Closest to {{item.aggregates.closest_timestamp}}
+                              Closest to {{window.aggregate_options.time}}
                             </v-chip>
                           </template>
                           <template v-slot:[`item.actions`]="{ item }">
@@ -1357,9 +1427,13 @@ export default {
     },
     window_dates: {
       get() {
-        // let rp_dates_arr = this.rp_dates.map(value => value.label);
-        // return this.clinical_dates.concat(rp_dates_arr);
         return this.clinical_dates.concat(this.rp_dates);
+      }
+    },
+    window_datetimes: {
+      get() {
+        const rp_datetimes_arr = this.rp_dates.filter(rp_date => rp_date.value_type === "datetime");
+        return this.clinical_dates.concat(rp_datetimes_arr);
       }
     }
   },
@@ -1390,9 +1464,8 @@ export default {
           max: false,
           first: false,
           last: false,
-          closest_start: false,
+          closest_event: false,
           closest_time: false,
-          closest_timestamp: "08:00:00"
         }
       },
       edit_field_index: null,
@@ -1477,14 +1550,17 @@ export default {
             },
             end_based: "enroll_date"
           },
+          event: null,
           aggregate_defaults: {
             min: false,
             max: false,
             first: false,
             last: false,
-            closest_start: false,
-            closest_time: false,
-            closest_timestamp: "08:00:00"
+            closest_event: false,
+            closest_time: false
+          },
+          aggregate_options : {
+            time: "08:00:00"
           },
           data: {
             labs_vitals: [],
@@ -1516,14 +1592,18 @@ export default {
             },
             end_based: "enroll_date"
           },
+          event: null,
           aggregate_defaults: {
             min: false,
             max: false,
             first: false,
             last: false,
-            closest_start: false,
+            closest_event: false,
             closest_time: false,
             closest_timestamp: "08:00:00"
+          },
+          aggregate_options: {
+            time: "08:00:00"
           },
           data: {
             labs_vitals: [],
@@ -1549,14 +1629,17 @@ export default {
             end: null,
             end_based: "enroll_date"
           },
+          event: null,
           aggregate_defaults: {
             min: false,
             max: false,
             first: false,
             last: false,
-            closest_start: false,
+            closest_event: false,
             closest_time: false,
-            closest_timestamp: "08:00:00"
+          },
+          aggregate_options: {
+            time: "08:00:00"
           },
           data: {
             labs_vitals: [],
@@ -1582,14 +1665,18 @@ export default {
             end: null,
             end_based: "enroll_date"
           },
+          event: null,
           aggregate_defaults: {
             min: false,
             max: false,
             first: false,
             last: false,
-            closest_start: false,
+            closest_event: false,
             closest_time: false,
             closest_timestamp: "08:00:00"
+          },
+          aggregate_options: {
+            time: "08:00:00"
           },
           data: {
             labs_vitals: [],
@@ -1611,14 +1698,17 @@ export default {
           end: null,
           end_based: "enroll_date"
         },
+        event: null,
         aggregate_defaults: {
           min: false,
           max: false,
           first: false,
           last: false,
-          closest_start: false,
+          closest_event: false,
           closest_time: false,
-          closest_timestamp: "08:00:00"
+        },
+        aggregate_options: {
+          time: "08:00:00"
         },
         data: {
           labs_vitals: [],
@@ -1627,7 +1717,8 @@ export default {
         }
       },
       rules: {
-        required: value => !!value || 'Required.'
+        required: value => !!value || 'Required.',
+        aggEventSelect: () => !!this.window.event || 'Select an event or uncheck this aggregation.'
       }
     }
   },
@@ -1649,9 +1740,8 @@ export default {
             max: false,
             first: false,
             last: false,
-            closest_start: false,
+            closest_event: false,
             closest_time: false,
-            closest_timestamp: "08:00:00"
           }
         })));
         this.alert_lv_success = true;
@@ -1720,7 +1810,7 @@ export default {
         subscores: null
       }
     },
-    // checks if the default aggregate needs to be set
+    // checks if default aggregates need to be set
     // returns true/false
     checkDefaultAgg(window) {
       let noDefaults = true;
@@ -1794,9 +1884,8 @@ export default {
           max: false,
           first: false,
           last: false,
-          closest_start: false,
+          closest_event: false,
           closest_time: false,
-          closest_timestamp: "08:00:00"
         }
       };
       this.closeEditLV();
@@ -1845,12 +1934,14 @@ export default {
       return obj !== null ? Object.prototype.hasOwnProperty.call(obj, 'redcap_field_name') : false;
     },
     isValidTiming() {
-      if (this.window.type === 'nonrepeating') {
-        return this.isValidNonRepeat();
-      } else if (this.window.type === 'finite_repeating') {
-        return this.isValidFiniteRepeat();
-      } else if (this.window.type === 'calculated_repeating') {
-        return this.isValidCalcRepeat();
+      if (this.window.label !== "" && this.checkInstrName(this.window.label)) {
+        if (this.window.type === 'nonrepeating') {
+          return this.isValidNonRepeat();
+        } else if (this.window.type === 'finite_repeating') {
+          return this.isValidFiniteRepeat();
+        } else if (this.window.type === 'calculated_repeating') {
+          return this.isValidCalcRepeat();
+        }
       }
       return false;
     },
@@ -1929,6 +2020,18 @@ export default {
       }
       return false;
     },
+    // determines if timing of the new data collection window form is for a calendar day
+    // returns true/false
+    isWindowCalendarDay() {
+      if (this.window.type === 'nonrepeating') {
+        return this.window.timing.start_type === 'date'
+          && this.window.timing.end_type === 'day';
+      } else if (['finite_repeating', 'calculated_repeating'].includes(this.window.type)) {
+        // TODO
+        return false;
+      }
+      return false;
+    },
     resetNonRepeatEnd(window) {
       window.timing.end = null;
       window.timing.end_based = this.rp_dates[0].redcap_field_name;
@@ -1946,7 +2049,6 @@ export default {
       }
     },
     resetWindow(window, ref) {
-      // console.log("resetWindow() called.");
       this[window] = JSON.parse(JSON.stringify({
         label: null,
         // type: null, // nonrepeating || finite_repeating || calculated_repeating
@@ -1960,14 +2062,17 @@ export default {
           end: null,
           end_based: "enroll_date"
         },
+        event: null,
         aggregate_defaults: {
           min: false,
           max: false,
           first: false,
           last: false,
-          closest_start: false,
+          closest_event: false,
           closest_time: false,
-          closest_timestamp: "08:00:00"
+        },
+        aggregate_options: {
+          time: "08:00:00"
         },
         data: {
           labs_vitals: [],
@@ -1999,9 +2104,6 @@ export default {
     setPreset(preset_choice) {
       this.window = JSON.parse(JSON.stringify(preset_choice));
       this.$refs["preset_window"].reset();
-      // console.log(JSON.stringify(preset_choice));
-      // console.log("setPreset()");
-      // console.log(JSON.stringify(this.window));
     }
   }
 }
