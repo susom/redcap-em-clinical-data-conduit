@@ -293,8 +293,9 @@ $project_id = PROJECT_ID;
       num_queries:0
     },
     beforeMount: function() {
-      // bypass the production status check if the server is localhost or contains "-dev" (i.e., a dev server)
-      if("<?php echo SERVER_NAME; ?>" == "localhost" || ("<?php echo SERVER_NAME; ?>").includes("-dev")) {
+      // bypass the production status check for now
+      // in future bypass the production status check if the server is localhost or contains "-dev" (i.e., a dev server)
+      if(true || "<?php echo SERVER_NAME; ?>" == "localhost" || ("<?php echo SERVER_NAME; ?>").includes("-dev")) {
         this.isProduction = true;
       }
       else {
