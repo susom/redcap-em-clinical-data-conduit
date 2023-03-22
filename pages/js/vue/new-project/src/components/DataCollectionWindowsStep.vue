@@ -128,7 +128,7 @@
                     <v-chip
                       v-if="window.aggregate_defaults.closest_event === true"
                     >
-                      Closest to {{window.event !== null && Object.prototype.hasOwnProperty.call(window.event, 'label') ? window.event.label : "N/A"}}
+                      Closest to {{Object.prototype.hasOwnProperty.call(window.event[0], 'label') ? window.event[0].label : "N/A"}}
                     </v-chip>
                     <v-chip
                       v-if="window.aggregate_defaults.closest_time === true"
@@ -189,7 +189,7 @@
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_event == true"
                             >
-                              Closest to {{window.event !== null && Object.prototype.hasOwnProperty.call(window.event, 'label') ? window.event.label : "N/A"}}
+                              Closest to {{Object.prototype.hasOwnProperty.call(window.event[0], 'label') ? window.event[0].label : "N/A"}}
                             </v-chip>
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
@@ -725,7 +725,7 @@
                           label="Closest to"
                           dense
                           :rules="window.aggregate_defaults.closest_event ? [rules.aggEventSelect] : []"
-                          v-if="isValidNonRepeat()"
+                          v-show="isValidNonRepeat()"
                         >
                         </v-checkbox>
                       </v-col>
@@ -735,13 +735,13 @@
                       >
                         <v-select
                           placeholder="Select an event"
-                          v-model="window.event"
+                          v-model="window.event[0]"
                           :items="window_datetimes"
                           item-text="label"
                           item-value="label"
                           return-object
                           dense
-                          @change="$refs['closest_event_default'].validate()"
+                          @change="$refs['closest_event_default'].validate(), $refs['closest_event_edit'].validate()"
                         ></v-select>
                       </v-col>
                       <v-col>
@@ -918,7 +918,7 @@
                                   label="Closest to"
                                   dense
                                   :rules="edit_lv_obj.aggregates.closest_event ? [rules.aggEventSelect] : []"
-                                  v-if="isValidNonRepeat()"
+                                  v-show="isValidNonRepeat()"
                                 >
                                 </v-checkbox>
                               </v-col>
@@ -928,13 +928,13 @@
                               >
                                 <v-select
                                   placeholder="Select an event"
-                                  v-model="window.event"
+                                  v-model="window.event[0]"
                                   :items="window_datetimes"
                                   item-text="label"
                                   item-value="label"
                                   return-object
                                   dense
-                                  @change="$refs['closest_event_edit'].validate()"
+                                  @change="$refs['closest_event_default'].validate(), $refs['closest_event_edit'].validate()"
                                 ></v-select>
                               </v-col>
                               <v-col>
@@ -1113,7 +1113,7 @@
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_event == true"
                             >
-                              Closest to {{window.event !== null && Object.prototype.hasOwnProperty.call(window.event, 'label') ? window.event.label : "N/A"}}
+                              Closest to {{Object.prototype.hasOwnProperty.call(window.event[0], 'label') ? window.event[0].label : "N/A"}}
                             </v-chip>
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
@@ -1580,7 +1580,7 @@ export default {
             },
             end_based: "enroll_date"
           },
-          event: null,
+          event: [{}],
           aggregate_defaults: {
             min: false,
             max: false,
@@ -1622,7 +1622,7 @@ export default {
             },
             end_based: "enroll_date"
           },
-          event: null,
+          event: [{}],
           aggregate_defaults: {
             min: false,
             max: false,
@@ -1659,7 +1659,7 @@ export default {
             end: null,
             end_based: "enroll_date"
           },
-          event: null,
+          event: [{}],
           aggregate_defaults: {
             min: false,
             max: false,
@@ -1695,7 +1695,7 @@ export default {
             end: null,
             end_based: "enroll_date"
           },
-          event: null,
+          event: [{}],
           aggregate_defaults: {
             min: false,
             max: false,
@@ -1728,7 +1728,7 @@ export default {
           end: null,
           end_based: "enroll_date"
         },
-        event: null,
+        event: [{}],
         aggregate_defaults: {
           min: false,
           max: false,
@@ -1748,7 +1748,7 @@ export default {
       },
       rules: {
         required: value => !!value || 'Required.',
-        aggEventSelect: () => !!this.window.event || 'Select an event or uncheck this aggregation.'
+        aggEventSelect: () => Object.keys(this.window.event[0]).length > 0 || 'Select an event or uncheck this aggregation.'
       }
     }
   },
@@ -1859,7 +1859,7 @@ export default {
           return 1;
         }
       }
-      return this.window.aggregate_defaults.closest_event === true && this.window.event === null ? 2 : 0;
+      return this.window.aggregate_defaults.closest_event === true && Object.keys(this.window.event[0]).length === 0 ? 2 : 0;
     },
     // checks validity of a lab or vital's aggregation settings when editing
     // returns:
@@ -1870,7 +1870,7 @@ export default {
       if (this.edit_lv_obj.aggregates.default === false) {
         for (const aggregate in this.edit_lv_obj.aggregates) {
           if (aggregate !== "default" && this.edit_lv_obj.aggregates[aggregate] === true) {
-              return aggregate === "closest_event" && !this.window.edit ? 2 : 0;
+              return aggregate === "closest_event" && Object.keys(this.window.event[0]).length === 0 ? 2 : 0;
           }
         }
       }
@@ -2118,7 +2118,7 @@ export default {
           end: null,
           end_based: "enroll_date"
         },
-        event: null,
+        event: [{}],
         aggregate_defaults: {
           min: false,
           max: false,

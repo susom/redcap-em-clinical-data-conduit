@@ -128,13 +128,13 @@
           <v-card
             outlined
             class="mb-4"
-            v-if="cw.event !== null"
+            v-if="Object.keys(cw.event[0]).length !== 0"
           >
             <v-card-subtitle><h2>Closest Event Aggregation</h2></v-card-subtitle>
             <v-list-item three-line>
               <v-list-item-content>
-                <v-list-item-subtitle>Label: {{Object.prototype.hasOwnProperty.call(cw.event, 'label') ? cw.event.label : "N/A"}}</v-list-item-subtitle>
-                <v-list-item-subtitle>REDCap field name: {{Object.prototype.hasOwnProperty.call(cw.event, 'redcap_field_name') ? cw.event.redcap_field_name : "N/A"}}</v-list-item-subtitle>
+                <v-list-item-subtitle>Label: {{Object.prototype.hasOwnProperty.call(cw.event[0], 'label') ? cw.event[0].label : "N/A"}}</v-list-item-subtitle>
+                <v-list-item-subtitle>REDCap field name: {{Object.prototype.hasOwnProperty.call(cw.event[0], 'redcap_field_name') ? cw.event[0].redcap_field_name : "N/A"}}</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
           </v-card>
@@ -337,7 +337,7 @@ export default {
             type: window.type,
             timing: {
             },
-            event: null,
+            event: [{}],
             data: {
               labs: [],
               vitals: [],
@@ -441,18 +441,18 @@ export default {
 
             // event for 'closest to event' aggregation
             // check if 'closest to event' aggregation is needed
-            if(this.windowHasClosestEvent(window) === true) {
+            if(this.windowUsesClosestEvent(window) === true) {
               let eventObj = {
                 type: "dttm",
-                duster_field_name: window.event !== null && Object.prototype.hasOwnProperty.call(window.event, 'duster_field_name') ? window.event.duster_field_name : null,
+                duster_field_name: Object.keys(window.event[0]).length !== 0 && Object.prototype.hasOwnProperty.call(window.event[0], 'duster_field_name') ? window.event[0].duster_field_name : null,
                 redcap_field_name: 'cw_' + index + '_closest_event_dttm',
                 redcap_field_type: "text",
                 value_type: "datetime",
-                rp_date: window.event !== null && Object.prototype.hasOwnProperty.call(window.event, 'duster_field_name') ? null : window.event.redcap_field_name,
-                label: window.event.label,
+                rp_date: Object.keys(window.event[0]).length === 0 && Object.prototype.hasOwnProperty.call(window.event[0], 'duster_field_name') ? null : window.event[0].redcap_field_name,
+                label: window.event[0].label,
                 phi: "t"
               }
-              newCW.event = eventObj;
+              newCW.event[0] = eventObj;
             }
           }
 
@@ -572,13 +572,13 @@ export default {
               itemArr.push({
                 duster_field_name: item.duster_field_name,
                 redcap_field_name: item.duster_field_name + '_closest_event_' + index,
-                label: item.label + ' closest to ' + newCW.event.label,
+                label: item.label + ' closest to ' + newCW.event[0].label,
                 redcap_field_type: item.redcap_field_type,
                 redcap_options: item.redcap_options,
                 redcap_field_note: item.redcap_field_note,
                 aggregate: "closest_event",
                 aggregate_options: {
-                  event: newCW.event.redcap_field_name
+                  event: newCW.event[0].redcap_field_name
                 }
               });
             }
@@ -857,7 +857,7 @@ export default {
       }
       return fieldsArr;
     },
-    windowHasClosestEvent(window) {
+    windowUsesClosestEvent(window) {
       if(window.aggregate_defaults.closest_event === true) {
         return true;
       }
