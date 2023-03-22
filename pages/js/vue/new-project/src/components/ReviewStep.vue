@@ -128,12 +128,13 @@
           <v-card
             outlined
             class="mb-4"
+            v-if="cw.event !== null"
           >
             <v-card-subtitle><h2>Closest Event Aggregation</h2></v-card-subtitle>
             <v-list-item three-line>
               <v-list-item-content>
-                <v-list-item-subtitle>Label: {{cw.event.label}}</v-list-item-subtitle>
-                <v-list-item-subtitle>REDCap field name: {{cw.event.redcap_field_name}}</v-list-item-subtitle>
+                <v-list-item-subtitle>Label: {{Object.prototype.hasOwnProperty.call(cw.event, 'label') ? cw.event.label : "N/A"}}</v-list-item-subtitle>
+                <v-list-item-subtitle>REDCap field name: {{Object.prototype.hasOwnProperty.call(cw.event, 'redcap_field_name') ? cw.event.redcap_field_name : "N/A"}}</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
           </v-card>
@@ -447,13 +448,12 @@ export default {
                 redcap_field_name: 'cw_' + index + '_closest_event_dttm',
                 redcap_field_type: "text",
                 value_type: "datetime",
-                rp_date: Object.prototype.hasOwnProperty.call(window.event, 'duster_field_name') ? null : window.event.redcap_field_name,
+                rp_date: window.event !== null && Object.prototype.hasOwnProperty.call(window.event, 'duster_field_name') ? null : window.event.redcap_field_name,
                 label: window.event.label,
                 phi: "t"
               }
               newCW.event = eventObj;
             }
-
           }
 
           // labs and vitals

@@ -128,7 +128,7 @@
                     <v-chip
                       v-if="window.aggregate_defaults.closest_event === true"
                     >
-                      Closest to {{window.event.label ? window.event.label : "N/A"}}
+                      Closest to {{window.event !== null && Object.prototype.hasOwnProperty.call(window.event, 'label') ? window.event.label : "N/A"}}
                     </v-chip>
                     <v-chip
                       v-if="window.aggregate_defaults.closest_time === true"
@@ -189,7 +189,7 @@
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_event == true"
                             >
-                              Closest to {{window.event.label ? window.event.label : "N/A"}}
+                              Closest to {{window.event !== null && Object.prototype.hasOwnProperty.call(window.event, 'label') ? window.event.label : "N/A"}}
                             </v-chip>
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
@@ -716,7 +716,7 @@
                         no-gutters
                     >
                       <v-col
-                        cols="auto"
+                        cols="2"
                         class="pr-4"
                       >
                         <v-checkbox
@@ -909,7 +909,7 @@
                                 no-gutters
                             >
                               <v-col
-                                cols="auto"
+                                cols="2"
                                 class="pr-4"
                               >
                                 <v-checkbox
@@ -1011,6 +1011,24 @@
                               </v-btn>
                               <v-spacer></v-spacer>
                             </v-card-actions>
+                            <v-alert
+                              v-model="alert_edit_agg"
+                              type="error"
+                              dismissible
+                            >
+                              You selected to set custom aggregates, but you did not select any.
+                            </v-alert>
+                            <v-alert
+                              v-model="alert_edit_agg_closest_event"
+                              type="error"
+                              dismissible
+                            >
+                              You chose to set custom aggregates and checked the "closest to" aggregation.
+                              <br>
+                              However, you did not select an event for this aggregation.
+                              <br>
+                              Select an event or uncheck this aggregation.
+                            </v-alert>
                           </v-card>
                         </v-dialog>
                         <v-dialog
@@ -1095,7 +1113,7 @@
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_event == true"
                             >
-                              Closest to {{window.event.label ? window.event.label : "N/A"}}
+                              Closest to {{window.event !== null && Object.prototype.hasOwnProperty.call(window.event, 'label') ? window.event.label : "N/A"}}
                             </v-chip>
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
@@ -1306,18 +1324,27 @@
                 Save Window
               </v-btn>
             </v-card-actions>
-
             <v-alert
               v-model="alert_default_agg"
               type="error"
               dismissible
             >
               One or more clinical variables that you added are using default aggregates, but you did not set them.
+              <br>
               Set default aggregates in order to continue.
             </v-alert>
-
+            <v-alert
+              v-model="alert_default_agg_closest_event"
+              type="error"
+              dismissible
+            >
+              You checked the "closest to" aggregation.
+              <br>
+              However, you did not select an event for this aggregation.
+              <br>
+              Select an event or uncheck this aggregation.
+            </v-alert>
           </v-stepper-content>
-
         </v-stepper>
 
         <v-card-actions
@@ -1440,6 +1467,9 @@ export default {
   data: function() {
     return {
       alert_default_agg: false,
+      alert_default_agg_closest_event: false,
+      alert_edit_agg: false,
+      alert_edit_agg_closest_event: false,
       alert_lv_error: false,
       alert_lv_label: null,
       alert_lv_success: false,
@@ -1810,23 +1840,41 @@ export default {
         subscores: null
       }
     },
-    // checks if default aggregates need to be set
-    // returns true/false
-    checkDefaultAgg(window) {
+    // checks validity of default aggregates or if they need to be set
+    // returns:
+    //   0 -> aggregation setting is valid
+    //   1 -> default aggregates must be chosen
+    //   2 -> "closest to event" option is selected, but no event is selected
+    checkDefaultAgg() {
       let noDefaults = true;
-      for (let aggregate in window.aggregate_defaults) {
-        if (window.aggregate_defaults[aggregate] === true) {
+      for (let aggregate in this.window.aggregate_defaults) {
+        if (this.window.aggregate_defaults[aggregate] === true) {
           noDefaults = false;
           break;
         }
       }
-      for (let i = 0; i < window.data.labs_vitals.length; i++) {
-        if (window.data.labs_vitals[i].aggregates.default === true
+      for (let i = 0; i < this.window.data.labs_vitals.length; i++) {
+        if (this.window.data.labs_vitals[i].aggregates.default === true
           && noDefaults === true) {
-          return false;
+          return 1;
         }
       }
-      return true;
+      return this.window.aggregate_defaults.closest_event === true && this.window.event === null ? 2 : 0;
+    },
+    // checks validity of a lab or vital's aggregation settings when editing
+    // returns:
+    //   0 -> aggregation setting is valid, default is chosen or custom settings are valid
+    //   1 -> custom aggregation is chosen, but no custom options are selected
+    //   2 -> custom aggregation is chosen and "closest to event" option is selected, but no event is selected
+    checkEditAgg() {
+      if (this.edit_lv_obj.aggregates.default === false) {
+        for (const aggregate in this.edit_lv_obj.aggregates) {
+          if (aggregate !== "default" && this.edit_lv_obj.aggregates[aggregate] === true) {
+              return aggregate === "closest_event" && !this.window.edit ? 2 : 0;
+          }
+        }
+      }
+      return 1;
     },
     cancelEditWindow(i) {
       this.collection_windows.splice(i, 1, JSON.parse(JSON.stringify(this.pre_edit_window)));
@@ -1865,30 +1913,38 @@ export default {
       this.edit_field_index = null;
       this.closeDeleteField();
     },
+    // validates and saves an edit for a lab or vital
     confirmEditLV() {
-      if (this.edit_lv_index !== null) {
-        Object.assign(this.window.data.labs_vitals[this.edit_lv_index], this.edit_lv_obj);
-      }
-      this.edit_lv_index = null;
-      this.edit_lv_obj = {
-        duster_field_name: null,
-        label: null,
-        redcap_field_type: null,
-        value_type: null,
-        redcap_options: null,
-        redcap_field_note: null,
-        category: null,
-        aggregates: {
-          default: true,
-          min: false,
-          max: false,
-          first: false,
-          last: false,
-          closest_event: false,
-          closest_time: false,
+      const editAgg = this.checkEditAgg();
+      if (editAgg === 1) {
+        this.alert_edit_agg = true;
+      } else if (editAgg === 2) {
+        this.alert_edit_agg_closest_event = true;
+      } else if (editAgg === 0) {
+        if (this.edit_lv_index !== null) {
+          Object.assign(this.window.data.labs_vitals[this.edit_lv_index], this.edit_lv_obj);
         }
-      };
-      this.closeEditLV();
+        this.edit_lv_index = null;
+        this.edit_lv_obj = {
+          duster_field_name: null,
+          label: null,
+          redcap_field_type: null,
+          value_type: null,
+          redcap_options: null,
+          redcap_field_note: null,
+          category: null,
+          aggregates: {
+            default: true,
+            min: false,
+            max: false,
+            first: false,
+            last: false,
+            closest_event: false,
+            closest_time: false,
+          }
+        };
+        this.closeEditLV();
+      }
     },
     closeEditLV() {
       this.edit_lv_dialog = false;
@@ -2085,10 +2141,14 @@ export default {
       this.$refs[ref].resetValidation();
     },
     saveCollectionWindowForm() {
-      // check if default aggregates are set if needed
-      if (this.checkDefaultAgg(this.window)) {
+      const defaultAgg = this.checkDefaultAgg();
+      if (defaultAgg === 1) {
+        this.alert_default_agg = true;
+      } else if (defaultAgg === 2) {
+        this.alert_default_agg_closest_event = true;
+      } else if (defaultAgg === 0) {
         // check if this is a new window to save or an existing window that's being edited
-        if(this.edit_window_index === -1) {
+        if (this.edit_window_index === -1) {
           this.collection_windows.push(JSON.parse(JSON.stringify(this.window)));
         } else {
           this.collection_windows.splice(this.edit_window_index, 1, JSON.parse(JSON.stringify(this.window)));
@@ -2097,8 +2157,6 @@ export default {
         }
         this.resetWindow('window', 'window_form');
         this.show_window_form = false;
-      } else {
-        this.alert_default_agg = true;
       }
     },
     setPreset(preset_choice) {
