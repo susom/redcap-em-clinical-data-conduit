@@ -713,19 +713,18 @@
                       </v-col>
                     </v-row>
                     <v-row
-                        no-gutters
+                      no-gutters
+                      v-show="isValidNonRepeat()"
                     >
                       <v-col
-                        cols="2"
-                        class="pr-4"
+                        cols="auto"
+                        class="pr-1"
                       >
                         <v-checkbox
-                          ref="closest_event_default"
                           v-model="window.aggregate_defaults.closest_event"
                           label="Closest to"
                           dense
-                          :rules="window.aggregate_defaults.closest_event ? [rules.aggEventSelect] : []"
-                          v-show="isValidNonRepeat()"
+                          @change="$refs['closest_event_default'].validate(), $refs['closest_event_edit'].validate()"
                         >
                         </v-checkbox>
                       </v-col>
@@ -734,6 +733,7 @@
                         class="pr-4"
                       >
                         <v-select
+                          ref="closest_event_default"
                           placeholder="Select an event"
                           v-model="window.event[0]"
                           :items="window_datetimes"
@@ -741,7 +741,7 @@
                           item-value="label"
                           return-object
                           dense
-                          @change="$refs['closest_event_default'].validate(), $refs['closest_event_edit'].validate()"
+                          :rules="window.aggregate_defaults.closest_event ? [rules.aggEventSelect] : []"
                         ></v-select>
                       </v-col>
                       <v-col>
@@ -766,6 +766,7 @@
                     </v-row>
                     <v-row
                         no-gutters
+                        v-show="isWindowCalendarDay()"
                     >
                         <v-col
                             cols="4"
@@ -773,7 +774,6 @@
                             <v-checkbox
                                 v-model="window.aggregate_defaults.closest_time"
                                 dense
-                                v-if="isWindowCalendarDay()"
                             >
                                 <template v-slot:label>
                                     <v-row
@@ -906,19 +906,18 @@
                                 </v-col>
                               </v-row>
                             <v-row
-                                no-gutters
+                              no-gutters
+                                v-show="isValidNonRepeat()"
                             >
                               <v-col
-                                cols="2"
-                                class="pr-4"
+                                cols="auto"
+                                class="pr-1"
                               >
                                 <v-checkbox
-                                  ref="closest_event_edit"
                                   v-model="edit_lv_obj.aggregates.closest_event"
                                   label="Closest to"
                                   dense
-                                  :rules="edit_lv_obj.aggregates.closest_event ? [rules.aggEventSelect] : []"
-                                  v-show="isValidNonRepeat()"
+                                  @change="$refs['closest_event_default'].validate(), $refs['closest_event_edit'].validate()"
                                 >
                                 </v-checkbox>
                               </v-col>
@@ -927,6 +926,7 @@
                                 class="pr-4"
                               >
                                 <v-select
+                                  ref="closest_event_edit"
                                   placeholder="Select an event"
                                   v-model="window.event[0]"
                                   :items="window_datetimes"
@@ -934,7 +934,7 @@
                                   item-value="label"
                                   return-object
                                   dense
-                                  @change="$refs['closest_event_default'].validate(), $refs['closest_event_edit'].validate()"
+                                  :rules="edit_lv_obj.aggregates.closest_event ? [rules.aggEventSelect] : []"
                                 ></v-select>
                               </v-col>
                               <v-col>
@@ -959,6 +959,7 @@
                             </v-row>
                             <v-row
                                 no-gutters
+                                v-show="isWindowCalendarDay()"
                             >
                                 <v-col
                                     cols="8"
@@ -966,7 +967,6 @@
                                     <v-checkbox
                                         v-model="edit_lv_obj.aggregates.closest_time"
                                         dense
-                                        v-if="isWindowCalendarDay()"
                                     >
                                         <template v-slot:label>
                                             <v-row
@@ -1748,7 +1748,7 @@ export default {
       },
       rules: {
         required: value => !!value || 'Required.',
-        aggEventSelect: () => Object.keys(this.window.event[0]).length > 0 || 'Select an event or uncheck this aggregation.'
+        aggEventSelect: value => Object.keys(value).length > 0 || 'Select an event or uncheck this aggregation.'
       }
     }
   },
