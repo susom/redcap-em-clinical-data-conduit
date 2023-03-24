@@ -354,7 +354,7 @@ export default {
             let startDusterField = timing.start !== null && Object.prototype.hasOwnProperty.call(timing.start, 'duster_field_name') ? timing.start.duster_field_name : null;
 
             // get the REDCap field name for the start and end parameters for timing
-            let startRCField = 'cw' + index + '_start_dttm';
+            let startRCField = 'cw' + index + '_start_datetime';
             /*
             let suffixNum;
             if(this.checkRCFieldExists(startRCField)) {
@@ -380,7 +380,7 @@ export default {
             let endDusterField = timing.end !== null && Object.prototype.hasOwnProperty.call(timing.end, "duster_field_name") ? timing.end.duster_field_name : null;
 
             // get the REDCap field name for the end parameter for timing
-            let endRCField = 'cw' + index + '_end_dttm';
+            let endRCField = 'cw' + index + '_end_datetime';
             /*
             if(this.checkRCFieldExists(endRCField)) {
                 suffixNum = 0;
@@ -394,13 +394,13 @@ export default {
 
             // get the rp_date for the end parameter for timing
             let endRPDate = null;
-            if(timing.end_type === 'dttm') {
+            if(timing.end_type === 'datetime') {
               endRPDate = endDusterField !== null ? timing.end_based : timing.end.redcap_field_name;
             }
 
             // get the REDCap label for the end parameter for timing
             let endLabel = "";
-            if(timing.end_type === 'dttm') {
+            if(timing.end_type === 'datetime') {
               if(timing.end.value_type === 'date') {
                 endLabel = 'Midnight on the Calendar Day of ' + timing.end.label;
               } else {
@@ -443,9 +443,9 @@ export default {
             // check if 'closest to event' aggregation is needed
             if(this.windowUsesClosestEvent(window) === true) {
               let eventObj = {
-                type: "dttm",
+                type: "datetime",
                 duster_field_name: Object.keys(window.event[0]).length !== 0 && Object.prototype.hasOwnProperty.call(window.event[0], 'duster_field_name') ? window.event[0].duster_field_name : null,
-                redcap_field_name: 'cw_' + index + '_closest_event_dttm',
+                redcap_field_name: 'cw_' + index + '_closest_event_datetime',
                 redcap_field_type: "text",
                 value_type: "datetime",
                 rp_date: Object.keys(window.event[0]).length === 0 && Object.prototype.hasOwnProperty.call(window.event[0], 'duster_field_name') ? null : window.event[0].redcap_field_name,

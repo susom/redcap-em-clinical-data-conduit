@@ -68,7 +68,7 @@
                       End: At 23:59:00 on {{window.timing.start.label}}
                     </p>
                     <p
-                      v-else-if="window.timing.end_type === 'dttm'"
+                      v-else-if="window.timing.end_type === 'datetime'"
                     >
                       End: {{window.timing.end.label}}
                     </p>
@@ -418,7 +418,7 @@
                 v-if="window.type === 'nonrepeating'"
               >
                 <v-radio
-                  value="dttm"
+                  value="datetime"
                   class="pl-3"
                 >
                   <template v-slot:label>
@@ -547,7 +547,7 @@
                 </v-radio>
                 <v-radio
                   label="This window ends on a specified date/datetime."
-                  value="dttm"
+                  value="datetime"
                   class="pl-3"
                 >
                 </v-radio>
@@ -617,7 +617,7 @@
                     item-value="label"
                     return-object
                     label="End Date/Datetime"
-                    v-if="(window.type === 'nonrepeating' && window.timing.end_type === 'dttm')
+                    v-if="(window.type === 'nonrepeating' && window.timing.end_type === 'datetime')
                                                                 || window.type === 'calculated_repeating'"
                   >
                   </v-select>
@@ -1560,20 +1560,20 @@ export default {
           label: "ED Presentation to ED Discharge",
           type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
           timing: {
-            start_type: "dttm",
+            start_type: "datetime",
             start: {
               category: "dates",
-              duster_field_name: "ed_admission_dttm",
+              duster_field_name: "ed_admission_datetime",
               redcap_field_type: "text",
               value_type: "datetime",
               label: "ED Admission Datetime"
             },
             start_based: "enroll_date",
-            end_type: "dttm",
+            end_type: "datetime",
             num_hours: null,
             end: {
               category: "dates",
-              duster_field_name: "ed_discharge_dttm",
+              duster_field_name: "ed_discharge_datetime",
               redcap_field_type: "text",
               value_type: "datetime",
               label: "ED Discharge Datetime"
@@ -1602,20 +1602,20 @@ export default {
           label: "Hospital Presentation to Hospital Discharge",
           type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
           timing: {
-            start_type: "dttm",
+            start_type: "datetime",
             start: {
               category: "dates",
-              duster_field_name: "hospital_admit_dttm",
+              duster_field_name: "hospital_admit_datetime",
               redcap_field_type: "text",
               value_type: "datetime",
               label: "Hospital Admission Datetime"
             },
             start_based: "enroll_date",
-            end_type: "dttm",
+            end_type: "datetime",
             num_hours: null,
             end: {
               category: "dates",
-              duster_field_name: "hospital_discharge_dttm",
+              duster_field_name: "hospital_discharge_datetime",
               redcap_field_type: "text",
               value_type: "datetime",
               label: "Hospital Discharge Datetime"
@@ -1645,10 +1645,10 @@ export default {
           label: "First 24 Hours of Hospital Admission",
           type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
           timing: {
-            start_type: "dttm",
+            start_type: "datetime",
             start: {
               category: "dates",
-              duster_field_name: "hospital_admit_dttm",
+              duster_field_name: "hospital_admit_datetime",
               redcap_field_type: "text",
               value_type: "datetime",
               label: "Hospital Admission Datetime"
@@ -1681,10 +1681,10 @@ export default {
           label: "First 24 Hours of First ICU Admission",
           type: "nonrepeating", // nonrepeating || finite_repeating || calculated_repeating
           timing: {
-            start_type: "dttm",
+            start_type: "datetime",
             start: {
               category: "dates",
-              duster_field_name: "first_icu_admission_dttm",
+              duster_field_name: "first_icu_admission_datetime",
               redcap_field_type: "text",
               value_type: "datetime",
               label: "First ICU Admission Datetime"
@@ -2006,9 +2006,9 @@ export default {
     isValidNonRepeat() {
       // verify type is 'nonrepeating'
       if (this.window.type === 'nonrepeating') {
-        // check if start_dttm is a clinical window and start_based_dttm is a researcher-provided date
-        // or if start_dttm is a researcher-provided date/datetime
-        if (['date', 'dttm'].includes(this.window.timing.start_type)
+        // check if start_datetime is a clinical window and start_based_datetime is a researcher-provided date
+        // or if start_datetime is a researcher-provided date/datetime
+        if (['date', 'datetime'].includes(this.window.timing.start_type)
           && ((this.isClinicalDate(this.window.timing.start)
               && this.rp_dates_rcfields.includes(this.window.timing.start_based))
             || this.isRPDate(this.window.timing.start))) {
@@ -2017,7 +2017,7 @@ export default {
             || this.window.timing.end_type === 'day') {
             // console.log("isValidNonRepeat(): valid, returning true");
             return true;
-          } else if (this.window.timing.end_type === 'dttm') {
+          } else if (this.window.timing.end_type === 'datetime') {
             if ((this.isClinicalDate(this.window.timing.end)
                 && this.rp_dates_rcfields.includes(this.window.timing.end_based))
               || this.isRPDate(this.window.timing.end)) {
@@ -2036,8 +2036,8 @@ export default {
       if (this.window.type === 'finite_repeating') {
         // check number of instances > 1
         if (this.window.timing.num_instances > 1) {
-          // check if start_dttm is a clinical window and start_based_dttm is a researcher-provided date
-          // or if start_dttm is a researcher-provided date/datetime
+          // check if start_datetime is a clinical window and start_based_datetime is a researcher-provided date
+          // or if start_datetime is a researcher-provided date/datetime
           if ((this.isClinicalDate(this.window.timing.start)
               && this.rp_dates_rcfields.includes(this.window.timing.start_based))
             || this.isRPDate(this.window.timing.start)) {
@@ -2056,13 +2056,13 @@ export default {
     isValidCalcRepeat() {
       // verify type is 'calculated_repeating'
       if (this.window.type === 'calculated_repeating') {
-        // check if start_dttm is a clinical window and start_based_dttm is a researcher-provided date
-        // or if start_dttm is a researcher-provided date/datetime
+        // check if start_datetime is a clinical window and start_based_datetime is a researcher-provided date
+        // or if start_datetime is a researcher-provided date/datetime
         if ((this.isClinicalDate(this.window.timing.start)
             && this.rp_dates_rcfields.includes(this.window.timing.start_based))
           || this.isRPDate(this.window.timing.start)) {
-          // check if end_dttm is a clinical window and end_based_dttm is a researcher-provided date
-          // or if end_dttm is a researcher-provided date/datetime
+          // check if end_datetime is a clinical window and end_based_datetime is a researcher-provided date
+          // or if end_datetime is a researcher-provided date/datetime
           if ((this.isClinicalDate(this.window.timing.end)
               && this.rp_dates_rcfields.includes(this.window.timing.end_based))
             || this.isRPDate(this.window.timing.end)) {
