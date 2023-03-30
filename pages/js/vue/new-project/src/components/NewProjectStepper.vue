@@ -188,7 +188,8 @@ export default {
         {
           label: "Study Enrollment Date",
           redcap_field_name: "enroll_date",
-          redcap_field_type: "date",
+          value_type: "date",
+          redcap_field_type: "text",
           phi: "t"
         }
       ],
@@ -237,6 +238,10 @@ export default {
             label: demographic.label,
             duster_field_name: demographic.duster_field_name,
             redcap_field_name: demographic.duster_field_name,
+            redcap_field_type: demographic.redcap_field_type,
+            redcap_options: demographic.redcap_options,
+            value_type: demographic.value_type,
+            redcap_field_note: demographic.redcap_field_note,
             phi: demographic.phi
           }
         );
@@ -251,7 +256,11 @@ export default {
           {
             duster_field_name: lab.duster_field_name,
             label: lab.label,
-            category: lab.category
+            category: lab.category,
+            redcap_field_type: lab.redcap_field_type,
+            redcap_options: lab.redcap_options,
+            redcap_field_note: lab.redcap_field_note,
+            value_type: lab.value_type
           }
         );
       }
@@ -262,7 +271,11 @@ export default {
           {
             duster_field_name: vital.duster_field_name,
             label: vital.label,
-            category: vital.category
+            category: vital.category,
+            redcap_field_type: vital.redcap_field_type,
+            redcap_options: vital.redcap_options,
+            redcap_field_note: vital.redcap_field_note,
+            value_type: vital.value_type
           }
         );
       }
@@ -275,7 +288,9 @@ export default {
               label: outcome.label,
               category: outcome.category,
               redcap_field_type: outcome.redcap_field_type,
-              redcap_options: outcome.redcap_options
+              redcap_options: outcome.redcap_options,
+              redcap_field_note: outcome.redcap_field_note,
+              value_type: outcome.value_type
             }
         );
       }
@@ -291,6 +306,7 @@ export default {
                 redcap_field_type: score.redcap_field_type,
                 redcap_field_note: score.redcap_field_note,
                 redcap_options: score.redcap_options,
+                value_type: score.value_type,
                 subscores: score.subscores
               }
           )
