@@ -1,0 +1,199 @@
+{
+  "cw_presets": [
+    {
+      "label": "ED Presentation to ED Discharge",
+      "form_name": "ed_presentation_to_ed_discharge",
+      "timing_preset": "ed_presentation_to_ed_discharge",
+      "type": "nonrepeating",
+      "timing": {
+        "start": {
+          "type": "datetime",
+          "duster_field_name": "ed_admission_dttm",
+          "redcap_field_name": "",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "ED Admission Datetime",
+          "rp_date": "",
+          "interval": {
+            "type": null,
+            "length" : null
+          },
+          "phi": "t"
+        },
+        "end": {
+          "type": "datetime",
+          "duster_field_name": "ed_discharge_dttm",
+          "redcap_field_name": "",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "ED Discharge Datetime",
+          "rp_date": "",
+          "interval": {
+            "type": null,
+            "length" : null
+          },
+          "phi": "t"
+        },
+        "repeat_interval" : {
+          "type": null,
+          "length" : null
+        }
+      },
+      "aggregate_defaults": [],
+      "event": [],
+      "data": {
+        "labs": [],
+        "vitals": [],
+        "outcomes": [],
+        "scores": []
+      },
+      "id": ""
+    },
+    {
+      "label": "Hospital Presentation to Hospital Discharge",
+      "form_name": "hospital_presentation_to_hospital_discharge",
+      "timing_preset": "hospital_presentation_to_hospital_discharge",
+      "type": "nonrepeating",
+      "timing": {
+        "start": {
+          "type": "datetime",
+          "duster_field_name": "hospital_admit_dttm",
+          "redcap_field_name": "",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "Hospital Admission Datetime",
+          "rp_date": "",
+          "interval": {
+            "type": null,
+            "length" : null
+          },
+          "phi": "t"
+        },
+        "end": {
+          "type": "datetime",
+          "duster_field_name": "hospital_discharge_dttm",
+          "redcap_field_name": "",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "Hospital Discharge Datetime",
+          "rp_date": "",
+          "interval": {
+            "type": null,
+            "length" : null
+          },
+          "phi": "t"
+        },
+        "repeat_interval" : {
+          "type": null,
+          "length" : null
+        }
+      },
+      "aggregate_defaults": [],
+      "event": [],
+      "data": {
+        "labs": [],
+        "vitals": [],
+        "outcomes": [],
+        "scores": []
+      },
+      "id": ""
+    },
+    {
+      "label": "First 24 Hours of Hospital Admission",
+      "form_name": "first_24_hrs_of_hospital_admission",
+      "timing_preset": "first_24_hrs_of_hospital_admission",
+      "type": "nonrepeating",
+      "timing": {
+        "start": {
+          "type": "datetime",
+          "duster_field_name": "hospital_admit_dttm",
+          "redcap_field_name": "",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "Hospital Admission Datetime",
+          "rp-date": "enroll_date",
+          "interval": {
+            "type": null,
+            "length" : null
+          },
+          "phi": "t"
+        },
+        "end": {
+          "type": "interval",
+          "duster_field_name": "",
+          "redcap_field_name": "",
+          "redcap_field_type": "",
+          "value_type": "",
+          "label": "23:59:00 of Hospital Admission Datetime",
+          "rp-date": "",
+          "interval": {
+            "type": "day",
+            "length": 1
+          },
+          "phi": "t"
+        },
+        "repeat_interval" : {
+          "type": null,
+          "length" : null
+        }
+      },
+      "aggregate_defaults": [],
+      "event": [],
+      "data": {
+        "labs": [],
+        "vitals": [],
+        "outcomes": [],
+        "scores": []
+      },
+      "id": ""
+    },
+    {
+      "label": "First 24 Hours of First ICU Admission",
+      "form_name": "first_24_hrs_of_first_icu_admission",
+      "timing_preset": "first_24_hrs_of_first_icu_admission",
+      "type": "nonrepeating",
+      "timing": {
+        "start": {
+          "type": "datetime",
+          "duster_field_name": "first_icu_admission_dttm",
+          "redcap_field_name": "",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "First ICU Admission Datetime",
+          "rp-date": "enroll_date",
+          "interval": {
+            "type": null,
+            "length": null
+          },
+          "phi": "t"
+        },
+        "end": {
+          "type": "interval",
+          "duster_field_name": "",
+          "redcap_field_name": "",
+          "redcap_field_type": "",
+          "value_type": "",
+          "label": "23:59:00 of First ICU Admission Datetime",
+          "rp-date": "",
+          "interval": {
+            "type": "day",
+            "length": 1
+          }
+        },
+        "repeat_interval" : {
+          "type": null,
+          "length" : null
+        }
+      },
+      "aggregate_defaults": [],
+      "event": [],
+      "data": {
+        "labs": [],
+        "vitals": [],
+        "outcomes": [],
+        "scores": []
+      },
+      "id": ""
+    }
+  ]
+}
