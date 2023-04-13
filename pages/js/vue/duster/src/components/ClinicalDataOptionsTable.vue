@@ -5,7 +5,7 @@
     <!--InputText placeholder="Search Clinical Value" v-model="filters['global'].value" id="tableSearchOutside"
     /-->
     </div>
-    <DataTable class="col"
+    <DataTable class="col p-datatable-sm"
              v-model:selection="selected"
              v-model:filters="filters"
              filterDisplay="row"
@@ -39,7 +39,7 @@
              v-model:filters="filters"
              filterDisplay="row"
              :globalFilterFields="['label']"
-             class="col"
+             class="col p-datatable-sm"
              @rowSelect="onRowSelect($event, 'col2')" @rowUnselect="onRowUnselect($event, 'col2')"
               ref="dt">
     <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
@@ -49,7 +49,7 @@
         {{ getAggregatesLabel(data.aggregate_type, data.aggregates) }}
         <Button  icon="pi pi-pencil" rounded class="ml-2"
                  :disabled="!data.selected"
-                 @click="currentField=data;currentTable='col2';showAggregatesDialog=true" />
+                 @click="currentField=data;currentTable='col2';showAggregatesDialog=true" />        
       </template>
     </Column>
   </DataTable>

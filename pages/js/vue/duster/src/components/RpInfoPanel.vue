@@ -1,97 +1,93 @@
 <template>
-  <Card>
-  <template #title>
-    Researcher Provided Information
-  </template>
-    <template #content>
-    <div>
-      <p>
+  <div class="container">
+    <Panel header="Researcher Provided Information">      
+      <div>
         The minimum required information for each record is an MRN and a study enrollment date.
         This data must be loaded into redcap after DUSTER creates the project.
-      </p>
-    </div>
-      <Panel header="Identifier">
-
-      <DataTable
-          :value="rpIdentifiers"
-      >
-        <Column v-for="col of rpIdHeaders"
-                :key="col.value"
-                :field="col.value"
-                :header="col.text">
-        </Column>
-      </DataTable>
+      </div>
+      <Panel header="Identifier" class="mt-3">
+        <DataTable
+            :value="rpIdentifiers" class="p-datatable-sm"
+        >
+          <Column v-for="col of rpIdHeaders"
+                  :key="col.value"
+                  :field="col.value"
+                  :header="col.text">
+          </Column>
+        </DataTable>
       </Panel>
-  <Panel header="Dates" class="my-3">
 
-
-      <DataTable
+      <Panel header="Dates" class="my-3">
+        <DataTable
           :value="localRpDates"
           v-model:selection="localRpDatesEdit"
+          class="p-datatable-sm"
           data-key="id"
-      >
-        <Column  key="redcap_field_type" field="redcap_field_type" header="Type">
-          <template #editor="{ data, field }">
-            <Dropdown v-model="data[field]" :options="dateTypes" />
-          </template>
-        </Column>
-        <Column  key="label" field="label" header="Label">
-          <template #editor="{ data, field }">
-            <InputText v-model="data[field]" autofocus />
-          </template>
-        </Column>
-        <Column  key="redcap_field_name" field="redcap_field_name" header="Field Name">
-          <template #editor="{ data, field }">
-            <InputText v-model="data[field]" autofocus />
-          </template>
-        </Column>
+        >
+          <Column  key="redcap_field_type" field="redcap_field_type" header="Type">
+            <template #editor="{ data, field }">
+              <Dropdown v-model="data[field]" :options="dateTypes" />
+            </template>
+          </Column>
+          <Column  key="label" field="label" header="Label">
+            <template #editor="{ data, field }">
+              <InputText v-model="data[field]" autofocus />
+            </template>
+          </Column>
+          <Column  key="redcap_field_name" field="redcap_field_name" header="Field Name">
+            <template #editor="{ data, field }">
+              <InputText v-model="data[field]" autofocus />
+            </template>
+          </Column>
 
-        <Column :exportable="false" style="min-width:8rem">
-          <template #body="slotProps">
-            <Button icon="pi pi-pencil" outlined rounded class="mr-2"
-                    @click="editRpDate(slotProps.data)" />
-            <Button icon="pi pi-trash" outlined rounded severity="danger"
-                    :style="(slotProps.index == 0)? 'display:none !important' : ''"
-                    @click="confirmDeleteRpDate(slotProps.data)" />
+          <Column :exportable="false" style="min-width:8rem">
+            <template #body="slotProps">
+              <Button icon="pi pi-pencil" outlined rounded class="mr-2 p-button-sm"
+                      @click="editRpDate(slotProps.data)" />
+              <Button icon="pi pi-trash" outlined rounded severity="danger" class=" p-button-sm"
+                      :style="(slotProps.index == 0)? 'display:none !important' : ''"
+                      @click="confirmDeleteRpDate(slotProps.data)" />
+            </template>
+          </Column>
+          <template #footer>
+            <div class="text-right">
+              <Button label="New"
+                      icon="pi pi-plus"
+                      severity="success"
+                      class="mr-2 p-button-sm"
+                      @click="openNew" />          
+            </div>                  
           </template>
-        </Column>
-      </DataTable>
+        </DataTable>
+      </Panel>
+    </Panel>
+  </div>
 
-      <Toolbar class="mb-4">
-        <template #end>
-          <Button label="New"
-                  icon="pi pi-plus"
-                  severity="success"
-                  class="mr-2"
-                  @click="openNew" />
-        </template>
-      </Toolbar>
-  </Panel>
-    </template>
-  </Card>
   <!-- edit rp_date dialog-->
   <Dialog v-model:visible="rpDateDialog"
           :style="{width: '450px'}"
           header="Researcher Provided Date"
           :modal="true"
           class="p-fluid">
-    <div class="field">
-      <label>Format</label>
-      <div class="formgrid grid">
-        <div v-for="dateType in dateTypes" :key="dateType.value" class="flex align-items-center">
-          <div class="field-radiobutton col-6">
-            <RadioButton
-                v-model="rpDate.redcap_field_type"
-                :inputId="dateType.value"
-                :id="dateType.value"
-                name="redcapFieldType"
-                :value="dateType.value" />
-            <label :for="dateType.value" class="ml-2">{{ dateType.value }}</label>
+    <div class="grid mt-3">
+      <div class="col-2">
+        <label>Format</label>
+      </div>      
+      <div class="col">
+        <div class="flex flex-wrap gap-3">
+          <div v-for="dateType in dateTypes" :key="dateType.value" class="flex align-items-center">
+              <RadioButton
+                  v-model="rpDate.redcap_field_type"
+                  :inputId="dateType.value"
+                  :id="dateType.value"
+                  name="redcapFieldType"
+                  :value="dateType.value" />
+              <label :for="dateType.value" class="ml-2">{{ dateType.value }}</label>          
           </div>
         </div>
       </div>
     </div>
-    <div class="field">
+    <div class="field mt-2">
       <label for="label">Label</label>
       <InputText id="label"
                  v-model.trim="rpDate.label"

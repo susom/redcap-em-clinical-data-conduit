@@ -1,26 +1,23 @@
 <template>
-  <Card>
-    <template #title>Demographics</template>
-    <template #content>
-    <p>
-          Select demographics below that you'd like to collect on your cohort.
+  <div class="container">
+    <Panel header="Demographics">
+      <div>
+        Select demographics below that you'd like to collect on your cohort.
           <br>
           <br>
-          <em>Please bear in mind HIPAA Minimum Necessary when selecting identifying information.</em>
-        </p>
-    <div class="flex flex-column gap-3">
-      <Panel header="Demographics">
-      <ClinicalDataOptionsTable
-        category="demographics"
-        :options="demographicsOptions"
-        :has-aggregates=false
-        :columns=1
-        v-model:selected-options="value"
-      />
-      </Panel>
+          <em>Please bear in mind HIPAA Minimum Necessary when selecting identifying information.</em>        
+      </div>
+      <Panel header="Demographics" class="mt-3">
+        <ClinicalDataOptionsTable
+          category="demographics"
+          :options="demographicsOptions"
+          :has-aggregates=false
+          :columns=1
+          v-model:selected-options="value"
+        />
+      </Panel>      
+    </Panel>
   </div>
-    </template>
-  </Card>
 </template>
 
 

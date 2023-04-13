@@ -21,10 +21,12 @@ import Tooltip from 'primevue/tooltip'
 
 import App from './App.vue'
 import 'primeflex/primeflex.css'
-import "primevue/resources/themes/bootstrap4-light-blue/theme.css";
+
+// import "primevue/resources/themes/bootstrap4-light-blue/theme.css";
+import '@/assets/themes/stanford/theme.scss'
 import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css'
-import './assets/main.css'
+// import './assets/main.css'
 
 const app = createApp(App)
     .use(PrimeVue)
