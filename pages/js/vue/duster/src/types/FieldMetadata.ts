@@ -1,4 +1,5 @@
 import type Subscore from "@/types/Subscore"
+import type TextValuePair from "@/types/TextValuePair";
 
 interface FieldMetadata {
     label: string
@@ -8,11 +9,11 @@ interface FieldMetadata {
     value_type?: string
     redcap_field_type?: string
     redcap_field_name?: string
-    redcap_field_note?: string | null
-    redcap_options?: string | null
+    redcap_field_note?: string
+    redcap_options?: string
     subscores?: Array<Subscore> | null
     aggregate_type?: AGGREGATE_TYPE
-    aggregates?: Array<Object>
+    aggregates?: Array<TextValuePair>
     selected?: boolean,
     visible?: boolean
 }

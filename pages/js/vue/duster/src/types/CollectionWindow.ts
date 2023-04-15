@@ -2,6 +2,7 @@ import type TimingConfig from "@/types/TimingConfig"
 import type {TimingInterval} from "@/types/TimingConfig"
 import type FieldMetadata from "@/types/FieldMetadata";
 import {INIT_TIMING_CONFIG, INIT_TIMING_INTERVAL} from "@/types/TimingConfig";
+import type TextValuePair from "@/types/TextValuePair";
 
 interface CollectionWindow {
     label: string
@@ -13,7 +14,7 @@ interface CollectionWindow {
         end: TimingConfig | undefined
         repeat_interval: TimingInterval | undefined
     } | undefined
-    aggregate_defaults?: Array<Object> | undefined
+    aggregate_defaults?: Array<TextValuePair> | undefined
     event?: Array<TimingConfig>
     closest_time?: string
     data: {
@@ -38,7 +39,7 @@ export const INIT_COLLECTION_WINDOW: CollectionWindow = {
         repeat_interval: {...INIT_TIMING_INTERVAL}
     },
     aggregate_defaults: undefined,
-    event: JSON.parse(JSON.stringify(INIT_TIMING_CONFIG)),
+    event: [JSON.parse(JSON.stringify(INIT_TIMING_CONFIG))],
     closest_time: "",
     data: {
         labs:[],

@@ -1,7 +1,5 @@
 <template>
-  <Card>
-    <template #title>Data Collection Configuration</template>
-    <template #content>
+  <Panel header="Data Collection Configuration">
       <DataTable
           editMode="row"
           v-model:selection="localCollectionWindowsEditing"
@@ -61,18 +59,18 @@
             @click="deleteCw(data[field])"/>
           </template>
         </Column>
+        <template #footer>
+          <div class="text-right">
+            <Button label="Add Form"
+                    icon="pi pi-plus"
+                    severity="success"
+                    class="mr-2"
+                    @click="addNew" />
+          </div>
+        </template>
   </DataTable>
-  <Toolbar class="mb-4">
-    <template #end>
-      <Button label="New"
-              icon="pi pi-plus"
-              severity="success"
-              class="mr-2"
-              @click="addNew" />
-    </template>
-  </Toolbar>
-    </template>
-  </Card>
+
+  </Panel>
   <Dialog v-model:visible="showRepeatDialog"
           :modal="true"
           header="Repeating Data Interval">
@@ -142,16 +140,15 @@
       @save-clinical-data-update="saveUpdate"
       @cancel-clinical-data-update="restoreInitialStates"
   />
-  <div>Current: {{ currentCollectionWindow }}</div>
+  <!--div>Current: {{ currentCollectionWindow }}</div>
 <br>
   <div>Values: {{ localCollectionWindows }}</div>
 <br>
-  <div>Editing: {{ localCollectionWindowsEditing }}</div>
-
+  <div>Editing: {{ localCollectionWindowsEditing }}</div-->
 </template>
 
 <script setup lang="ts">
-import {computed, watch, ref, onMounted} from "vue";
+import {computed, ref, onMounted} from "vue";
 import type {PropType} from "vue";
 import presets from '../types/CollectionWindowPresets.json';
 import type CollectionWindow from "@/types/CollectionWindow";
@@ -310,21 +307,24 @@ const saveRepeat = () => {
     if (cw && cw.timing && cw.timing.repeat_interval
         && cw.timing.repeat_interval.length && cw.timing.repeat_interval.type) {
       let type = cw.timing.repeat_interval.type
-      let intervalOption =INTERVAL_OPTIONS.filter(option => option.value === type)
+      let intervalOption = INTERVAL_OPTIONS.filter(option => option.value === type)
       let label = "Every " + cw.timing.repeat_interval.length + " " + intervalOption[0].text
       cw.timing.repeat_interval.label = label
-      let editIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindowsEditing.value)
-      if (editIndex > -1  && localCollectionWindowsEditing.value && localCollectionWindowsEditing.value[editIndex] &&
-          localCollectionWindowsEditing.value[editIndex].timing &&
+      if (localCollectionWindowsEditing.value) {
+        let editIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindowsEditing.value)
+        if (editIndex > -1 &&
+            localCollectionWindowsEditing.value[editIndex] &&
+            localCollectionWindowsEditing.value[editIndex].timing &&
             localCollectionWindowsEditing.value[editIndex].timing.repeat_interval) {
-        localCollectionWindowsEditing.value[editIndex].timing.repeat_interval.label  = label
+          localCollectionWindowsEditing.value[editIndex].timing.repeat_interval.label = label
       }
       let cwIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindows.value)
       if (cwIndex > -1 && localCollectionWindows.value && localCollectionWindows.value[editIndex] &&
           localCollectionWindows.value[editIndex].timing &&
           localCollectionWindows.value[editIndex].timing.repeat_interval) {
-        localCollectionWindows.value[editIndex].timing.repeat_interval.label  = label
+        localCollectionWindows.value[editIndex].timing.repeat_interval.label = label
       }
+    }
     }
   }
   saveUpdate()
@@ -414,6 +414,10 @@ const toSnakeCase = (label:string) => {
 
 </script>
 
+
 <style scoped>
+:deep(.p-datatable-header) {
+  background: blue
+}
 
 </style>

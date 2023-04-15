@@ -17,12 +17,8 @@
              @row-select="onRowSelect($event, 'col1')"
              @row-unselect="onRowUnselect($event, 'col1')"
   >
-      <!--template #header>
-                        <InputText id="tableSearchInside" v-model="filters['global'].value"
-                                   placeholder="Keyword Search" />
-      </template-->
     <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-    <Column  key="label" field="label" filterField="label"> {{ field.label }}</Column>
+    <Column  key="label" field="label" filterField="label" header="Select All"> {{ field.label }}</Column>
     <Column v-if="hasAggregates" key="aggregate_type" field="aggregate_type">
       <template #body="{ data }">
         {{ getAggregatesLabel(data.aggregate_type, data.aggregates) }}
@@ -49,7 +45,7 @@
         {{ getAggregatesLabel(data.aggregate_type, data.aggregates) }}
         <Button  icon="pi pi-pencil" rounded class="ml-2"
                  :disabled="!data.selected"
-                 @click="currentField=data;currentTable='col2';showAggregatesDialog=true" />        
+                 @click="currentField=data;currentTable='col2';showAggregatesDialog=true" />
       </template>
     </Column>
   </DataTable>
@@ -94,7 +90,6 @@
       <Button label="Save" icon="pi pi-check" @click="updateAggregates" autofocus />
     </template>
   </Dialog>
-  {{ selected }}
 </template>
 
 <script setup lang="ts">
@@ -112,7 +107,7 @@ const props = defineProps({
   searchFilter: Object,
   searchText: String, // not being used
   options: Object as PropType<Array<FieldMetadata>>,
-  columns : Number
+  numColumns : Number
 })
 
 const emit = defineEmits(['update:selectedOptions','update:searchText', 'update:columns', 'update:searchFilter'])

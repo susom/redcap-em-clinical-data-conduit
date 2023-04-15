@@ -73,7 +73,7 @@
                 event-type="event"
                 :event-options="eventOptions"
                 :rp-dates="rpDates"
-                v-model:timing-object="closestEvent"
+                v-model:timing-object="closestEvent[0]"
               />
               </div>
             <!-- TODO: move this to a TimingEvent component-->
@@ -184,7 +184,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, watch, ref} from "vue";
+import {computed, ref} from "vue";
 import type {PropType} from "vue";
 import type FieldMetadata from "@/types/FieldMetadata";
 import {AGGREGATE_OPTIONS} from "@/types/FieldConfig";
@@ -214,7 +214,7 @@ const props = defineProps({
     type: Array as PropType<Array<FieldMetadata>>
   },
   closestToEvent : {
-    type: Object as PropType<TimingConfig>
+    type: Array as PropType<Array<TimingConfig>>
   },
   closestToTime : {
     type: String

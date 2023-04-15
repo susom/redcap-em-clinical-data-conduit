@@ -21,6 +21,16 @@
         </div>
 
       </div>
+      <div v-if="hasSelectAll"
+           class="my-2 flex justify-content-between flex-wrap">
+        <div>
+          <Checkbox v-model="selectAll"
+                    id="selectAll"
+                    :binary="true"
+          />
+          <label :for="selectAll" class="ml-2">Select All</label>
+        </div>
+      </div>
     </div>
   </div>
   <Dialog :visible="showAggregatesDialog" header="Aggregates">
@@ -51,7 +61,7 @@
       <div v-for="aggOption in AGGREGATE_OPTIONS" :key="aggOption.value"
            class="flex align-items-center">
         <div v-if="aggOption.value!='closest_time' || (aggOption.value=='closest_time' && hasClosestTime)">
-          <Checkbox v-model="selectedCustomAggregates"
+          <Checkbox v-model="currentField.aggregates"
                     name="aggregateOptions"
                     :id="aggOption.value"
                     :value="aggOption"
@@ -62,6 +72,8 @@
     </div>
     <template #footer>
       <Button label="Cancel" icon="pi pi-times" @click="showAggregatesDialog = false" text/>
+      <!--Button label="Save" icon="pi pi-check" @click="showAggregatesDialog = false" autofocus/-->
+
       <Button label="Save" icon="pi pi-check" @click="updateAggregates" autofocus/>
     </template>
   </Dialog>
@@ -77,6 +89,8 @@ const hide = ref<string>("display:none !important")
 const props = defineProps({
   selectedOptions: Object as PropType<Array<FieldMetadata>>,
   category: String,
+  numColumns: Number,
+  hasSelectAll: Boolean,
   hasAggregates: Boolean,
   hasClosestTime: Boolean,
   searchText: String,
@@ -96,56 +110,55 @@ const selected = computed({
 })
 
 const currentField = ref<any>()
-const selectedCustomAggregates = ref<any[]>([])
-const showCustomAggregates = ref(false)
-
-const search = computed<string>(() => {
-  if (props.searchText) {
-    return props.searchText
-  } else return "No Search"
-})
 
 // sorts the metadata by label and divides into 2 columns
-const sorted = computed<FieldMetadata[][]>(() =>{
-    if (props.options) {
-      let toSort: any[] = JSON.parse(JSON.stringify(props.options))
-      toSort.forEach(option => {
-        option.selected = false
-        option.aggregate_type = "default"
-        option.aggregates = []
+const sorted = computed<FieldMetadata[][]>(() => {
+  if (props.options) {
+    let toSort: any[] = JSON.parse(JSON.stringify(props.options))
+    toSort.forEach(option => {
+      option.selected = false
+      option.aggregate_type = "default"
+      option.aggregates = []
+    })
+    // update saved options
+    if (props.selectedOptions) {
+      props.selectedOptions.forEach(selected => {
+        selected.selected = true
+        const index = toSort.findIndex(option => option.duster_field_name === selected.duster_field_name);
+        toSort[index].selected = true
+        toSort[index].aggregate_type = selected.aggregate_type
+        toSort[index].aggregates = JSON.parse(JSON.stringify(selected.aggregates))
       })
-      // update saved options
-      if (props.selectedOptions) {
-        props.selectedOptions.forEach(selected => {
-          selected.selected = true
-          const index = toSort.findIndex(option => option.duster_field_name === selected.duster_field_name);
-          toSort[index].selected = true
-          toSort[index].aggregate_type = selected.aggregate_type
-          toSort[index].aggregates = JSON.parse(JSON.stringify(selected.aggregates))
-        })
-      }
-
-      // sort alphabetically by label
-      toSort.sort(function (a: any, b: any) {
-        let x = a.label.toLowerCase();
-        let y = b.label.toLowerCase();
-        if (x < y) {
-          return -1;
-        }
-        if (x > y) {
-          return 1;
-        }
-        return 0;
-      });
-      let numRows = Math.ceil(toSort.length / 2)
-      let col1 = toSort.splice(0, numRows)
-      return [col1, toSort]
     }
-    return []
-  });
+
+    // sort alphabetically by label
+    toSort.sort(function (a: any, b: any) {
+      let x = a.label.toLowerCase();
+      let y = b.label.toLowerCase();
+      if (x < y) {
+        return -1;
+      }
+      if (x > y) {
+        return 1;
+      }
+      return 0;
+    });
+    let cols = 2
+    if (props.numColumns)
+      cols = props.numColumns
+    let numRows = Math.ceil(toSort.length / cols)
+    let retArray = []
+    for (let i = 0; i < cols - 1; i++) {
+      retArray.push(toSort.splice(0, numRows))
+    }
+    retArray.push(toSort)
+    return retArray
+  }
+  return []
+});
 
 // returns true if option should be visible based on search input
-const filterBySearch=(option:FieldMetadata)=> {
+const filterBySearch = (option: FieldMetadata) => {
   if (props.searchText) {
     if (option.label.toLowerCase().indexOf(props.searchText.toLowerCase()) > -1) {
       return true
@@ -157,7 +170,7 @@ const filterBySearch=(option:FieldMetadata)=> {
 }
 
 // returns true if option should be visible based on selected radio button
-const filterBySelect=(option:FieldMetadata)=> {
+const filterBySelect = (option: FieldMetadata) => {
   if (props.selectFilter) {
     if (props.selectFilter == 'All')
       return true
@@ -170,10 +183,10 @@ const filterBySelect=(option:FieldMetadata)=> {
 }
 
 // apply search and select filters to sorted columns
-const filtered = computed<FieldMetadata[][]>(()=>{
-  let filtered:FieldMetadata[][] = sorted.value
+const filtered = computed<FieldMetadata[][]>(() => {
+  let filtered: FieldMetadata[][] = sorted.value
   filtered.forEach(column => {
-    column.forEach(option =>{
+    column.forEach(option => {
       option.visible = filterBySearch(option) && filterBySelect(option)
     })
   })
@@ -181,6 +194,11 @@ const filtered = computed<FieldMetadata[][]>(()=>{
 })
 
 const showAggregatesDialog = ref(false)
+const showCustomAggregates = ref(false)
+
+//TODO:  Add cancel implementation
+const savedAggregateType = ref()
+const savedCustomAggregates = ref<any[]>([])
 
 const getAggregatesLabel = (aggregateType: string, aggregates: any[]) => {
   if (!aggregateType || aggregateType === 'default') return 'default'
@@ -193,25 +211,22 @@ const getAggregatesLabel = (aggregateType: string, aggregates: any[]) => {
 
 const updateAggregates = () => {
   showAggregatesDialog.value = false
-  if (currentField.value.aggregate_type === 'custom') {
-    currentField.value.aggregates = [...selectedCustomAggregates.value]
-    selectedCustomAggregates.value = []
-  } else {
-    currentField.value.aggregates = []
+  if (selected.value) {
+    let selectedIndex = getSelectedIndex(currentField.value.duster_field_name, selected.value)
+    if (selectedIndex > -1 && selected.value[selectedIndex]) {
+      selected.value[selectedIndex] = JSON.parse(JSON.stringify(currentField.value))
+    }
   }
 }
 
-const isSelected = (field: any) => {
-  currentField.value = field
-  if (selected.value) {
-    selected.value.forEach(sel => {
-      if (field.duster_field_name == sel.duster_field_name) {
-        return true
-      }
-    })
-  }
-  return false
+const getSelectedIndex = (dusterFieldName: string, haystack: any) => {
+  //console.log(id)
+  return haystack.findIndex(
+      (cw) => cw.duster_field_name === dusterFieldName)
 }
+
+//TODO: select all
+const selectAll = ref<boolean>(false)
 
 </script>
 

@@ -9,7 +9,9 @@ interface FieldConfig {
     phi?: string |  undefined
     value_type?: string |  undefined
     redcap_field_type?: string |  undefined
-    aggregate?: AGGREGATE_OPTION |  undefined
+    redcap_field_note?: string | undefined
+    redcap_options?: string | undefined
+    aggregate?: string |  undefined
     aggregate_options?: AggregateOptions |  undefined
     id?: string
 }
@@ -25,8 +27,8 @@ export const AGGREGATE_OPTIONS: Array<TextValuePair> =[
     {text: "Min", value: "min_agg"},
     {text: "First", value: "first_agg"},
     {text: "Last", value: "last_agg"},
-    {text: "Closest Event", value: "closest_event"},
-    {text: "Closest Time", value: "closest_time"}
+    {text: "Closest to Event", value: "closest_event"},
+    {text: "Closest to Time", value: "closest_time"}
 ]
 
 export const INIT_FIELD_CONFIG: FieldConfig = {

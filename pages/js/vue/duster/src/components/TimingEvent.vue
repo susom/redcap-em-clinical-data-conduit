@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div class="div">
     <div class="flex flex-wrap gap-3 mt-4">
       <div v-for="type in timeTypeOptions"
            :key="type.value"
@@ -71,7 +71,7 @@
                 class="flex align-items-center"
                 @change="event.label = eventLabel; emit('clearPreset')"/>
       <div v-if="selectedEvent && selectedEvent.duster_field_name" class="flex align-items-center">
-        {{ selectedEvent.preposition }}&nbsp;
+        based on&nbsp; <!--{{ selectedEvent.preposition }}&nbsp;-->
         <Dropdown v-model="event.rp_date"
                   :options="rpDates"
                   optionLabel="label"
@@ -105,7 +105,7 @@ const props = defineProps({
     required: true
   },
   rpDates: {
-    type: Object as PropType<FieldConfig>,
+    type: Array as PropType<Array<FieldConfig>>,
     required: true
   },
   timingObject: {
@@ -141,10 +141,10 @@ const selectedEvent = computed<TimingConfig>({
         let index = props.eventOptions.findIndex((dttm) => dttm.duster_field_name ==
             dusterFieldName)
         return props.eventOptions[index]
-      } else if (event.value.redcap_field_name) {
-        let redcapFieldName = event.value.redcap_field_name
-        let index = props.eventOptions.findIndex((dttm) => dttm.redcap_field_name ==
-            redcapFieldName)
+      } else { // rp_date
+        let rpDate = event.value.rp_date
+        let index = props.eventOptions.findIndex((dttm) => !dttm.duster_field_name
+            && dttm.redcap_field_name == rpDate)
         return props.eventOptions[index]
       }
     }
@@ -157,15 +157,20 @@ const selectedEvent = computed<TimingConfig>({
       event.value.redcap_field_type = value.redcap_field_type
       if (value.duster_field_name) {
         event.value.duster_field_name = value.duster_field_name
+        event.value.redcap_field_name = null
+        if (event.value.rp_date == "") {
+          event.value.rp_date = props.rpDates[0].redcap_field_name
+        }
       } else if (value.redcap_field_name) {
-        event.value.redcap_field_name = value.redcap_field_name
+        event.value.duster_field_name = null
+        event.value.rp_date = value.redcap_field_name
       }
     }
   }
 })
 
 const eventLabel = computed(() => {
-  let label: string = ""
+  let label: string
   if (event.value.type == 'interval'
       && event.value.interval
       && event.value.interval.length
@@ -179,7 +184,7 @@ const eventLabel = computed(() => {
     return label
   }
   label = getDateText(props.eventOptions, event.value.duster_field_name,
-      event.value.redcap_field_name) || ""
+      event.value.rp_date) || ""
   if (event.value && event.value.type == 'datetime') {
     return label
   }
@@ -194,12 +199,12 @@ const eventLabel = computed(() => {
 })
 
 
-const getDateText = (options: TimingConfig[], dusterFieldName?: string | null, redcapFieldName?: string | null) => {
+const getDateText = (options: TimingConfig[], dusterFieldName?: string | null, rpDate?: string | null) => {
   if (dusterFieldName) {
     let option = options.find(opt => opt.duster_field_name === dusterFieldName)
     if (option) return option.label
-  } else if (redcapFieldName) {
-    let option = options.find(opt => opt.redcap_field_name === redcapFieldName)
+  } else if (rpDate) {
+    let option = options.find(opt => opt.redcap_field_name === rpDate)
     if (option) return option.label
   }
   return ""

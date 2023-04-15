@@ -1,28 +1,28 @@
 <template>
   <div class="container">
     <div class="grid">
-      <div class="col-offset-2 col-8">
-        <nav>          
+      <div class="col-offset-1 col-9">
+        <nav>
           <div class="grid">
-            <div class="col">          
+            <div class="col">
               <a class="brand-logo" href="https://med.stanford.edu/">Stanford Medicine</a>
               <div style="display:inline;float:left" class="mt-2">
                 <div class="font-bold text-left">DUSTER</div>
-                <div class="text-sm font-italic">Research Technology, TDS</div>          
+                <div class="text-sm font-italic">Research Technology, TDS</div>
               </div>
             </div>
             <div class="col mt-2">
-              <p class="text-xl font-italic">Data Upload Service for Translational rEsearch on Redcap</p>    
+              <p class="text-xl font-italic">Data Upload Service for Translational rEsearch on Redcap</p>
             </div>
-          </div>          
-          <div class="grid text-white text-lg" style="background-color: #53565A;">        
-            <div class="col-offset-9 col-2">          
+          </div>
+          <div class="grid text-white text-lg" style="background-color: #53565A;">
+            <div class="col-offset-9 col-2">
               <a href="https://med.stanford.edu/duster" class="text-white" target="_blank">Duster Website</a>
             </div>
-          </div>          
+          </div>
         </nav>
 
-        <div class="grid">
+        <div class="grid" :style="(showSummary) ? 'display: none !important' : ''">
           <div class="col-6">
           <RpInfoPanel
             v-model:rp-identifiers="rpIdentifiers"
@@ -30,15 +30,12 @@
             @update-rp-date="updateRpDate"
             @delete-rp-date="deleteRpDate"
           />
-            <div>rp dates: {{ rpDates }}</div>
-
         </div>
         <div class="col-6">
             <DemographicsPanel
                 :demographics-options="demographicsOptions"
                 v-model:demographics-selects="demographicsSelects"
             />
-            <div>Checked names: {{ demographicsSelects }}</div>
         </div>
         <CollectionWindowsPanel
             :lab-options="labOptions"
@@ -49,10 +46,27 @@
             :rp-dates="rpDates"
             v-model:collection-windows="collectionWindows"
         />
+          <Toolbar class="col">
+            <template #start>
+
+            <Button label="Review & Create Project" class="ml-2"
+                  @click="showSummary=true"/>
+            </template>
+          </Toolbar>
       </div>
+        <div :style="(showSummary) ?  '': 'display: none !important'">
+          <ReviewPanel
+              v-model:show-summary="showSummary"
+              :rp-identifiers="rpIdentifiers"
+              :rp-dates="rpDates"
+              :demographics="demographicsSelects"
+              :collection-windows="collectionWindows"
+              />
+        </div>
       </div>
     </div>
-  </div>
+</div>
+
 </template>
 
 <script setup lang="ts">
@@ -62,6 +76,7 @@ import axios from 'axios'
 import RpInfoPanel from './components/RpInfoPanel.vue'
 import DemographicsPanel from './components/DemographicsPanel.vue'
 import CollectionWindowsPanel from './components/CollectionWindowsPanel.vue'
+import ReviewPanel from './components/ReviewPanel.vue'
 
 import type FieldMetadata from "@/types/FieldMetadata";
 import type FieldConfig from "@/types/FieldConfig";
@@ -75,8 +90,8 @@ import resp from './dusterTestMetadata.json';
 const postObj = JSON.parse(localStorage.getItem('postObj') || '{}');
 const create_project_url = postObj.create_project_url
 //const metadata_url = postObj.metadata_url
-//const metadata_url="http://localhost/redcap_v12.2.4/ExternalModules/?prefix=duster&page=services/callMetadata"
-const metadata_url="http://localhost/redcap_v13.3.0/ExternalModules/?prefix=duster&page=services/callMetadata"
+const metadata_url="http://localhost/redcap_v12.2.4/ExternalModules/?prefix=duster&page=services/callMetadata"
+//const metadata_url="http://localhost/redcap_v13.3.0/ExternalModules/?prefix=duster&page=services/callMetadata"
 
 const new_project_intro_url = postObj.new_project_intro_url;
 const redcap_csrf_token = postObj.redcap_csrf_token
@@ -94,7 +109,7 @@ const rpDates = ref<TimingConfig[]>([
       rp_date: "enroll_date",
       redcap_field_name: "enroll_date",
       redcap_field_type:"date",
-      value_type: "string",
+      value_type: "text",
       label: "Study Enrollment Date",
       phi: "t",
       id: "enroll_date"
@@ -109,7 +124,7 @@ const clinicalDateOptions = ref<FieldMetadata[]>([])
 
 const demographicsSelects = ref<FieldMetadata[]>([])
 const collectionWindows = ref<CollectionWindow[]>([])
-
+const showSummary = ref<boolean>(false)
 const project_info = {
   surveys_enabled: postObj.surveys_enabled,
   repeatforms: postObj.repeatforms,
@@ -173,8 +188,8 @@ const deleteRpDate = (rpDate:TimingConfig) => {
       position: relative;
       z-index: 10;
       float: left;
-      display: block;    
-      width: 12em;    
+      display: block;
+      width: 12em;
       height: 3em;
       margin-right: 10px;
       margin-right: .7em;
@@ -188,4 +203,3 @@ const deleteRpDate = (rpDate:TimingConfig) => {
       border-right-color: #000;
   }
 </style>
-
