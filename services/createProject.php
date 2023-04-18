@@ -63,7 +63,7 @@ try {
       $timing_fields_arr = [$collection_window["timing"]["start"], $collection_window["timing"]["end"]];
       $odm->addFields($collection_window["form_name"], null, null, "Timing", $timing_fields_arr);
       // if applicable, add closest to event with its own section header
-      if(!empty((array)$collection_window["event"][0])) {
+      if(count($collection_window["event"]) > 0 && !empty((array)$collection_window["event"][0])) {
         $odm->addFields($collection_window["form_name"], null, null, "Closest Event Aggregation", $collection_window["event"]);
       }
       // add labs with its own section header

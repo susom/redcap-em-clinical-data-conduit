@@ -128,7 +128,7 @@
           <v-card
             outlined
             class="mb-4"
-            v-if="Object.keys(cw.event[0]).length !== 0"
+            v-if="cw.event.length > 0 && Object.keys(cw.event[0]).length !== 0"
           >
             <v-card-subtitle><h2>Closest Event Aggregation</h2></v-card-subtitle>
             <v-list-item three-line>
@@ -337,7 +337,7 @@ export default {
             type: window.type,
             timing: {
             },
-            event: [{}],
+            event: [],
             data: {
               labs: [],
               vitals: [],
@@ -452,7 +452,7 @@ export default {
                 label: window.event[0].label,
                 phi: "t"
               }
-              newCW.event[0] = eventObj;
+              newCW.event.push(eventObj);
             }
           }
 
@@ -723,6 +723,7 @@ export default {
 
         // set cwArr to this.config's collection windows
         config.collection_windows = cwArr;
+        console.log(JSON.stringify(config));
         return config;
       }
     }
