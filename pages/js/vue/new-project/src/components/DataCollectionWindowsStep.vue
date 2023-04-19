@@ -1580,7 +1580,7 @@ export default {
             },
             end_based: "enroll_date"
           },
-          event: [{}],
+          event: [],
           aggregate_defaults: {
             min: false,
             max: false,
@@ -1622,7 +1622,7 @@ export default {
             },
             end_based: "enroll_date"
           },
-          event: [{}],
+          event: [],
           aggregate_defaults: {
             min: false,
             max: false,
@@ -1659,7 +1659,7 @@ export default {
             end: null,
             end_based: "enroll_date"
           },
-          event: [{}],
+          event: [],
           aggregate_defaults: {
             min: false,
             max: false,
@@ -1695,7 +1695,7 @@ export default {
             end: null,
             end_based: "enroll_date"
           },
-          event: [{}],
+          event: [],
           aggregate_defaults: {
             min: false,
             max: false,
@@ -1728,7 +1728,7 @@ export default {
           end: null,
           end_based: "enroll_date"
         },
-        event: [{}],
+        event: [],
         aggregate_defaults: {
           min: false,
           max: false,
@@ -2118,7 +2118,7 @@ export default {
           end: null,
           end_based: "enroll_date"
         },
-        event: [{}],
+        event: [],
         aggregate_defaults: {
           min: false,
           max: false,
