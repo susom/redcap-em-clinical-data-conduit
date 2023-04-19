@@ -152,7 +152,7 @@ This is because REDCap projects using the DUSTER EM have their DUSTER configurat
           - `value` (string)
             - format: YYYY-MM-DD or YYYY-MM-DD HH:MM:SS
           - `type` (string)
-            - the value of this parameter should be "date" or "dttm", depending on if the object represents a date ("date") or datetime ("dttm")
+            - the value of this parameter should be "date" or "datetime", depending on if the object represents a date ("date") or datetime ("datetime")
 ##### Example of JSON body sent as part of a data web service request
 ```
 {
@@ -168,9 +168,9 @@ This is because REDCap projects using the DUSTER EM have their DUSTER configurat
                     "type": "date"
                 },
                 {
-                    "redcap_field_name": "d0_blood_dttm",
+                    "redcap_field_name": "d0_blood_datetime",
                     "value": "2022-12-31 12:34:00",
-                    "type": "dttm"
+                    "type": "datetime"
                 }
             ]
         }
