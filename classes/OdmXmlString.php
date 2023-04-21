@@ -20,6 +20,7 @@ class OdmXmlString
 
   private $forms;
   private $fields;
+  private $repeating_forms;
 
   /**
    * constructor
@@ -36,21 +37,26 @@ class OdmXmlString
     $this->project_note = $project_note;
     $this->forms = array();
     $this->fields = array();
+    $this->repeating_forms = array();
   }
 
   /** adds an instrument form to the project
-   * @param $label
-   * @param $form_name
+   * @param string $form_name
+   * @param string $label
+   * @param bool $repeating
    * @return void
+   * @throws Exception
    */
-  public function addForm($form_name, $label, $repeating = false)
+  public function addForm(string $form_name, string $label, bool $repeating = false)
   {
     if (!array_key_exists($form_name, $this->forms)) {
+      if($repeating === true) {
+        $this->repeating_forms[] = $form_name;
+      }
       $this->forms[$form_name] = [
         "form_name" => $form_name,
         "label" => $label,
-        "item_groups" => [],
-        "repeating" => $repeating === true
+        "item_groups" => []
       ];
     } else {
       throw new Exception ("Unable to create form.  A form with this name already exists: '$form_name'.");
@@ -112,10 +118,14 @@ class OdmXmlString
   public function getOdmXmlString()
   {
     $repeating_instruments = "";
-    foreach ($this->forms as $instrument) {
-      if ($instrument["repeating"] === true) {
-        $repeating_instruments .= "\t\t<redcap:RepeatingInstrument redcap:UniqueEventName=\"event_1_arm_1\" redcap:RepeatInstrument=\"{$instrument["form_name"]}\" redcap:CustomLabel=\"\"/>\n";
+    if (count($this->repeating_forms) > 0) {
+      $repeating_instruments .= "\t<redcap:RepeatingInstrumentsAndEvents>\n"
+        . "\t\t<redcap:RepeatingInstruments>\n";
+      foreach ($this->repeating_forms as $form_name) {
+        $repeating_instruments .= "\t\t\t<redcap:RepeatingInstrument redcap:UniqueEventName=\"event_1_arm_1\" redcap:RepeatInstrument=\"{$form_name}\" redcap:CustomLabel=\"\"/>\n";
       }
+      $repeating_instruments .= "\t\t</redcap:RepeatingInstruments>\n"
+      . "\t</redcap:RepeatingInstrumentsAndEvents>\n";
     }
 
     $odm_str = ODM::getOdmOpeningTag($this->project_title)
@@ -133,11 +143,7 @@ class OdmXmlString
       . "\t<redcap:Purpose>{$this->purpose}</redcap:Purpose>\n"
       . "\t<redcap:PurposeOther>{$this->purpose_other}</redcap:PurposeOther>\n"
       . "\t<redcap:ProjectNotes>{$this->project_note}</redcap:ProjectNotes>\n"
-      . "\t<redcap:RepeatingInstrumentsAndEvents>\n"
-      . "\t\t<redcap:RepeatingInstruments>\n"
       . $repeating_instruments
-      . "\t\t</redcap:RepeatingInstruments>\n"
-      . "\t<redcap:RepeatingInstrumentsAndEvents>\n"
       . "</GlobalVariables>\n"
       . "<MetaDataVersion OID=\"" . ODM::getMetadataVersionOID($this->project_title) . "\" Name=\"" . RCView::escape($this->project_title) . "\" redcap:RecordIdField=\"record_id\">\n";
 

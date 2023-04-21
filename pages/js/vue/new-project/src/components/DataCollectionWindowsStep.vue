@@ -128,7 +128,7 @@
                     <v-chip
                       v-if="window.aggregate_defaults.closest_event === true"
                     >
-                      Closest to {{Object.prototype.hasOwnProperty.call(window.event[0], 'label') ? window.event[0].label : "N/A"}}
+                      Closest to {{window.event.length > 0 && Object.prototype.hasOwnProperty.call(window.event[0], 'label') ? window.event[0].label : "N/A"}}
                     </v-chip>
                     <v-chip
                       v-if="window.aggregate_defaults.closest_time === true"
@@ -189,7 +189,7 @@
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_event == true"
                             >
-                              Closest to {{Object.prototype.hasOwnProperty.call(window.event[0], 'label') ? window.event[0].label : "N/A"}}
+                              Closest to {{window.event.length > 0 && Object.prototype.hasOwnProperty.call(window.event[0], 'label') ? window.event[0].label : "N/A"}}
                             </v-chip>
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
@@ -1113,7 +1113,7 @@
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_event == true"
                             >
-                              Closest to {{Object.prototype.hasOwnProperty.call(window.event[0], 'label') ? window.event[0].label : "N/A"}}
+                              Closest to {{window.event.length > 0 && Object.prototype.hasOwnProperty.call(window.event[0], 'label') ? window.event[0].label : "N/A"}}
                             </v-chip>
                             <v-chip
                               v-show="item.aggregates.default == false && item.aggregates.closest_time == true"
