@@ -9,7 +9,7 @@
       </template>
       <Column field="label" header="Label"></Column>
       <Column field="redcap_field_name" header="REDCap Field Name"></Column>
-      <Column field="redcap_field_type" header="REDCap Field Type"></Column>
+      <Column field="redcap_field_note" header="Value Type"></Column>
     </DataTable>
 
     <DataTable :value="rpDates"  tableStyle="min-width: 50rem mt-2">
@@ -20,7 +20,7 @@
       </template>
       <Column field="label" header="Label"></Column>
       <Column field="redcap_field_name" header="REDCap Field Name"></Column>
-      <Column field="type" header="Field Type"></Column>
+      <Column field="value_type" header="Value Type"></Column>
     </DataTable>
   </Panel>
 
@@ -43,6 +43,10 @@
       <Column field="event" header="Date"></Column>
       <Column field="label" header="Label"></Column>
       <Column field="redcap_field_name" header="REDCap Field Name"></Column>
+      <Column field="type" header="Type"></Column>
+
+      <Column field="value_type" header="Value Type"></Column>
+
       <Column field="redcap_field_type" header="REDCap Field Type"></Column>
     </DataTable>
 
@@ -100,23 +104,27 @@
     </DataTable>
 
     <!-- single table version of outcomes -->
-    <ScoreSummaryTable
+    <!--ScoreSummaryTable
         v-if="cw.data.scores.length > 0"
         v-model:scores="cw.data.scores"
       class="mt-2"
-    />
+    /-->
+    <hr/>
 
 <!-- separate tables for each score -->
     <!--this version uses row grouping w/ Jonasel's score fields-->
 
 <div v-for="(score,index) in cw.data.scores" :key="score.duster_field_name">
-  {{cw.data.scores[index].label}}
   <ScoreSummaryTablePerScore
     :score="getScoreFields(score)"
     :score-label="cw.data.scores[index].label"
     class="mt-2"
   />
+
 </div>
+
+
+
   </Panel>
     <Toolbar>
       <template #start>
@@ -127,16 +135,18 @@
       </template>
     </Toolbar>
   </Panel>
-  <Dialog v-model:visible="showDusterConfig" modal :style="{ width: '50vw' }">
-    <Panel header="Config to starr-api">
-    <pre>{{JSON.stringify(dusterConfig, null, 4)}}</pre>
+  <Dialog v-model:visible="showCreateProjectDialog" modal :style="{ width: '50vw' }">
+    <Panel header="Create Project">
+      <div :class="{'p-error': createProjectError}">
+      {{createProjectMessage}}
+      </div>
     </Panel>
-    <Button label="Close" icon="pi pi-times"  @click="showDusterConfig=false"/>
+    <Button label="Close" icon="pi pi-times"  @click="showCreateProjectDialog=false"/>
   </Dialog>
 </template>
 
 <script setup lang="ts">
-import {computed, ref, watch} from "vue";
+import {computed, ref} from "vue";
 import type {PropType} from "vue";
 import type CollectionWindow from "@/types/CollectionWindow";
 import {INIT_TIMING_CONFIG} from "@/types/TimingConfig";
@@ -145,14 +155,16 @@ import type FieldMetadata from "@/types/FieldMetadata";
 import type FieldConfig from "@/types/FieldConfig";
 import type TextValuePair from "@/types/TextValuePair";
 import type Subscore from "@/types/Subscore";
-import type SubscoreDependency from "@/types/SubscoreDependency";
+import type {SubscoreDependency} from "@/types/Subscore";
 import {AGGREGATE_OPTIONS} from "@/types/FieldConfig";
-import ScoreSummaryTable from "@/components/ScoreSummaryTable.vue";
 import ScoreSummaryTablePerScore from "@/components/ScoreSummaryTablePerScore.vue";
-
+import axios from "axios";
 
 const props = defineProps({
-  showSummary: Boolean,
+  showSummary: {
+    type: Boolean,
+    required: true
+  },
   rpIdentifiers: {
     type: Array as PropType<Array<FieldConfig>>,
     required: true
@@ -162,11 +174,18 @@ const props = defineProps({
     required: true
   },
   demographics: {
-    type: Array as PropType<Array<FieldMetadata>>
+    type: Array as PropType<Array<FieldMetadata>>,
+    required: true
   },
   collectionWindows: {
-    type: Array as PropType<Array<CollectionWindow>>
+    type: Array as PropType<Array<CollectionWindow>>,
+    required: true
+  },
+  projectInfo: {
+    type: Object,
+    required: true
   }
+
 })
 
 const emit = defineEmits(['update:showSummary'])
@@ -193,7 +212,7 @@ const rpDataConfigs = computed<any> (()=>{
         phi: rpdate.phi}
     }
   }
-      return rpInfo
+  return rpInfo
 })
 
 const demographicsConfigs = computed<FieldConfig[]>(()=>{
@@ -236,23 +255,15 @@ const getFormName=(label:string)=> {
     // remove whitespace at start and end and convert to lowercase characters only
     let formName = label.trim().toLowerCase()
             .replace(/ /g, '_') // replace spaces with underscore
-            .replace(/[^a-z_0-9]/g, ''); // remove illegal characters
+            .replace(/[^a-z_0-9]/g, '') // remove illegal characters
+        .replace(/[_+]/g, '_') // replace multiple _ with a single one
+        .replace(/^_/g, '') // remove starting _
+        .replace(/_$/g, '') // remove trailing _
 
-    // remove any double underscores
-    while(formName.indexOf('__') != -1) {
-      formName = formName.replace(/__/g, '_');
-    }
-    // remove beginning underscores
-    while(formName.substring(0, 1) == '_') {
-      formName = formName.substring(1);
-    }
-    // remove ending underscores
-    while(formName.substring(formName.length - 1) == '_') {
-      formName = formName.substring(0, formName.length - 1);
-    }
+
     // if there is a leading number then append a prefix
     if (!isNaN(parseInt(formName.charAt(0)))) {
-        formName = "fm_" + formName;
+        formName = "rc_" + formName;
       }
     // remove beginning numerals
     /*while(/^\d$/g.test(formName.substring(0, 1))) {
@@ -300,7 +311,7 @@ const getTimingCols = (timingObj:any, events:any) => {
     redcap_field_type: timingObj.end.redcap_field_type
   })
   if (events) {
-    events.forEach(event => {
+    events.forEach((event:any) => {
       cols.push({
         event: "Closest to Event",
         label: event.label,
@@ -380,8 +391,11 @@ const getData = (data:any, index:number, aggDefaults?: TextValuePair[], event?:T
   return dconfig
 }
 
-const getConfigWithAggregates = (data:FieldMetadata[], index:number, aggDefaults?: TextValuePair[],
-  event?:TimingConfig[], closestTime?:string) =>{
+const getConfigWithAggregates = (data:FieldMetadata[],
+                                 index:number,
+                                 aggDefaults?: TextValuePair[],
+                                 event?:TimingConfig[],
+                                 closestTime?:string) =>{
   let configArray:FieldConfig[] = []
   let evt = (event && event[0]) ? event[0] : INIT_TIMING_CONFIG
   for (let fieldMetadata of data) {
@@ -510,7 +524,7 @@ const getScoresConfig = (scoresMeta:FieldMetadata[], index:number) => {
                 duster_field_name: clinicalVar.duster_field_name,
                 redcap_field_name: clinicalVarRCFieldName,
                 // will need to change this in the future, for now assume subscores not dependent on closest time
-                label: getAggregateLabel(agg, undefined, undefined) + " " + clinicalVar.label,
+                label: getAggregateLabel((clinicalVar.label? clinicalVar.label : ""), agg),
                 redcap_field_type: clinicalVar.redcap_field_type,
                 redcap_options: clinicalVar.redcap_options,
                 value_type: clinicalVar.value_type,
@@ -571,25 +585,76 @@ const getScoresConfig = (scoresMeta:FieldMetadata[], index:number) => {
   return scoresArr
 }
 
-const dusterConfig = ref<any>()
-const showDusterConfig = ref<boolean>(false)
-const createProject = () => {
-  dusterConfig.value = {
-    rpInfo: rpDataConfigs,
-    demographics: demographicsConfigs,
-    collection_windows: cwConfigs,
+const showCreateProjectDialog = ref<boolean>(false)
+const createProjectMessage = ref<string>("")
+const createProjectError = ref<boolean>(false)
+
+const getDusterConfig = () =>{
+  return JSON.parse(JSON.stringify({
+    rp_info: rpDataConfigs.value,
+    demographics: demographicsConfigs.value,
+    collection_windows: cwConfigs.value
+  }))
+}
+
+const createProject = ()=> {
+  createProjectMessage.value=JSON.stringify(getDusterConfig(), null, 4)
+  //createProjectMessage.value = "Creating Redcap Project"
+  showCreateProjectDialog.value = true
+  const data = {
+        surveys_enabled: props.projectInfo.surveys_enabled,
+        repeatforms: props.projectInfo.repeatforms,
+        scheduling: props.projectInfo.scheduling,
+        randomization: props.projectInfo.randomization,
+        app_title: props.projectInfo.app_title,
+        purpose: props.projectInfo.purpose,
+        project_pi_firstname: props.projectInfo.project_pi_firstname,
+        project_pi_mi: props.projectInfo.project_pi_mi,
+        project_pi_lastname: props.projectInfo.project_pi_lastname,
+        project_pi_email: props.projectInfo.project_pi_email,
+        project_pi_alias: props.projectInfo.project_pi_alias,
+        project_irb_number: props.projectInfo.project_irb_number,
+        purpose_other: props.projectInfo.purpose_other,
+        project_note: props.projectInfo.project_note,
+        projecttype: props.projectInfo.projecttype,
+        repeatforms_chk: props.projectInfo.repeatforms_chk,
+        project_template_radio: props.projectInfo.project_template_radio,
+        config: getDusterConfig()
   }
-  showDusterConfig.value = true
+  let formData = new FormData()
+  formData.append('redcap_csrf_token', props.projectInfo.redcap_csrf_token);
+  formData.append('data', JSON.stringify(data));
+
+  // use services/importMetadata.php if project has already been created
+  // let axios = require('axios');
+  // console.log("pre axios");
+  axios.post(props.projectInfo.create_project_url, formData)
+      .then(function(response) {
+        // console.log("ajax response");
+        // console.log(response);
+        console.log("Response data: " + response.data);
+        if (response.data.indexOf('Uncaught Error') > -1 ||
+            response.data.indexOf('Error message') > -1) {
+          console.log("Found Error");
+          createProjectMessage.value = response.data;
+          createProjectError.value = true
+          showCreateProjectDialog.value = true ;
+        } else {
+          showCreateProjectDialog.value = false ;
+          window.location.href = response.data;
+          console.log(response.data);
+        }
+      })
+      .catch(function(error) {
+        createProjectMessage.value=error.message;
+        createProjectError.value = true
+        showCreateProjectDialog.value = true ;
+        console.log("Catch: " + error);
+      });
 }
 
 </script>
 
 <style scoped>
-:deep(.p-panel .p-panel-header) {
-  background: #aeb6bf;
-}
-:deep(.p-datatable .p-datatable-header) {
-  background: #ced4da;
-}
 
 </style>

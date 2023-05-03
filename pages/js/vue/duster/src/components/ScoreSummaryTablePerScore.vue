@@ -2,14 +2,24 @@
 <template>
   <Panel :header="scoreLabel">
   <DataTable rowGroupMode="subheader" groupRowsBy="category" :value="thisScore"
-  sortMode="single" sortField="category" :sortOrder="1"
-  v-model:expandedRowGroups="expandedRows"
-  expandableRowGroups>
-
-  <template #groupheader="slotProps">
-    <div class="flex align-items-center gap-2">
-      <span>{{ slotProps.data.category }}</span>
-    </div>
+      sortMode="single" sortField="category" :sortOrder="1"
+      v-model:expandedRowGroups="expandedRowGroups"
+      expandableRowGroups
+             @rowgroup-expand="onRowGroupExpand"
+             @rowgroup-collapse="onRowGroupCollapse">
+    <template #header>
+      <div class="flex flex-wrap align-items-center justify-content-between gap-2">
+        <span class="text-0 text-900 font-bold">REDCap values</span>
+        <span>
+      <Button text icon="pi pi-plus" label="Expand All" @click="expanded = true" />
+      <Button text icon="pi pi-minus" label="Collapse All" @click="collapsed = true" />
+    </span>
+      </div>
+    </template>
+  <template #groupheader="slotProps" >
+    <span class="font-bold">
+    {{ slotProps.data.category }}
+      </span>
   </template>
   <Column field="category" header="Category"></Column>
   <Column field="label" header="Label"></Column>
@@ -20,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, watch} from "vue";
+import {computed, ref, watchEffect} from "vue";
 
 const props = defineProps({
   score: {
@@ -45,32 +55,34 @@ const emit = defineEmits(
     ['update:score']
 )
 
-const expandedRows = ref()
+const expandedRowGroups = ref(thisScore.value.map((p:any) => p.label));
 const expanded = ref<boolean>(true)
 const collapsed = ref<boolean>(false)
 
-
 const expandAll = () => {
-  expanded.value = true
   collapsed.value = false
-  expandedRows.value = thisScore.value.filter((p:any) => p.redcap_field_name);
+  expandedRowGroups.value = [];
+  expandedRowGroups.value = thisScore.value.map((p:any) => p.label);
 };
 const collapseAll = () => {
   expanded.value = false
-  collapsed.value = true
-  expandedRows.value = null;
+  expandedRowGroups.value = [];
 };
 
-watch(expanded, (newExp) => {
-  if (newExp) {
-    collapsed.value = false
-    expandAll()}
+watchEffect(() => {
+  if (expanded.value) {
+    expandAll()
+  } else if (collapsed.value) {
+    collapseAll()
+  }
 })
-watch(collapsed, (newExp) => {
-  if (newExp) {
-    expanded.value = false
-    collapseAll()}
-})
+
+const onRowGroupExpand = () => {
+  collapsed.value=false
+};
+const onRowGroupCollapse = () => {
+  expanded.value=false
+};
 </script>
 
 <style scoped>

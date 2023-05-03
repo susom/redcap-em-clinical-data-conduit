@@ -8,7 +8,7 @@
       "timing": {
         "start": {
           "type": "datetime",
-          "duster_field_name": "ed_admission_dttm",
+          "duster_field_name": "ed_admission_datetime",
           "redcap_field_name": "",
           "redcap_field_type": "text",
           "value_type": "datetime",
@@ -22,7 +22,7 @@
         },
         "end": {
           "type": "datetime",
-          "duster_field_name": "ed_discharge_dttm",
+          "duster_field_name": "ed_discharge_datetime",
           "redcap_field_name": "",
           "redcap_field_type": "text",
           "value_type": "datetime",
@@ -57,7 +57,7 @@
       "timing": {
         "start": {
           "type": "datetime",
-          "duster_field_name": "hospital_admit_dttm",
+          "duster_field_name": "hospital_admit_datetime",
           "redcap_field_name": "",
           "redcap_field_type": "text",
           "value_type": "datetime",
@@ -71,7 +71,7 @@
         },
         "end": {
           "type": "datetime",
-          "duster_field_name": "hospital_discharge_dttm",
+          "duster_field_name": "hospital_discharge_datetime",
           "redcap_field_name": "",
           "redcap_field_type": "text",
           "value_type": "datetime",
@@ -106,7 +106,7 @@
       "timing": {
         "start": {
           "type": "datetime",
-          "duster_field_name": "hospital_admit_dttm",
+          "duster_field_name": "hospital_admit_datetime",
           "redcap_field_name": "",
           "redcap_field_type": "text",
           "value_type": "datetime",
@@ -155,7 +155,7 @@
       "timing": {
         "start": {
           "type": "datetime",
-          "duster_field_name": "first_icu_admission_dttm",
+          "duster_field_name": "first_icu_admission_datetime",
           "redcap_field_name": "",
           "redcap_field_type": "text",
           "value_type": "datetime",

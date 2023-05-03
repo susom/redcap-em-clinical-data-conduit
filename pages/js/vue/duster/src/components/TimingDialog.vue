@@ -1,199 +1,131 @@
 <template>
   <Dialog v-model:visible="visible"
           :modal="true"
-          header="Define Data Timing"
+          :style="{ width: '75vw' }"
+           header="Data Collection Timing"
           class="my-2"
   >
-    <div class="field grid">
-      <label class="col-fixed" style="width:100px" for="presets">Presets: </label>
+    <div class="field grid mt-2">
+      <label class="col-2" for="presets">Presets: </label>
       <Dropdown
           class="col-6"
           :options="presets"
           id="presets"
           v-model="selectedPreset"
           optionLabel="label"/>
-
     </div>
-    <!--div class="field grid">
-
-      <label class="col-fixed" style="width:100px" for="label">Label: </label>
-      <InputText class="col-6 py-2" id="label" v-model="cw.label"/>
-    </div-->
-    <Panel header="Start Collection">
+    <hr/>
+    <Divider/>
+    <div class="card">
       <TimingEvent
-          :time-type-options="TIME_TYPE_OPTIONS"
           v-model:timing-object="cw.timing.start"
           event-type="start"
+          :time-type-options="TIME_TYPE_OPTIONS"
           :event-options="eventOptions"
           :rp-dates="rpDates"
           :end-timing-object="cw.timing.end"
+          :submitted="submitted"
           @clear-preset="clearPreset"
+          @validate-timing="(isValid) => startTimingValid = isValid"
 
       />
-      <!-- refactored into TimingEventComponent
-      <div class="flex flex-wrap gap-3 mt-4">
-        <div v-for="type in START_TIME_TYPE_OPTIONS"
-             :key="type.value"
-             class="flex align-items-center">
-          <RadioButton
-              v-model="cw.timing.start.type"
-              :inputId="type.value"
-              name="startTimeType"
-              :value="type.value"
-              :disabled="type.value ==='interval' && cw.timing.end.type=='interval'"
-              @change="cw.timing.start.label = startLabel; selectedPreset=''"
-          />
-          <label :for="type.value" class="ml-2">{{ type.text }}</label>
+    </div>
+    <hr/>
+    <Divider/>
+    <div class="card">
+      <TimingEvent
+          v-model:timing-object="cw.timing.end"
+          event-type="end"
+          :time-type-options="TIME_TYPE_OPTIONS"
+          :event-options="eventOptions"
+          :rp-dates="rpDates"
+          :start-timing-object="cw.timing.start"
+          :submitted="submitted"
+          @validate-timing="(isValid) => endTimingValid = isValid"
+          @clear-preset="clearPreset"
+      />
+    </div>
+    <hr/>
+    <Divider/>
+    <div class="card">
+      <div class="field grid">
+        <div class="col-offset-2 col-12 md:col-10">
+
+          <Checkbox
+              id="hasRepeatIntervals"
+              v-model="hasRepeatIntervals"
+              :binary="true"/>
+          <label
+              class="ml-2"
+              for="hasRepeatIntervals">
+            Repeat Data Collection at defined intervals between Start & End?
+          </label>
+
         </div>
-      </div-->
+      </div>
+      <div v-if="hasRepeatIntervals" class="field grid">
 
-      <!-- interval options-->
-      <!--div v-if="cw.timing.start.type=='interval'" class="card">
+        <div class="col-12 mb-2 md:col-2 md:mb-0">
+          <label>Collect Data Every: </label>
+        </div>
+        <div class="col-12 md:col-10">
+          <div class="formgroup-inline">
+            <div class="field ">
 
-        <div class="flex flex-wrap gap-3 mt-4 ">
-          <div class="flex align-items-center">
-            Starting at&nbsp;<span class="p-float-label">
+          <span class="p-float-label">
             <InputNumber
-                v-model="cw.timing.start.interval.length"
-                id="startIntervalLength"
+                v-model="repeatIntervalLength"
+                id="repeatIntervalLength"
                 inputId="integeronly"
-                @change="cw.timing.start.label = startLabel"/>
-          <label for="startIntervalLength">
-            Length of Interval
+                :class="{ 'p-invalid': repeatIntervalLengthMissing }"
+                style="width:3rem"/>
+          <label for="repeatIntervalLength" style="width:3rem">
+            # of
           </label>
           </span>
-          </div>
-          <div v-for="type in INTERVAL_OPTIONS"
-               :key="type.value"
-               class="flex align-items-center">
-            <RadioButton
-                v-model="cw.timing.start.interval.type"
-                :inputId="type.value"
-                name="startInterval"
-                :id="'start_'+ type.value"
-                :value="type.value"
-                @change="cw.timing.start.label = startLabel"/>
-            <label :for="'start_'+ type.value" class="ml-2">{{ type.text }}</label>
-          </div>
-          <div class="flex align-items-center">
-            before {{ endLabel }}
-          </div>
-        </div>
-      </div-->
-      <!--date and datetime options-->
-      <!--div v-else-if="(cw.timing.start.type == 'date' || cw.timing.start.type == 'datetime')"
-           class="mt-4 flex flex-wrap gap-3">
-        <div class="flex align-items-center">
-          Starting at
-        </div>
-        <div v-if="cw.timing.start.type=='date'" class="flex align-items-center">
-          00:00:00 of
-        </div>
-        <Dropdown v-model="startSpecifiedDt"
-                  :options="startSpecifiedDts"
-                  optionLabel="label"
-                  class="flex align-items-center"
-                  @change="cw.timing.start.label = startLabel"/>
-        <div v-if="startSpecifiedDt && startSpecifiedDt.duster_field_name" class="flex align-items-center">
-          before&nbsp;
-          <Dropdown v-model="cw.timing.start.rp_date"
-                    :options="rpDates"
-                    optionLabel="label"
-                    optionValue="redcap_field_name"/>
-        </div>
-      </div-->
-
-    </Panel>
-
-    <Panel header="End Collection" class="mt-4">
-      <div class="flex flex-wrap gap-3 mt-4">
-        <TimingEvent
-            :time-type-options="TIME_TYPE_OPTIONS"
-            v-model:timing-object="cw.timing.end"
-            event-type="end"
-            :event-options="eventOptions"
-            :rp-dates="rpDates"
-            :start-timing-object="cw.timing.start"
-            @clear-preset="clearPreset"
-        />
-        <!--div v-for="type in END_TIME_TYPE_OPTIONS" :key="type.value" class="flex align-items-center">
-          <RadioButton v-model="cw.timing.end.type"
-                       :inputId="type.value"
-                       name="endTimeType"
-                       :value="type.value"
-                       :id="'end_' + type.value"
-                       :disabled="type.value ==='interval' && cw.timing.start.type=='interval'"
-                       @change="cw.timing.end.label = endLabel"
-          />
-          <label :for="'end_' + type.value" class="ml-2">{{ type.text }}</label>
-        </div>
-      </div>
-      <div v-if="cw.timing.end.type=='interval'" class="card">
-
-        <div class="flex flex-wrap gap-3 mt-4">
-          <div class="flex align-items-center">
-            Ending at&nbsp;<span class="p-float-label">
-            <InputNumber v-model="cw.timing.end.interval.length" id="endIntervalLength" inputId="integeronly"
-                         @change="cw.timing.end.label = endLabel"/>
-          <label for="endIntervalLength">Length of Interval</label>
-          </span>
-          </div>
-          <div v-for="type in INTERVAL_OPTIONS" :key="type.value" class="flex align-items-center">
-            <RadioButton v-model="cw.timing.end.interval.type"
-                         :inputId="type.value"
-                         name="endInterval"
-                         :value="type.value"
-                         @change="cw.timing.end.label = endLabel"
-            />
-            <label :for="type.value" class="ml-2">{{ type.text }}</label>
-          </div>
-          <div class="flex align-items-center">
-            after {{ startLabel }}
+              <small v-if="repeatIntervalLengthMissing"
+                     class="flex p-error mb-3">
+                {{ repeatIntervalLengthMissing }}
+              </small>
+            </div>
+            <div class="field ">
+              <Dropdown v-model="repeatIntervalType"
+                        :options="INTERVAL_OPTIONS"
+                        optionLabel="text"
+                        optionValue="value"
+                        placeholder="Hours/Days"
+                        :class="['ml-1 mr-2', { 'p-invalid': repeatIntervalTypeMissing }]"
+                        />
+              <label> between Start and End Date/Datetimes</label>
+              <small v-if="repeatIntervalTypeMissing"
+                     class="flex p-error mb-3">
+                {{ repeatIntervalTypeMissing }}
+              </small>
+            </div>
           </div>
         </div>
       </div>
-      <div v-else-if="(cw.timing.end.type == 'date' || cw.timing.end.type == 'datetime')"
-           class="mt-4 flex flex-wrap gap-3">
-        <div class="flex align-items-center">
-          Ending at
-        </div>
-        <div v-if="cw.timing.end.type=='date'" class="flex align-items-center">
-          23:59:00 of
-        </div>
-        <Dropdown v-model="endSpecifiedDt"
-                  :options="endSpecifiedDts"
-                  optionLabel="label"
-                  @change="cw.timing.end.label = endLabel"/>
-        <div v-if="endSpecifiedDt && endSpecifiedDt.duster_field_name">
-          after&nbsp;
-          <Dropdown v-model="cw.timing.end.rp_date"
-                    :options="rpDates"
-                    optionLabel="label"
-                    optionValue="redcap_field_name"/>
-        </div-->
-      </div>
-
-    </Panel>
-
+    </div>
+    <Toast />
     <template #footer>
       <Button label="Cancel" icon="pi pi-times" text @click="cancelTiming"/>
-      <Button label="Save" icon="pi pi-check" text @click="saveTiming"/>
+      <Button label="Save" icon="pi pi-check" text @click="submitted= true;saveTiming()"/>
+
     </template>
   </Dialog>
 </template>
 
 <script setup lang="ts">
+import {computed, watchEffect, ref} from "vue";
 import type {PropType} from "vue";
 import type CollectionWindow from "@/types/CollectionWindow";
-import type FieldMetadata from "@/types/FieldMetadata";
 import type FieldConfig from "@/types/FieldConfig";
 import type TimingConfig from "@/types/TimingConfig";
-import type {TIMING_TYPE} from "@/types/TimingConfig";
-import {START_TIME_TYPE_OPTIONS, END_TIME_TYPE_OPTIONS, TIME_TYPE_OPTIONS, INTERVAL_OPTIONS} from
-      "@/types/TimingConfig";
-import {computed, watch, ref} from "vue";
-import {INIT_TIMING_CONFIG} from "@/types/TimingConfig";
+import type {INTERVAL_TYPE} from "@/types/TimingConfig";
+import {TIME_TYPE_OPTIONS, INTERVAL_OPTIONS, INIT_TIMING_INTERVAL} from "@/types/TimingConfig";
 import TimingEvent from "./TimingEvent.vue"
+import { useToast } from "primevue/usetoast";
+import Toast from 'primevue/toast'
 
 const props = defineProps({
   collectionWindow: {
@@ -219,8 +151,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(
-    ['update:showTimingDialog', 'update:collectionWindow', 'saveTimingUpdate', 'cancelTimingUpdate']
+    ['update:showTimingDialog', 'update:collectionWindow', 'saveTimingUpdate',
+      'cancelTimingUpdate']
 )
+
 const visible = computed({
   get() {
     return props.showTimingDialog;
@@ -240,27 +174,90 @@ const cw = computed({
   }
 });
 
+/*****  repeat interval *****/
+
+const repeatIntervalType = ref<INTERVAL_TYPE>(cw.value.timing.repeat_interval?.type)
+
+const repeatIntervalLength = ref<number>(cw.value.timing.repeat_interval?.length ?? 0)
+
+watchEffect(() => {
+  if (!cw.value.timing.repeat_interval) {
+    cw.value.timing.repeat_interval ={...INIT_TIMING_INTERVAL}
+  }
+  cw.value.timing.repeat_interval.length = repeatIntervalLength.value
+  cw.value.timing.repeat_interval.type = repeatIntervalType.value
+  if (repeatIntervalLength.value > 0 && repeatIntervalType.value)
+  cw.value.timing.repeat_interval.label = "Every " + repeatIntervalLength.value
+      + " " + repeatIntervalType.value + "(s) "
+})
+
+const hasRepeatIntervals = ref<boolean>(
+    ((cw.value.timing.repeat_interval?.length ?? 0) > 0)
+)
+
 const selectedPreset = ref<CollectionWindow>()
 // add a watch to selectedPresets
-watch(selectedPreset, (preset: any) => {
-  if (preset && cw.value && cw.value.timing ) {
-    cw.value.timing.start = JSON.parse(JSON.stringify(preset.timing.start))
-    cw.value.timing.end = JSON.parse(JSON.stringify(preset.timing.end))
-    cw.value.label = preset.label
-    if (cw.value.timing.start && cw.value.timing.start.rp_date == "")
+watchEffect(() => {
+  if (selectedPreset.value) {
+    cw.value.timing.start = JSON.parse(JSON.stringify(selectedPreset.value.timing.start))
+    cw.value.timing.end = JSON.parse(JSON.stringify(selectedPreset.value.timing.end))
+    cw.value.label = selectedPreset.value.label
+    // select first rp_date for presets by default unless it has already been set to something else
+    // this is okay because presets all have duster metadata
+    if (!cw.value.timing.start.rp_date)
       cw.value.timing.start.rp_date = props.rpDates[0].redcap_field_name
-    if (cw.value.timing.end && cw.value.timing.end.rp_date == "")
+    if (cw.value.timing.end && !cw.value.timing.end.rp_date)
       cw.value.timing.end.rp_date = props.rpDates[0].redcap_field_name
   }
 })
 
+const toast = useToast();
+/*this requires one failed validation before it kicks in.  why???
+const validationState = computed(() => {
+  return (startTimingValid.value
+  && endTimingValid.value
+  && !repeatIntervalTypeMissing.value
+  && !repeatIntervalLengthMissing.value)
+})*/
+
+const timingObjectIsValid = (timingObject: TimingConfig) => {
+  return !!((timingObject.type !== 'interval'
+          //should have either duster_field_name or redcap_field_name defined
+          && (timingObject.duster_field_name || timingObject.redcap_field_name)
+          //if duster_field_name then rp_date should be defined
+          && (timingObject.duster_field_name ? timingObject['rp_date'] : true)
+      )
+      // if the start type is an interval
+      || (timingObject.type === 'interval' ?
+          // both interval type and length must be defined, length > 0
+          (timingObject.interval && timingObject.interval.type &&
+              ((timingObject.interval?.length ?? 0) > 0)) : true));
+
+}
+
+const validationState = computed<boolean>(() => {
+  return (timingObjectIsValid(cw.value.timing.start)
+      && timingObjectIsValid(cw.value.timing.end))
+})
+
 const saveTiming = () => {
-  visible.value = false
-  emit('saveTimingUpdate')
+  //emit('timingValidationUpdate', validationState.value)
+  clearPreset()
+  if (validationState.value) {
+    cw.value.timing_valid = true
+    visible.value = false
+    emit('saveTimingUpdate')
+  } else {
+    toast.add({ severity: 'error', summary: 'Missing fields', detail: 'Some required fields are missing.', life: 3000
+    });
+  }
 }
 
 const cancelTiming = () => {
+  cw.value.timing_valid = validationState.value
+  clearPreset()
   visible.value = false
+  //emit('timingValidationUpdate', validationState.value )
   emit('cancelTimingUpdate')
 }
 
@@ -268,16 +265,28 @@ const clearPreset = () => {
   selectedPreset.value = undefined
 }
 
-/*const getDateText = (options:TimingConfig[], dusterFieldName?:string|null, redcapFieldName?:string|null) => {
-  if (dusterFieldName) {
-    let option = options.find(opt => opt.duster_field_name === dusterFieldName)
-    if (option) return option.label
-  } else if (redcapFieldName) {
-    let option = options.find(opt => opt.redcap_field_name === redcapFieldName)
-    if (option) return option.label
+/***********/
+const submitted = ref<boolean>(false)
+const startTimingValid = ref<boolean>(false)
+const endTimingValid = ref<boolean>(false)
+
+const repeatIntervalLengthMissing = computed(() => {
+  if (submitted.value &&
+      hasRepeatIntervals.value
+      && (cw.value.timing.repeat_interval?.length ?? 0) <= 0) {
+    return "Interval length must be a positive integer"
   }
   return ""
-}*/
+})
+
+const repeatIntervalTypeMissing = computed(() => {
+  if (submitted.value &&
+      hasRepeatIntervals.value
+      && !cw.value.timing.repeat_interval?.type) {
+    return "Interval type required"
+  }
+  return ""
+})
 
 </script>
 

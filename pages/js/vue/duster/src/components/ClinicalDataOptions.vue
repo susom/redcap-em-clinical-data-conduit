@@ -5,7 +5,7 @@
       <!-- set visibility-->
       <div v-for="field in col" :key="field.duster_field_name"
            :style="(field.visible) ? '' : hide"
-           class="my-2 flex justify-content-between flex-wrap">
+           :class="['my-2 flex justify-content-between flex-wrap',{'hidden':field.visible}]">
         <div>
           <Checkbox v-model="selected"
                     :name="category"
@@ -14,35 +14,26 @@
           />
           <label :for="field.duster_field_name" class="ml-2">{{ field.label }}</label></div>
         <div v-if="hasAggregates">
-          <label v-if="field.selected">{{ getAggregatesLabel(field.aggregate_type, field.aggregates) }}</label>
+          <label v-if="field.selected">
+            {{ getAggregatesLabel(field.aggregate_type, field.aggregates) }}</label>
           <Button icon="pi pi-pencil" rounded class="ml-2"
                   :disabled="!field.selected"
-                  @click="currentField=field;showAggregatesDialog=true"/>
+                  @click="showAggregatesDialog(field)"/>
         </div>
 
       </div>
-      <div v-if="hasSelectAll"
-           class="my-2 flex justify-content-between flex-wrap">
-        <div>
-          <Checkbox v-model="selectAll"
-                    id="selectAll"
-                    :binary="true"
-          />
-          <label :for="selectAll" class="ml-2">Select All</label>
-        </div>
-      </div>
     </div>
   </div>
-  <Dialog :visible="showAggregatesDialog" header="Aggregates">
-    {{ hasClosestTime }}
-    <div class="flex flex-wrap gap-3">
+  <Dialog :visible="aggregatesDialogVisible" header="Aggregates">
+    <div class="flex flex-wrap gap-3 my-3">
       <div class="flex align-items-center">
         <RadioButton v-model="currentField.aggregate_type"
                      inputId="defaultAggregates"
                      id="defaultAggregates"
                      name="defaultCustom"
                      value="default"
-                     @change="showCustomAggregates=false"
+                     autofocus
+                     @change="customAggregatesVisible=false"
         />
         <label for="defaultAggregates" class="ml-2">Default Aggregates</label>
       </div>
@@ -52,27 +43,38 @@
                      id="customAggregates"
                      name="defaultCustom"
                      value="custom"
-                     @change="showCustomAggregates=true"
+                     @change="customAggregatesVisible=true"
         />
         <label for="customAggregates" class="ml-2">Custom Aggregates</label>
       </div>
     </div>
-    <div v-if="currentField.aggregate_type=='custom'" class="flex flex-wrap gap-3">
+    <div v-if="currentField.aggregate_type=='custom'" class="mb-3">
+      <div class="flex flex-wrap gap-3">
       <div v-for="aggOption in AGGREGATE_OPTIONS" :key="aggOption.value"
            class="flex align-items-center">
-        <div v-if="aggOption.value!='closest_time' || (aggOption.value=='closest_time' && hasClosestTime)">
+        <div v-if="aggOption.value!='closest_time' || (aggOption.value=='closest_time' && hasClosestTime)"
+          class="mb-3">
           <Checkbox v-model="currentField.aggregates"
                     name="aggregateOptions"
                     :id="aggOption.value"
                     :value="aggOption"
+                    :class="{ 'p-invalid': aggOptionErrorMessage }"
+                    @click="aggOptionErrorMessage=false"
           />
           <label :for="aggOption.value">{{ aggOption.text }}</label>
         </div>
+        </div>
       </div>
+      <small
+          v-if="aggOptionErrorMessage"
+          id="aggOption-help"
+          class="flex p-error mb-3">
+        {{ aggOptionErrorMessage }}
+      </small>
     </div>
     <template #footer>
-      <Button label="Cancel" icon="pi pi-times" @click="showAggregatesDialog = false" text/>
-      <!--Button label="Save" icon="pi pi-check" @click="showAggregatesDialog = false" autofocus/-->
+      <Button label="Close" icon="pi pi-times" @click="cancelAggregates" text/>
+      <!--Button label="Save" icon="pi pi-check" @click="aggregatesDialogVisible = false" autofocus/-->
 
       <Button label="Save" icon="pi pi-check" @click="updateAggregates" autofocus/>
     </template>
@@ -80,22 +82,43 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, watch} from "vue";
+import {computed, ref} from "vue";
 import type {PropType} from "vue";
 import {AGGREGATE_OPTIONS} from "@/types/FieldConfig";
 import type FieldMetadata from "@/types/FieldMetadata";
 
 const hide = ref<string>("display:none !important")
 const props = defineProps({
-  selectedOptions: Object as PropType<Array<FieldMetadata>>,
-  category: String,
+  selectedOptions: {
+    type: Object as PropType<Array<FieldMetadata>>,
+    required: true
+  },
+  category: {
+    type: String,
+    required: true
+  },
   numColumns: Number,
-  hasSelectAll: Boolean,
-  hasAggregates: Boolean,
-  hasClosestTime: Boolean,
-  searchText: String,
-  selectFilter: String,
-  options: Object as PropType<Array<FieldMetadata>>
+  hasAggregates: {
+    type: Boolean,
+    required: true
+  },
+  hasClosestTime: {
+    type: Boolean,
+    required: true
+  },
+  searchText: {
+    type: String,
+    default: null,
+    required: true
+  },
+  selectFilter: {
+    type: String,
+    required: true
+  },
+  options: {
+    type: Object as PropType<Array<FieldMetadata>>,
+    required: true
+  }
 })
 
 const emit = defineEmits(['update:selectedOptions'])
@@ -193,40 +216,74 @@ const filtered = computed<FieldMetadata[][]>(() => {
   return filtered
 })
 
-const showAggregatesDialog = ref(false)
-const showCustomAggregates = ref(false)
+const aggregatesDialogVisible = ref(false)
+const customAggregatesVisible = ref(false)
 
-//TODO:  Add cancel implementation
-const savedAggregateType = ref()
-const savedCustomAggregates = ref<any[]>([])
-
-const getAggregatesLabel = (aggregateType: string, aggregates: any[]) => {
-  if (!aggregateType || aggregateType === 'default') return 'default'
-  else {
-    let aggLabels: string[] = []
-    aggregates.forEach(aggregate => aggLabels.push(aggregate.text))
-    return '[' + aggLabels.join(', ') + ']'
+const getAggregatesLabel = (aggregateType?: string, aggregates?: any[]) => {
+  if (!aggregateType || aggregateType === 'default') {
+    return 'default'
+  } else {
+    if (aggregates) {
+      let aggLabels: string[] = []
+      aggregates.forEach(aggregate => aggLabels.push(aggregate.text))
+      return '[' + aggLabels.join(', ') + ']'
+    }
+    return "[]"
   }
 }
 
+//save the state of the aggregates for cancel aggregates implementation
+const savedAggregateType = ref()
+const savedCustomAggregates = ref<any[]>([])
+
+const showAggregatesDialog = (field:any) => {
+  currentField.value = field
+  // save the current state in case of cancel
+  savedAggregateType.value = currentField.value.aggregate_type
+  savedCustomAggregates.value = [...currentField.value.aggregates]
+  aggregatesDialogVisible.value = true
+
+}
+
+const aggOptionErrorMessage = ref<any>()
+
 const updateAggregates = () => {
-  showAggregatesDialog.value = false
-  if (selected.value) {
-    let selectedIndex = getSelectedIndex(currentField.value.duster_field_name, selected.value)
-    if (selectedIndex > -1 && selected.value[selectedIndex]) {
-      selected.value[selectedIndex] = JSON.parse(JSON.stringify(currentField.value))
+  // first make sure custom aggregates have been selected if aggregate_type is custom
+  if (currentField.value.aggregate_type === 'custom' && !currentField.value.aggregates.length) {
+    aggOptionErrorMessage.value = "At least one custom aggregation must be selected."
+  } else {
+    aggregatesDialogVisible.value = false
+    if (currentField.value.aggregate_type === 'default') {
+      currentField.value.aggregates.length = 0
+    }
+    // update in the selected options
+    if (selected.value) {
+      let selectedIndex = getOptionIndex(currentField.value.duster_field_name, selected.value)
+      if (selectedIndex > -1 && selected.value[selectedIndex]) {
+        selected.value[selectedIndex] = JSON.parse(JSON.stringify(currentField.value))
+      }
     }
   }
 }
 
-const getSelectedIndex = (dusterFieldName: string, haystack: any) => {
-  //console.log(id)
-  return haystack.findIndex(
-      (cw) => cw.duster_field_name === dusterFieldName)
+const cancelAggregates = () => {
+  aggregatesDialogVisible.value = false
+  // restore original saved state
+  currentField.value.aggregate_type = savedAggregateType.value
+  currentField.value.aggregates = savedCustomAggregates.value
+  if (filtered.value) {
+    let index = getOptionIndex(currentField.value.duster_field_name, filtered.value)
+    if (index > -1 && filtered.value[index]) {
+      filtered.value[index] = JSON.parse(JSON.stringify(currentField.value))
+    }
+  }
 }
 
-//TODO: select all
-const selectAll = ref<boolean>(false)
+const getOptionIndex = (dusterFieldName: string, haystack: any) => {
+  //console.log(id)
+  return haystack.findIndex(
+      (cw:any) => cw.duster_field_name === dusterFieldName)
+}
 
 </script>
 

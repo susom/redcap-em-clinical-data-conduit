@@ -2,18 +2,22 @@ import type TimingConfig from "@/types/TimingConfig"
 import {INIT_TIMING_CONFIG} from "@/types/TimingConfig";
 import type TextValuePair from "@/types/TextValuePair";
 
-interface FieldConfig {
-    duster_field_name?: string |  undefined
-    redcap_field_name: string |  undefined
+
+export interface BasicConfig{
     label: string |  undefined
-    phi?: string |  undefined
-    value_type?: string |  undefined
-    redcap_field_type?: string |  undefined
-    redcap_field_note?: string | undefined
-    redcap_options?: string | undefined
-    aggregate?: string |  undefined
-    aggregate_options?: AggregateOptions |  undefined
+    value_type?: string
+    redcap_field_name?: string
+    redcap_field_type: string |  undefined
+    phi?: string
     id?: string
+    duster_field_name?: string
+    redcap_field_note?: string
+    redcap_options?: string
+}
+
+interface FieldConfig extends BasicConfig {
+    aggregate?: string
+    aggregate_options?: AggregateOptions
 }
 
 interface AggregateOptions {
@@ -30,6 +34,16 @@ export const AGGREGATE_OPTIONS: Array<TextValuePair> =[
     {text: "Closest to Event", value: "closest_event"},
     {text: "Closest to Time", value: "closest_time"}
 ]
+
+export const INIT_BASIC_CONFIG: BasicConfig = {
+    duster_field_name: undefined,
+    redcap_field_name: undefined,
+    label: undefined,
+    phi: undefined,
+    value_type: undefined,
+    redcap_field_type: undefined,
+    id: undefined
+}
 
 export const INIT_FIELD_CONFIG: FieldConfig = {
     duster_field_name: undefined,

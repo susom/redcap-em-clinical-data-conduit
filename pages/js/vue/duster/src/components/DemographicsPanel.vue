@@ -7,25 +7,41 @@
           <br>
           <em>Please bear in mind HIPAA Minimum Necessary when selecting identifying information.</em>
       </div>
-      <Panel header="Demographics" class="mt-3">
-        <ClinicalDataOptions
-          category="demographics"
-          :options="demographicsOptions"
-          :has-aggregates=false
-          :num-columns=1
-          v-model:selected-options="value"
-        />
-      </Panel>
+      <Card>
+        <template #content>
+      <div class="formgrid grid">
+
+          <div v-for="field in sorted" :key="field.duster_field_name"
+               class="my-2 col-6">
+            <div>
+              <Checkbox v-model="selected"
+                        :id="field.duster_field_name"
+                        :value="field"
+              />
+              <label :for="field.duster_field_name" class="ml-2">{{ field.label }}</label></div>
+
+          </div>
+      </div>
+        </template>
+          <template #footer>
+          <Checkbox v-model="selectAll"
+                    id="selectAll"
+                    :binary="true"
+          />
+          <label for="selectAll" class="ml-2">Select All</label>
+        </template>
+
+      </Card>
+
     </Panel>
   </div>
 </template>
 
 
 <script setup lang="ts">
-import {computed} from "vue"
+import {ref, computed, watch} from "vue"
 import type {PropType} from 'vue'
 import type FieldMetadata from "@/types/FieldMetadata"
-import ClinicalDataOptions from "./ClinicalDataOptionsTable.vue"
 
 const props = defineProps({
   demographicsOptions: {
@@ -35,7 +51,8 @@ const props = defineProps({
     Array as PropType<Array<FieldMetadata>>
 })
 const emit = defineEmits(['update:demographicsSelects'])
-const value = computed({
+
+const selected = computed({
   get() {
     return props.demographicsSelects
   },
@@ -43,6 +60,48 @@ const value = computed({
     emit('update:demographicsSelects', value)
   }
 })
+
+const sorted = computed(()=>{
+  if (props.demographicsOptions) {
+    let toSort:any[] = JSON.parse(JSON.stringify(props.demographicsOptions))
+    toSort.forEach(option => {
+      option.selected = false
+      option.aggregate_type = "default"
+      option.aggregates = []
+    })
+
+    // sort alphabetically by label
+    toSort.sort(function (a: any, b: any) {
+      let x = a.label.toLowerCase();
+      let y = b.label.toLowerCase();
+      if (x < y) {
+        return -1;
+      }
+      if (x > y) {
+        return 1;
+      }
+      return 0;
+    });
+    return toSort
+  }
+  return props.demographicsOptions
+});
+
+const selectAll = ref<Boolean>(false)
+watch(selectAll, (newSelectAll: any) => {
+  if (selected.value) {
+    if (newSelectAll) {
+        selected.value.length = 0
+        if (sorted.value) {
+          selected.value = [...sorted.value]
+      }
+    } else {
+      selected.value.length = 0
+    }
+  }
+})
+
+
 
 </script>
 

@@ -9,11 +9,12 @@ interface CollectionWindow {
     form_name: string
     type: CWTYPE
     timing_preset?: string | undefined
+    timing_valid?: boolean | undefined
     timing: {
-        start: TimingConfig | undefined
-        end: TimingConfig | undefined
+        start: TimingConfig
+        end: TimingConfig
         repeat_interval: TimingInterval | undefined
-    } | undefined
+    }
     aggregate_defaults?: Array<TextValuePair> | undefined
     event?: Array<TimingConfig>
     closest_time?: string
@@ -22,17 +23,18 @@ interface CollectionWindow {
         vitals: Array<FieldMetadata>
         outcomes: Array<FieldMetadata>
         scores: Array<FieldMetadata>
-    } | undefined
+    }
     id?: string
 }
 
 export type CWTYPE ="nonrepeating" | "repeating"
 
 export const INIT_COLLECTION_WINDOW: CollectionWindow = {
-    label: "Custom Timing",
+    label: "",
     form_name: "",
     type: "nonrepeating",
     timing_preset: undefined,
+    timing_valid: false,
     timing: {
         start: JSON.parse(JSON.stringify(INIT_TIMING_CONFIG)),
         end: JSON.parse(JSON.stringify(INIT_TIMING_CONFIG)),

@@ -600,51 +600,51 @@
     ],
     "clinical_dates": [
       {
-        "duster_field_name": "hospital_admit_dttm",
+        "duster_field_name": "hospital_admit_datetime",
         "label": "Hospital Admission Datetime",
         "category": "clinical_dates",
         "value_type": "datetime",
-        "redcap_field_type": "datetime",
+        "redcap_field_type": "text",
         "redcap_options": "",
         "redcap_field_note": "",
         "phi": "t"
       },
       {
-        "duster_field_name": "hospital_discharge_dttm",
+        "duster_field_name": "hospital_discharge_datetime",
         "label": "Hospital Discharge Datetime",
         "category": "clinical_dates",
         "value_type": "datetime",
-        "redcap_field_type": "datetime",
+        "redcap_field_type": "text",
         "redcap_options": "",
         "redcap_field_note": "",
         "phi": "t"
       },
       {
-        "duster_field_name": "ed_admission_dttm",
+        "duster_field_name": "ed_admission_datetime",
         "label": "ED Admission Datetime",
         "category": "clinical_dates",
         "value_type": "datetime",
-        "redcap_field_type": "datetime",
+        "redcap_field_type": "text",
         "redcap_options": "",
         "redcap_field_note": "",
         "phi": "t"
       },
       {
-        "duster_field_name": "ed_discharge_dttm",
+        "duster_field_name": "ed_discharge_datetime",
         "label": "ED Discharge Datetime",
         "category": "clinical_dates",
         "value_type": "datetime",
-        "redcap_field_type": "datetime",
+        "redcap_field_type": "text",
         "redcap_options": "",
         "redcap_field_note": "",
         "phi": "t"
       },
       {
-        "duster_field_name": "first_icu_admission_dttm",
+        "duster_field_name": "first_icu_admission_datetime",
         "label": "First ICU Admission Datetime",
         "category": "clinical_dates",
         "value_type": "datetime",
-        "redcap_field_type": "datetime",
+        "redcap_field_type": "text",
         "redcap_options": "",
         "redcap_field_note": "",
         "phi": "t"
