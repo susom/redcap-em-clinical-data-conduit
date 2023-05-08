@@ -168,8 +168,8 @@ const irbCheckVisible = ref<boolean>(false)
 
 onMounted(() => {
   // check irb
-  // checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number)
-  irbValid.value = true;
+    checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number)
+  //irbValid.value = true;
 })
 
 watchEffect(() => {
@@ -215,14 +215,16 @@ const irbCheckCancel = () => {
 }
 
 const getDusterMetadata = (metadataUrl:string) => {
-  // for testing*
+  // for testing
+  /*
   demographicsOptions.value = resp.data.demographics;
   labOptions.value = resp.data.labs;
   vitalOptions.value = resp.data.vitals;
   outcomeOptions.value = resp.data.outcomes;
   scoreOptions.value = resp.data.scores;
     clinicalDateOptions.value = resp.data.clinical_dates
-  /*
+    */
+  
     axios.get(metadataUrl)
       .then(response => {
       demographicsOptions.value = response.data.demographics;
@@ -236,7 +238,7 @@ const getDusterMetadata = (metadataUrl:string) => {
     irbCheckMessage.value = "Unable to load Duster metadata"
     console.log(error)
   });
-  */
+  
 }
 
 const updateRpDate = (rpDate:BasicConfig) => {
