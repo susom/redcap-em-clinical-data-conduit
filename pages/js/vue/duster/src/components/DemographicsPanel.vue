@@ -1,14 +1,13 @@
 <template>
   <div class="container">
     <Panel header="Demographics">
-      <div>
-        Select demographics below that you'd like to collect on your cohort.
-          <br>
+      <div class="mb-2">
+        Select demographics below that you'd like to collect on your cohort.          
           <br>
           <em>Please bear in mind HIPAA Minimum Necessary when selecting identifying information.</em>
       </div>
       <Card>
-        <template #content>
+        <template #content>        
       <div class="formgrid grid">
 
           <div v-for="field in sorted" :key="field.duster_field_name"

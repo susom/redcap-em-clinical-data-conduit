@@ -2,16 +2,14 @@
 <template>
 
   <Panel header="Researcher Provided Information">
-    <div>
-      <p>
-        The minimum required information for each record is an MRN and a study enrollment date.</p>
-      <p>
+    <div>      
+        The minimum required information for each record is an MRN and a study enrollment date.      
         This data must be loaded into REDcap after DUSTER creates the project.
-      </p>
     </div>
-    <div class="col-12">
+    <div class="col-12 mt-1">
         <DataTable
             :value="localRpProvidedData"
+            class="p-datatable-sm"
             data-key="id">
           <Column
               key="value_type"
@@ -27,7 +25,7 @@
                   optionValue="value"
                   class="w-full md:w-6rem"
               /-->
-
+            <!-- md:w-6rem -->
               <DropdownWithValidation
                   v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'"
                   v-model="localRpProvidedData[slotProps.index].value_type"
@@ -35,7 +33,7 @@
                   :options="dateTypes"
                   option-label="text"
                   option-value="dtValue"
-                  :class-def="'w-full md:w-6rem'"
+                  :class-def="'w-full'" 
                   placeholder="Select a type"
                   rules="required"
               />
@@ -72,7 +70,7 @@
               <InputTextRequired
                   :name="`localRpProvidedData[${slotProps.index}].label`"
                   v-model="slotProps.data[slotProps.field]"
-                  classDef="w-full md:w-6rem"
+                  classDef="w-full"
                   rules="required"
               />
             </template>
@@ -87,7 +85,7 @@
               <InputTextRequired
                   :name="`localRpProvidedData[${slotProps.index}].redcap_field_name`"
                    v-model="localRpProvidedData[slotProps.index].redcap_field_name"
-                  classDef="w-full md:w-6rem"
+                  classDef="w-full"
                   :rules="{required: true,
                   redcap_field_name:true,
                   not_one_of:otherFieldNames(slotProps.index)}"
@@ -98,7 +96,16 @@
               :exportable="false"
               header="Actions">
             <template
-                #body="slotProps">
+                #body="slotProps">                 
+                <i class="pi pi-trash mr-2" 
+                    v-if="(slotProps.index > 1)"
+                    style="color:green;font-size:1.25em"
+                    @click="confirmDeleteRpDate(slotProps.data)" />
+
+                <i class="pi pi-plus-circle" 
+                    style="color:green;font-size:1.25em"
+                    @click="addRpDate" />                
+                <!--
               <Button
                   icon="pi pi-trash"
                   outlined
@@ -116,6 +123,7 @@
                   :class="(slotProps.index == (localRpProvidedData.length -1) )? '': 'hidden'"
                   @click="addRpDate" >
               </Button>
+              -->
             </template>
           </Column>
         </DataTable>
@@ -127,7 +135,7 @@
       :style="{width: '450px'}"
       header="Confirm"
       :modal="true">
-    <div class="confirmation-content">
+    <div class="confirmation-content mt-2 mb-4">
       <i class="pi pi-exclamation-triangle mr-3"
          style="font-size: 2rem" />
       <span

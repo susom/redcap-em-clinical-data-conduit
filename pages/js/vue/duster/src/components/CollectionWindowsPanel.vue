@@ -2,6 +2,7 @@
   <Panel header="Data Collection Configuration">
       <DataTable
           editMode="row"
+          class="p-datatable-sm"
           v-model:selection="localCollectionWindowsEditing"
           v-model:editingRows="localCollectionWindowsEditing"
           :value="localCollectionWindows"
@@ -55,20 +56,34 @@
 
     <Column key="data" field="data" header="Clinical Data" style="width: 30rem">
       <template #body="{ data }">
+        <Button @click="showClinicalData('labs', data)" size="small" class=" p-1" rounded>
+            Labs<span class="p-badge p-component p-badge-no-gutter">{{ data.data.labs.length }}</span>
+        </Button>
+        <Button @click="showClinicalData('vitals', data)" size="small" class="ml-1 p-1" rounded>
+            Vitals<span class="p-badge p-component p-badge-no-gutter">{{ data.data.vitals.length }}</span>
+        </Button>
+        <Button @click="showClinicalData('outcomes', data)" size="small" class="ml-1 p-1" rounded>
+            Outcomes<span class="p-badge p-component p-badge-no-gutter">{{ data.data.outcomes.length }}</span>
+        </Button>
+        <Button @click="showClinicalData('scores', data)" size="small" class="ml-1 p-1" rounded>
+            Scores<span class="p-badge p-component p-badge-no-gutter">{{ data.data.scores.length }}</span>
+        </Button>
+        <!--
       <Button
-          @click="showClinicalData('labs', data)" link>
+          @click="showClinicalData('labs', data)" link size="small">
         Labs&nbsp;<Tag :value="data.data.labs.length"/>
 
       </Button>
-      <Button @click="showClinicalData('vitals', data)" link>
+      <Button @click="showClinicalData('vitals', data)" link size="small">
         Vitals&nbsp;<Tag :value="data.data.vitals.length"/>
       </Button>
-      <Button @click="showClinicalData('outcomes', data)" link>
+      <Button @click="showClinicalData('outcomes', data)" link size="small">
         Outcomes&nbsp;<Tag :value="data.data.outcomes.length"/>
       </Button>
-      <Button @click="showClinicalData('scores', data)" link>
+      <Button @click="showClinicalData('scores', data)" link size="small">
         Scores&nbsp;<Tag :value="data.data.scores.length"/>
       </Button>
+      -->
       </template>
     </Column>
         <Column  key="id" field="id" header="Delete" style="width: 8rem">

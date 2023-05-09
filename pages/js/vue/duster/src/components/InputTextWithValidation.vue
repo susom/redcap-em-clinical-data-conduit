@@ -28,7 +28,7 @@
         :class="[classDef, { 'p-invalid': errorMessage }]"
         :style="style"
     />
-    <small class="p-error" id="text-error">{{ errorMessage || '&nbsp;' }}</small>
+    <small v-if="errorMessage" class="p-error" id="text-error">{{ errorMessage || '&nbsp;' }}</small>
   </Field>
 </template>
 

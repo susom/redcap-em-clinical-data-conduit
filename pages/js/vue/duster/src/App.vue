@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="grid">
-      <div class="col-offset-1 col-9">
+      <div class="col-offset-1 col-10">
         <nav>
           <div class="grid">
             <div class="col">
@@ -52,28 +52,28 @@
         </div>
         <div class="grid">
             <div class="col">
-            <CollectionWindowsPanel
-            :lab-options="labOptions"
-            :vital-options="vitalOptions"
-            :score-options="scoreOptions"
-            :outcome-options="outcomeOptions"
-            :clinical-date-options="clinicalDateOptions"
-            :rp-dates="rpDates"
-            v-model:collection-windows="collectionWindows"
-        />
-              </div>
+                <CollectionWindowsPanel
+                :lab-options="labOptions"
+                :vital-options="vitalOptions"
+                :score-options="scoreOptions"
+                :outcome-options="outcomeOptions"
+                :clinical-date-options="clinicalDateOptions"
+                :rp-dates="rpDates"
+                v-model:collection-windows="collectionWindows"
+                />
             </div>
-          <div class="grid">
-
-            <Toast />
-            <Toolbar class="col">
-            <template #start>
-
-            <Button type="submit" label="Review & Create Project" class="ml-2"/>
-                  <!--@click="showSummary=true"/-->
-            </template>
-          </Toolbar>
-          </div>
+        </div>
+        <div class="grid">
+            <div class="col">
+                <Toast />
+                <Toolbar class="col">
+                    <template #start>
+                        <Button type="submit" label="Review & Create Project" class="ml-2"/>
+                        <!--@click="showSummary=true"/-->
+                    </template>
+                </Toolbar>
+            </div>
+        </div>
         </Form>
         </div>
 
@@ -168,7 +168,8 @@ const irbCheckVisible = ref<boolean>(false)
 
 onMounted(() => {
   // check irb
-  checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number)
+    checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number)
+  //irbValid.value = true;
 })
 
 watchEffect(() => {
@@ -214,14 +215,17 @@ const irbCheckCancel = () => {
 }
 
 const getDusterMetadata = (metadataUrl:string) => {
-  /* for testing*
+  // for testing
+  /*
   demographicsOptions.value = resp.data.demographics;
   labOptions.value = resp.data.labs;
   vitalOptions.value = resp.data.vitals;
   outcomeOptions.value = resp.data.outcomes;
   scoreOptions.value = resp.data.scores;
-  clinicalDateOptions.value = resp.data.clinical_dates*/
-  axios.get(metadataUrl)
+    clinicalDateOptions.value = resp.data.clinical_dates
+    */
+  
+    axios.get(metadataUrl)
       .then(response => {
       demographicsOptions.value = response.data.demographics;
       labOptions.value = response.data.labs;
@@ -234,6 +238,7 @@ const getDusterMetadata = (metadataUrl:string) => {
     irbCheckMessage.value = "Unable to load Duster metadata"
     console.log(error)
   });
+  
 }
 
 const updateRpDate = (rpDate:BasicConfig) => {

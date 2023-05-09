@@ -36,7 +36,7 @@
         @change="//@ts-ignore
           field.onChange.forEach((fn) => fn($event.value))"
     />
-    <small class="p-error">{{ errorMessage || '&nbsp;' }}</small>
+    <small v-if="errorMessage" class="p-error">{{ errorMessage || '&nbsp;' }}</small>
 
   </Field>
 </template>
