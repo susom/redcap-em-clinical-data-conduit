@@ -135,13 +135,15 @@
       </template>
     </Toolbar>
   </Panel>
-  <Dialog v-model:visible="showCreateProjectDialog" modal :style="{ width: '50vw' }">
-    <Panel header="Create Project">
+  <Dialog v-model:visible="showCreateProjectDialog"
+          modal :style="{ width: '50vw' }"
+          header="Create Project">
       <div :class="{'p-error': createProjectError}">
       {{createProjectMessage}}
       </div>
-    </Panel>
-    <Button label="Close" icon="pi pi-times"  @click="showCreateProjectDialog=false"/>
+    <template #footer>
+      <Button label="Close" icon="pi pi-times"  @click="showCreateProjectDialog=false"/>
+    </template>
   </Dialog>
 </template>
 
@@ -161,6 +163,7 @@ import ScoreSummaryTablePerScore from "@/components/ScoreSummaryTablePerScore.vu
 import axios from "axios";
 
 const props = defineProps({
+  dev: Boolean,
   showSummary: {
     type: Boolean,
     required: true
@@ -235,11 +238,11 @@ const cwConfigs = computed<CollectionWindow[]>(()=>{
   if (props.collectionWindows) {
     props.collectionWindows.forEach((cw, index) => {
       let config: any = {
-        type: "nonrepeating",
+        type: cw.type,
         label: cw.label,
-        form_name: getFormName(cw.label),
+        form_name: getCwLabel(index, cw.label),
         timing: getTiming(cw.timing, index),
-        event: (cw.event) ? getEvent(cw.event, index) : undefined
+        event: (cw.event) ? getEvent(cw.event, index) : []
       }
       config.data = getData(cw.data, index, cw.aggregate_defaults, config.event, cw.closest_time)
       configs.push(config)
@@ -248,50 +251,16 @@ const cwConfigs = computed<CollectionWindow[]>(()=>{
   return configs
 })
 
-
-const formNamesArr = ref<string[]>(['researcher_provided_information', 'demographics'])
-
-const getFormName=(label:string)=> {
+const getCwLabel=(index: number, label:string)=> {
     // remove whitespace at start and end and convert to lowercase characters only
-    let formName = label.trim().toLowerCase()
-            .replace(/ /g, '_') // replace spaces with underscore
-            .replace(/[^a-z_0-9]/g, '') // remove illegal characters
+    let formName =  "cw" + index + "_" + label.trim().toLowerCase()
+        .replace(/ +/g, '_') // replace spaces with underscore
+        .replace(/[^a-z_0-9]/g, '') // remove illegal characters
         .replace(/[_+]/g, '_') // replace multiple _ with a single one
-        .replace(/^_/g, '') // remove starting _
         .replace(/_$/g, '') // remove trailing _
-
-
-    // if there is a leading number then append a prefix
-    if (!isNaN(parseInt(formName.charAt(0)))) {
-        formName = "rc_" + formName;
-      }
-    // remove beginning numerals
-    /*while(/^\d$/g.test(formName.substring(0, 1))) {
-      formName = formName.substring(1);
-    }
-    // remove beginning underscores again
-    while(formName.substring(0, 1) == '_') {
-      formName = formName.substring(1);
-    }
-
-    // ensure formName doesn't begin with a number and formName cannot be blank
-    if(/^\d$/.test(formName.substring(0, 1)) || formName == '') {
-      let md5 = require('md5');
-      formName = md5(formName).replaceAll(/[0-9]/g, '').substring(0, 4) + formName;
-    }*/
-
     // if longer than 50 characters, substring formName to 50 characters
     formName = formName.substring(0, 50);
-
-    // ensure formName doesn't already exist
-  if (formNamesArr.value.findIndex(fn => fn == formName) > -1) {
-      // substring formName to less than 50 characters in length
-      formName = formName.substring(0, 44);
-      // append random values to formName to prevent duplication
-      formName = formName + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString().substring(0, 6);
-      // formName = formName + CryptoJS.SHA1(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)).substring(0, 6);
-    }
-  formNamesArr.value.push(formName)
+    // removed check for duplicates since cw prefix should make them unique
   return formName;
 }
 
@@ -348,35 +317,40 @@ const getEvent = (events:TimingConfig[], index:number) => {
         }
     })
   }
-  if (eventArr.length > 0)
-    return eventArr
-  return null
+  return eventArr
 }
 
 const getTimingConfig = (timing:TimingConfig, index: number, eventType:string) =>{
   let tconfig: any = {
     type: timing.type,
-    label: timing.label
+    label: timing.label,
+    redcap_field_name: 'cw' + index + "_" + eventType + "_datetime",
+    phi: "t",
+    redcap_field_type: "text"
   }
 
   if (timing.type == 'interval' && timing.interval) {
     tconfig.interval={}
     tconfig.interval.type = timing.interval.type
     tconfig.interval.length = timing.interval.length
+    if (tconfig.interval.type == 'hour') {
+      tconfig.value_type = "datetime"
+    } else {
+      tconfig.value_type = "date"
+    }
   } else {
-    tconfig.type = timing.type
-    tconfig.redcap_field_name = 'cw' + index + "_" + eventType + "_dttm"
-    tconfig.redcap_field_type = timing.redcap_field_type
     tconfig.value_type= timing.value_type
-    tconfig.rp_date = timing.rp_date
-    tconfig.phi= "t"
     if (timing.duster_field_name) {
       tconfig.duster_field_name = timing.duster_field_name
-    } else if (timing.redcap_field_name) {
+      tconfig.rp_date = timing.rp_date
+    } else {
       // get the rp_date label
       let rpIndex = props.rpDates.findIndex(rpDate => rpDate.redcap_field_name == timing.rp_date)
-      tconfig.label = props.rpDates[rpIndex].label
-      tconfig.duster_field_name = null
+      if (rpIndex > -1) {
+        tconfig.rp_date = timing.redcap_field_name
+        tconfig.label = props.rpDates[rpIndex].label
+        tconfig.duster_field_name = null
+      }
     }
   }
   return tconfig
@@ -601,56 +575,57 @@ const createProject = ()=> {
   createProjectMessage.value=JSON.stringify(getDusterConfig(), null, 4)
   //createProjectMessage.value = "Creating Redcap Project"
   showCreateProjectDialog.value = true
-  const data = {
-        surveys_enabled: props.projectInfo.surveys_enabled,
-        repeatforms: props.projectInfo.repeatforms,
-        scheduling: props.projectInfo.scheduling,
-        randomization: props.projectInfo.randomization,
-        app_title: props.projectInfo.app_title,
-        purpose: props.projectInfo.purpose,
-        project_pi_firstname: props.projectInfo.project_pi_firstname,
-        project_pi_mi: props.projectInfo.project_pi_mi,
-        project_pi_lastname: props.projectInfo.project_pi_lastname,
-        project_pi_email: props.projectInfo.project_pi_email,
-        project_pi_alias: props.projectInfo.project_pi_alias,
-        project_irb_number: props.projectInfo.project_irb_number,
-        purpose_other: props.projectInfo.purpose_other,
-        project_note: props.projectInfo.project_note,
-        projecttype: props.projectInfo.projecttype,
-        repeatforms_chk: props.projectInfo.repeatforms_chk,
-        project_template_radio: props.projectInfo.project_template_radio,
-        config: getDusterConfig()
-  }
-  let formData = new FormData()
-  formData.append('redcap_csrf_token', props.projectInfo.redcap_csrf_token);
-  formData.append('data', JSON.stringify(data));
+  if (!props.dev) {
+    const data = {
+      surveys_enabled: props.projectInfo.surveys_enabled,
+      repeatforms: props.projectInfo.repeatforms,
+      scheduling: props.projectInfo.scheduling,
+      randomization: props.projectInfo.randomization,
+      app_title: props.projectInfo.app_title,
+      purpose: props.projectInfo.purpose,
+      project_pi_firstname: props.projectInfo.project_pi_firstname,
+      project_pi_mi: props.projectInfo.project_pi_mi,
+      project_pi_lastname: props.projectInfo.project_pi_lastname,
+      project_pi_email: props.projectInfo.project_pi_email,
+      project_pi_alias: props.projectInfo.project_pi_alias,
+      project_irb_number: props.projectInfo.project_irb_number,
+      purpose_other: props.projectInfo.purpose_other,
+      project_note: props.projectInfo.project_note,
+      projecttype: props.projectInfo.projecttype,
+      repeatforms_chk: props.projectInfo.repeatforms_chk,
+      project_template_radio: props.projectInfo.project_template_radio,
+      config: getDusterConfig()
+    }
+    let formData = new FormData()
+    formData.append('redcap_csrf_token', props.projectInfo.redcap_csrf_token);
+    formData.append('data', JSON.stringify(data));
 
-  // use services/importMetadata.php if project has already been created
-  // let axios = require('axios');
-  // console.log("pre axios");
-  axios.post(props.projectInfo.create_project_url, formData)
-      .then(function(response) {
-        // console.log("ajax response");
-        // console.log(response);
-        console.log("Response data: " + response.data);
-        if (response.data.indexOf('Uncaught Error') > -1 ||
-            response.data.indexOf('Error message') > -1) {
-          console.log("Found Error");
-          createProjectMessage.value = response.data;
+    // use services/importMetadata.php if project has already been created
+    // let axios = require('axios');
+    // console.log("pre axios");
+    axios.post(props.projectInfo.create_project_url, formData)
+        .then(function (response) {
+          // console.log("ajax response");
+          // console.log(response);
+          console.log("Response data: " + response.data);
+          if (response.data.toLowerCase().indexOf('error') > -1) {
+            console.log("Found Error");
+            createProjectError.value = true
+            createProjectMessage.value = response.data;
+            showCreateProjectDialog.value = true;
+          } else {
+            console.log(response.data);
+            showCreateProjectDialog.value = false;
+            window.location.href = response.data;
+          }
+        })
+        .catch(function (error) {
+          createProjectMessage.value = error.message;
           createProjectError.value = true
-          showCreateProjectDialog.value = true ;
-        } else {
-          showCreateProjectDialog.value = false ;
-          window.location.href = response.data;
-          console.log(response.data);
-        }
-      })
-      .catch(function(error) {
-        createProjectMessage.value=error.message;
-        createProjectError.value = true
-        showCreateProjectDialog.value = true ;
-        console.log("Catch: " + error);
-      });
+          showCreateProjectDialog.value = true;
+          console.log("Catch: " + error);
+        });
+  }
 }
 
 </script>

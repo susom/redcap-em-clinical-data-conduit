@@ -195,7 +195,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:collectionWindows'])
 
-const currentCollectionWindow = ref<CollectionWindow>(INIT_COLLECTION_WINDOW);
+const currentCollectionWindow = ref<CollectionWindow>(JSON.parse(JSON.stringify(INIT_COLLECTION_WINDOW)));
 const savedCollectionWindow = ref<CollectionWindow>()
 //const localCollectionWindows = ref<CollectionWindow[]>([currentCollectionWindow.value])
 const localCollectionWindowsEditing = ref<CollectionWindow[]>([])
@@ -387,7 +387,7 @@ const deleteCw = (id:string) => {
 }
 
 const getRowIndex = (id:string, haystack:any[]) => {
-  console.log(id)
+  //console.log(id)
   return haystack.findIndex(
       (cw) => cw.id === id)
 }

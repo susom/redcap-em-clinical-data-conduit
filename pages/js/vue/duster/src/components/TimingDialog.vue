@@ -14,7 +14,6 @@
           v-model="selectedPreset"
           optionLabel="label"/>
     </div>
-    <hr/>
     <Divider/>
     <div class="card">
       <TimingEvent
@@ -23,14 +22,13 @@
           :time-type-options="TIME_TYPE_OPTIONS"
           :event-options="eventOptions"
           :rp-dates="rpDates"
-          :end-timing-object="cw.timing.end"
+          :other-timing-event="cw.timing.end"
           :submitted="submitted"
           @clear-preset="clearPreset"
           @validate-timing="(isValid) => startTimingValid = isValid"
 
       />
     </div>
-    <hr/>
     <Divider/>
     <div class="card">
       <TimingEvent
@@ -39,13 +37,12 @@
           :time-type-options="TIME_TYPE_OPTIONS"
           :event-options="eventOptions"
           :rp-dates="rpDates"
-          :start-timing-object="cw.timing.start"
+          :other-timing-event="cw.timing.start"
           :submitted="submitted"
           @validate-timing="(isValid) => endTimingValid = isValid"
           @clear-preset="clearPreset"
       />
     </div>
-    <hr/>
     <Divider/>
     <div class="card">
       <div class="field grid">
@@ -90,7 +87,7 @@
             </div>
             <div class="field ">
               <Dropdown v-model="repeatIntervalType"
-                        :options="INTERVAL_OPTIONS"
+                        :options="filteredIntervalOptions"
                         optionLabel="text"
                         optionValue="value"
                         placeholder="Hours/Days"
@@ -178,6 +175,16 @@ const cw = computed({
 
 const repeatIntervalType = ref<INTERVAL_TYPE>(cw.value.timing.repeat_interval?.type)
 
+const filteredIntervalOptions = computed(() => {
+      if (cw.value.timing.start.type === 'datetime' || cw.value.timing.end.type === 'datetime') {
+        return INTERVAL_OPTIONS.filter(opt => opt.value === 'hour')
+      } else if (cw.value.timing.start.type  === 'date' || cw.value.timing.end.type === 'date') {
+        return INTERVAL_OPTIONS.filter(opt => opt.value === 'day')
+      }
+      return INTERVAL_OPTIONS
+    }
+)
+
 const repeatIntervalLength = ref<number>(cw.value.timing.repeat_interval?.length ?? 0)
 
 watchEffect(() => {
@@ -191,9 +198,18 @@ watchEffect(() => {
       + " " + repeatIntervalType.value + "(s) "
 })
 
-const hasRepeatIntervals = ref<boolean>(
-    ((cw.value.timing.repeat_interval?.length ?? 0) > 0)
-)
+const hasRepeatIntervals = computed({
+  get() {
+    return cw.value.type === 'repeating'
+  },
+  set(value: boolean) {
+    if (value) {
+      cw.value.type = 'repeating'
+    } else {
+      cw.value.type = 'nonrepeating'
+    }
+  }
+})
 
 const selectedPreset = ref<CollectionWindow>()
 // add a watch to selectedPresets

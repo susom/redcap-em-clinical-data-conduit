@@ -1,85 +1,85 @@
 <template>
 
-    <div class="grid">
-    <!-- style="max-width: 500px" -->
-        <div v-for="(col, index) in filtered" :key="index" class="col-6">
-            <!-- set visibility-->
-            <div v-for="field in col" :key="field.duster_field_name"
-                :style="(field.visible) ? '' : hide"
-                :class="['my-2 flex justify-content-between flex-wrap', { 'hidden': field.visible }]">
-                <div>
-                    <Checkbox v-model="selected"
-                            :name="category"
-                            :id="field.duster_field_name"
-                            :value="field"
-                    />
-                    <label :for="field.duster_field_name" class="ml-2">{{ field.label }}</label>
-                </div>
-                <div v-if="hasAggregates" class="mr-3">
-                    <span v-if="field.selected">
-                    {{ getAggregatesLabel(field.aggregate_type, field.aggregates) }}</span>            
-                
-                    <Button icon="pi pi-pencil" rounded class="ml-2" style="width:1.75em;height:1.75em"
-                            :disabled="!field.selected"
-                            @click="showAggregatesDialog(field)"/>            
-                </div>
-            </div>
+  <div class="grid">
+    <div v-for="(col, index) in filtered" :key="index" class="col mr-3" style="max-width: 500px">
+      <!-- set visibility-->
+      <div v-for="field in col" :key="field.duster_field_name"
+           :style="(field.visible) ? '' : hide"
+           class="my-2 flex justify-content-between flex-wrap">
+        <div>
+          <Checkbox v-model="selected"
+                    :name="category"
+                    :id="field.duster_field_name"
+                    :value="field"
+          />
+          <label :for="field.duster_field_name" class="ml-2">{{ field.label }}</label>
         </div>
+        <div v-if="hasAggregates" class="mr-3">
+          <span v-if="field.selected">
+            {{ getAggregatesLabel(field.aggregate_type, field.aggregates) }}
+          </span>
+          <Button icon="pi pi-pencil" rounded class="ml-2" style="width:1.75em;height:1.75em"
+                  :disabled="!field.selected"
+                  @click="showAggregatesDialog(field)"/>
+        </div>
+      </div>
     </div>
-    <Dialog :visible="aggregatesDialogVisible" header="Aggregates">
-        <div class="flex flex-wrap gap-3 my-3">
-            <div class="flex align-items-center">
-                <RadioButton v-model="currentField.aggregate_type"
-                            inputId="defaultAggregates"
-                            id="defaultAggregates"
-                            name="defaultCustom"
-                            value="default"
-                            autofocus
-                            @change="customAggregatesVisible=false"
-                />
-                <label for="defaultAggregates" class="ml-2">Default Aggregates</label>
-            </div>
-            <div class="flex align-items-center">
-                <RadioButton v-model="currentField.aggregate_type"
-                            inputId="customAggregates"
-                            id="customAggregates"
-                            name="defaultCustom"
-                            value="custom"
-                            @change="customAggregatesVisible=true"
-                />
-                <label for="customAggregates" class="ml-2">Custom Aggregates</label>
-            </div>
-        </div>
-        <div v-if="currentField.aggregate_type=='custom'" class="mb-3">
-            <div class="flex flex-wrap gap-3">
-                <div v-for="aggOption in AGGREGATE_OPTIONS" :key="aggOption.value"
-                    class="flex align-items-center">
-                    <div v-if="aggOption.value!='closest_time' || (aggOption.value=='closest_time' && hasClosestTime)"
-                        class="mb-3">
-                        <Checkbox v-model="currentField.aggregates"
-                                    name="aggregateOptions"
-                                    :id="aggOption.value"
-                                    :value="aggOption"
-                                    :class="{ 'p-invalid': aggOptionErrorMessage }"
-                                    @click="aggOptionErrorMessage=false"
-                        />
-                        <label :for="aggOption.value">{{ aggOption.text }}</label>
-                    </div>
-                </div>
-            </div>
-            <small
-                v-if="aggOptionErrorMessage"
-                id="aggOption-help"
-                class="flex p-error mb-3">
-                {{ aggOptionErrorMessage }}
-            </small>
-        </div>
-        <template #footer>
-            <Button label="Close" icon="pi pi-times" @click="cancelAggregates" text/>
-            <!--Button label="Save" icon="pi pi-check" @click="aggregatesDialogVisible = false" autofocus/-->
+  </div>
+  <Dialog :visible="aggregatesDialogVisible" header="Aggregates">
+    <div class="flex flex-wrap gap-3 my-3">
+      <div class="flex align-items-center">
+        <RadioButton v-model="currentField.aggregate_type"
+                     inputId="defaultAggregates"
+                     id="defaultAggregates"
+                     name="defaultCustom"
+                     value="default"
+                     autofocus
+                     @change="customAggregatesVisible=false"
+        />
+        <label for="defaultAggregates" class="ml-2">Default Aggregates</label>
+      </div>
+      <div class="flex align-items-center">
+        <RadioButton v-model="currentField.aggregate_type"
+                     inputId="customAggregates"
+                     id="customAggregates"
+                     name="defaultCustom"
+                     value="custom"
+                     @change="customAggregatesVisible=true"
+        />
 
-            <Button label="Save" icon="pi pi-check" @click="updateAggregates" autofocus/>
-        </template>
+        <label for="customAggregates" class="ml-2">Custom Aggregates</label>
+      </div>
+    </div>
+    <div v-if="currentField.aggregate_type=='custom'" class="mb-3">
+      <div class="flex flex-wrap gap-3">
+      <div v-for="aggOption in AGGREGATE_OPTIONS" :key="aggOption.value"
+           class="flex align-items-center">
+        <div v-if="aggOption.value!='closest_time' || (aggOption.value=='closest_time' && hasClosestTime)"
+          class="mb-3">
+          <Checkbox v-model="currentField.aggregates"
+                    name="aggregateOptions"
+                    :id="aggOption.value"
+                    :value="aggOption"
+                    :class="{ 'p-invalid': aggOptionErrorMessage }"
+                    @click="aggOptionErrorMessage=false"
+          />
+          <label :for="aggOption.value">{{ aggOption.text }}</label>
+        </div>
+        </div>
+      </div>
+      <small
+          v-if="aggOptionErrorMessage"
+          id="aggOption-help"
+          class="flex p-error mb-3">
+        {{ aggOptionErrorMessage }}
+      </small>
+    </div>
+    <template #footer>
+      <Button label="Close" icon="pi pi-times" @click="cancelAggregates" text/>
+      <!--Button label="Save" icon="pi pi-check" @click="aggregatesDialogVisible = false" autofocus/-->
+
+      <Button label="Save" icon="pi pi-check" @click="updateAggregates" autofocus/>
+    </template>
   </Dialog>
 </template>
 

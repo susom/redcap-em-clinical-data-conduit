@@ -142,19 +142,9 @@
                     {{ closestEventError }}
                   </small>
                 </div>
-                <div v-if="localClosestEvent.duster_field_name" class="field">
+                <!--div v-if="localClosestEvent.duster_field_name" class="field">
                   <label> based on </label>
                   <span>
-                  <!--DropdownWithValidation
-                  name="localClosestEvent.rp_date"
-                  v-model="localClosestEvent.rp_date"
-                  :options="rpDates"
-                  option-label="label"
-                  option-value="redcap_field_name"
-                  classDef="w-full md:w-10rem"
-                  rules="required"
-                  placeholder="Select an event"
-                  /-->
                   <Dropdown v-model="localClosestEvent.rp_date"
                         :options="rpDates"
                         optionLabel="label"
@@ -167,7 +157,7 @@
                       {{ closestEventRpDateError }}
                     </small>
                   </span>
-                </div>
+                </div-->
               </div>
             </div>
             <small

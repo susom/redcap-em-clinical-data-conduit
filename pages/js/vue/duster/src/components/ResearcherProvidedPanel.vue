@@ -2,8 +2,8 @@
 <template>
 
   <Panel header="Researcher Provided Information">
-    <div>      
-        The minimum required information for each record is an MRN and a study enrollment date.      
+    <div>
+        The minimum required information for each record is an MRN and a study enrollment date.
         This data must be loaded into REDcap after DUSTER creates the project.
     </div>
     <div class="col-12 mt-1">
@@ -25,7 +25,7 @@
                   optionValue="value"
                   class="w-full md:w-6rem"
               /-->
-            <!-- md:w-6rem -->
+
               <DropdownWithValidation
                   v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'"
                   v-model="localRpProvidedData[slotProps.index].value_type"
@@ -33,7 +33,7 @@
                   :options="dateTypes"
                   option-label="text"
                   option-value="dtValue"
-                  :class-def="'w-full'" 
+                  class-def="w-full"
                   placeholder="Select a type"
                   rules="required"
               />
@@ -96,15 +96,17 @@
               :exportable="false"
               header="Actions">
             <template
-                #body="slotProps">                 
-                <i class="pi pi-trash mr-2" 
+                #body="slotProps">
+                <i class="pi pi-trash mr-2"
                     v-if="(slotProps.index > 1)"
                     style="color:green;font-size:1.25em"
-                    @click="confirmDeleteRpDate(slotProps.data)" />
+                   :class="(slotProps.index < 2)? 'hidden' : 'mr-2'"
+                   @click="confirmDeleteRpDate(slotProps.data)" />
 
-                <i class="pi pi-plus-circle" 
+                <i class="pi pi-plus-circle"
                     style="color:green;font-size:1.25em"
-                    @click="addRpDate" />                
+                   :class="((slotProps.index == (localRpProvidedData.length -1)) && slotProps.index < 5  )? '': 'hidden'"
+                   @click="addRpDate" />
                 <!--
               <Button
                   icon="pi pi-trash"
@@ -120,7 +122,7 @@
                   rounded
                   size="small"
                   severity="success"
-                  :class="(slotProps.index == (localRpProvidedData.length -1) )? '': 'hidden'"
+                  :class="((slotProps.index == (localRpProvidedData.length -1)) && slotProps.index < 5  )? '': 'hidden'"
                   @click="addRpDate" >
               </Button>
               -->

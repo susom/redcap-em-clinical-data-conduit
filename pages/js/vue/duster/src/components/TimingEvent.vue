@@ -5,11 +5,8 @@
     <div class="col-12 md:col-10">
       <div class="formgroup">
 
-        <div v-for="type in timeTypeOptions" :key="type.value" class="formgroup-inline">
-          <div class="field-radiobutton"
-               v-show="type.value !=='interval' ||
-                  ((eventType === 'start' && endTimingObject?.type !=='interval')
-                  || (eventType === 'end' && startTimingObject?.type!=='interval'))">
+        <div v-for="type in filteredTimingTypes" :key="type.value" class="formgroup-inline">
+          <div class="field-radiobutton mt-1">
             <RadioButton
                 v-model="event.type"
                 name="startTimeType"
@@ -102,7 +99,7 @@
                 inputId="integeronly"
                 style="width:3rem"
                 :class="{ 'p-invalid': eventIntervalLengthMissing }"
-                @value="event.label = eventLabel; emit('clearPreset')"/>
+                @value="emit('clearPreset')"/>
               <small v-if="eventIntervalLengthMissing"
                      class="flex p-error mb-3">
                 {{ eventIntervalLengthMissing }}
@@ -122,13 +119,13 @@
                   @change="event.label = eventLabel; emit('clearPreset')"
               /-->
               <Dropdown v-model="intervalType"
-                        :options="INTERVAL_OPTIONS"
+                        :options="filteredIntervalOptions"
                         optionLabel="text"
                         optionValue="value"
                         style="width:10rem"
                         placeholder="Hours / Days"
                         :class="{ 'p-invalid': eventIntervalTypeMissing }"
-                        @change="event.label = eventLabel; emit('clearPreset')"/>
+                        @change="emit('clearPreset')"/>
               <small v-if="eventIntervalTypeMissing"
                      class="flex p-error mb-3">
                 {{ eventIntervalTypeMissing }}
@@ -136,11 +133,11 @@
 
             </div>
             <div class="field">
-              <label v-if="eventType === 'start' && endTimingObject">
-                before End ({{ endTimingObject.label }})
+              <label v-if="eventType === 'start' && otherTimingEvent">
+                before End ({{ otherTimingEvent.label }})
               </label>
-              <label v-if="eventType === 'end' && startTimingObject">
-                after Start ({{ startTimingObject.label }})
+              <label v-if="eventType === 'end' && otherTimingEvent">
+                after Start ({{ otherTimingEvent.label }})
               </label>
             </div>
           </div>
@@ -188,8 +185,10 @@ const props = defineProps({
     type: Object as PropType<TimingConfig>,
     required: true
   },
-  startTimingObject: Object as PropType<TimingConfig>,
-  endTimingObject: Object as PropType<TimingConfig>,
+  otherTimingEvent: {
+    type: Object as PropType<TimingConfig>,
+    required: true
+  },
   submitted: Boolean
 })
 
@@ -206,6 +205,37 @@ const event = computed({
   }
 });
 
+/* if otherTimingEvent has type interval, than this timing event can not have type interval
+if otherTimingEvent has type date, then this timing event should also have type date,
+or an interval of type calendar day
+if otherTimingEvent has type datetime, then this timing event should also have type datetime or an interval
+of type hour
+ */
+const filteredTimingTypes = computed( () => {
+  if (props.otherTimingEvent.type === 'interval') {
+    return props.timeTypeOptions.filter(opt => opt.value !== 'interval')
+  }
+  else if (props.eventType === 'end'
+      && props.otherTimingEvent.type
+      && props.otherTimingEvent.type.indexOf('date') > -1) {
+    return props.timeTypeOptions.filter(opt => (opt.value == props.otherTimingEvent.type
+        || opt.value == 'interval'))
+  }
+  return props.timeTypeOptions
+})
+
+const filteredIntervalOptions = computed(() => {
+      if (props.otherTimingEvent.type === 'datetime') {
+        return INTERVAL_OPTIONS.filter(opt => opt.value === 'hour')
+      } else if (props.otherTimingEvent.type === 'date') {
+        return INTERVAL_OPTIONS.filter(opt => opt.value === 'day')
+      }
+      return INTERVAL_OPTIONS
+    }
+)
+
+
+
 // if the event type is datetime, only return list of datetimes
 const filteredEventOptions = computed(() => {
   if (event.value.type === 'datetime')
@@ -215,40 +245,65 @@ const filteredEventOptions = computed(() => {
     }
 )
 
-const capitalizedEventType = computed<string>(() => {
-  return props.eventType.charAt(0).toUpperCase() + props.eventType.slice(1)
-})
-
-const eventTypeLabel = computed<string>(() => {
-  if (props.typeLabel) {
-    return props.typeLabel
-  } else {
-    return capitalizedEventType.value + " at: "
+const intervalType = computed({
+  get() {
+    return event.value.interval?.type
+  },
+  set(value:INTERVAL_TYPE) {
+      if (!event.value.interval) {
+        event.value.interval = {...INIT_TIMING_INTERVAL}
+      }
+      event.value.interval.type = value
   }
 })
 
-const intervalType = ref<INTERVAL_TYPE>(event.value.interval?.type)
-const intervalLength = ref<number>(event.value.interval?.length ?? 0)
+const intervalLength = computed({
+  get() {
+    return event.value.interval?.length ?? 0
+  },
+  set(value:number) {
+    if (!event.value.interval) {
+      event.value.interval = {...INIT_TIMING_INTERVAL}
+    }
+    event.value.interval.length = value
+  }
+})
 
-/* this is to handle presets*/
 watchEffect(()=> {
-  intervalType.value = event.value.interval?.type
-  intervalLength.value = event.value.interval?.length ?? 0
+  if (event.value.type == 'interval') {
+    if (!event.value.interval) {
+      event.value.interval = {...INIT_TIMING_INTERVAL}
+    }
+    if (props.otherTimingEvent.type === 'datetime') {
+      intervalType.value = 'hour'
+      event.value.value_type = 'datetime'
+    } else if (props.otherTimingEvent.type === 'date') {
+      intervalType.value = 'day'
+      event.value.value_type = 'date'
+    }
+    // note to self: event.value.interval.label was incorrect value when two statements were combine
+    event.value.interval.label = intervalLength.value.toString() + " " + intervalType.value
+    event.value.interval.label += (props.eventType == 'start') ? "(s) before End"
+      : "(s) after Start"
+  event.value.label = event.value.interval.label
+  }
 })
 
-watch([intervalLength, intervalType],
+/*watch([intervalLength, intervalType],
     ([newIntervalLength, newIntervalType]) => {
-  if (!event.value.interval) {
-    event.value.interval ={...INIT_TIMING_INTERVAL}
+  if (event.value.type == 'interval') {
+    if (!event.value.interval) {
+      event.value.interval = {...INIT_TIMING_INTERVAL}
+    }
+    //event.value.interval.type = newIntervalType
+    //event.value.interval.length = newIntervalLength
+    event.value.interval.label = newIntervalLength.toString() + " " + newIntervalType
+    event.value.interval.label += (props.eventType == 'start') ? "(s) before End"
+          : "(s) after Start"
+    event.value.label = event.value.interval.label
   }
-  event.value.interval.type = newIntervalType
-  event.value.interval.length = newIntervalLength
-  if (intervalType.value && newIntervalLength > 0)
-  event.value.interval.label = newIntervalLength + " "
-      + newIntervalType
-      + (props.eventType == 'start') ?  "(s) before End"
-      : "(s) after Start"
-})
+    })*/
+
 
 const selectedEvent = computed<TimingConfig>({
   get() {
@@ -262,15 +317,16 @@ const selectedEvent = computed<TimingConfig>({
         let rpDate = event.value.redcap_field_name
         let index = props.eventOptions.findIndex((dttm) => !dttm.duster_field_name
             && dttm.redcap_field_name == rpDate)
-        return props.eventOptions[index]
+        if (index > -1)
+          return props.eventOptions[index]
       }
     }
-    return INIT_TIMING_CONFIG
+    return JSON.parse(JSON.stringify(INIT_TIMING_CONFIG))
   },
   set(value) {
     if (event.value) {
       //event.value.preposition = value.preposition
-      event.value.value_type = value.value_type
+      event.value.value_type = event.value.type
       event.value.redcap_field_type = value.redcap_field_type
       if (value.duster_field_name) {
         event.value.duster_field_name = value.duster_field_name
@@ -288,9 +344,25 @@ const selectedEvent = computed<TimingConfig>({
   }
 })
 
+const capitalizedEventType = computed<string>(() => {
+  return props.eventType.charAt(0).toUpperCase() + props.eventType.slice(1)
+})
+
+const eventTypeLabel = computed<string>(() => {
+  if (props.typeLabel) {
+    return props.typeLabel
+  } else {
+    return capitalizedEventType.value + " at: "
+  }
+})
+
 const eventLabel = computed(() => {
   if (event.value.type == 'interval') {
-    return event.value.interval?.label ?? ""
+    return intervalLength.value.toString() + " "
+    + intervalType.value
+    + (props.eventType == 'start') ?  "(s) before End"
+        : "(s) after Start"
+    //return event.value.interval?.label ?? ""
   }
   const label = getDateText(props.eventOptions, event.value.duster_field_name,
           event.value.redcap_field_name) ?? ""

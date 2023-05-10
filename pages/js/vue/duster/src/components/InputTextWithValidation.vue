@@ -65,7 +65,6 @@ const localModel = computed({
   }
 })
 
-
 const emit = defineEmits(['update:modelValue'])
 
 defineRule('required', required);
@@ -77,7 +76,7 @@ defineRule('redcap_field_name', (value:string) => {
   if (!value || !value.length) {
     return true;
   }
-  // Check if email
+  // name starts with a letter and contains only lowercase letters, numbers and underscore
   if (!/^[a-z][a-z0-9_]+$/.test(value)) {
     return 'This value is not a valid redcap_field_name';
   }

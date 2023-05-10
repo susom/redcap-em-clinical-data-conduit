@@ -122,13 +122,13 @@
           "type": "interval",
           "duster_field_name": "",
           "redcap_field_name": "",
-          "redcap_field_type": "",
-          "value_type": "",
-          "label": "23:59:00 of Hospital Admission Datetime",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "24 Hours after Hospital Admission Datetime",
           "rp-date": "",
           "interval": {
-            "type": "day",
-            "length": 1
+            "type": "hour",
+            "length": 24
           },
           "phi": "t"
         },
@@ -171,13 +171,13 @@
           "type": "interval",
           "duster_field_name": "",
           "redcap_field_name": "",
-          "redcap_field_type": "",
-          "value_type": "",
-          "label": "23:59:00 of First ICU Admission Datetime",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "24 Hours after First ICU Admission Datetime",
           "rp-date": "",
           "interval": {
-            "type": "day",
-            "length": 1
+            "type": "hour",
+            "length": 24
           }
         },
         "repeat_interval" : {

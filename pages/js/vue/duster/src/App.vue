@@ -85,6 +85,7 @@
               :demographics="demographicsSelects"
               :collection-windows="collectionWindows"
               :project-info="projectConfig"
+              :dev="dev"
               />
         </div>
       </div>
@@ -122,6 +123,7 @@ import Toast from 'primevue/toast'
 const projectConfig = JSON.parse(localStorage.getItem('postObj') || '{}');
 console.log("postObj" + localStorage.getItem('postObj'))
 localStorage.removeItem('postObj');
+const dev = ref<boolean>(false)
 
 const showSummary = ref<boolean>(false)
 
@@ -168,8 +170,7 @@ const irbCheckVisible = ref<boolean>(false)
 
 onMounted(() => {
   // check irb
-    checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number)
-  //irbValid.value = true;
+  checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number)
 })
 
 watchEffect(() => {
@@ -177,33 +178,33 @@ watchEffect(() => {
     getDusterMetadata(projectConfig.metadata_url)
   }
 })
-/* for testing*
-const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber: string) => {
-  irbValid.value = true
-}*/
 
 const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber: string) => {
-  irbCheckVisible.value = true
-  let formData = new FormData();
-  formData.append('redcap_csrf_token', redcapCsrfToken);
-  formData.append("project_irb_number", projectIrbNumber);
-  axios.post(checkIrbUrl, formData)
-      .then(function(response) {
-        // response.data === 1 is valid
-        if (response.data === 1) {
-          irbValid.value = true
-          irbCheckMessage.value = "IRB " +  projectIrbNumber + " check success.  Fetching Duster metadata."
-        } else {
+  if (dev.value) {
+    irbValid.value = true
+  } else {
+    irbCheckVisible.value = true
+    let formData = new FormData();
+    formData.append('redcap_csrf_token', redcapCsrfToken);
+    formData.append("project_irb_number", projectIrbNumber);
+    axios.post(checkIrbUrl, formData)
+        .then(function (response) {
+          // response.data === 1 is valid
+          if (response.data === 1) {
+            irbValid.value = true
+            irbCheckMessage.value = "IRB " + projectIrbNumber + " check success.  Fetching Duster metadata."
+          } else {
+            irbValid.value = false
+            irbCheckMessage.value = "IRB " + projectIrbNumber + " is invalid"
+          }
+
+        })
+        .catch(function (error) {
           irbValid.value = false
-          irbCheckMessage.value = "IRB " +  projectIrbNumber + " is invalid"
-        }
-
-      })
-      .catch(function(error) {
-        irbValid.value = false
-        irbCheckMessage.value = "IRB Check Error"
-        console.log(error)
-      });
+          irbCheckMessage.value = "IRB Check Error"
+          console.log(error)
+        });
+  }
 }
 
 const irbCheckCancel = () => {
@@ -215,30 +216,29 @@ const irbCheckCancel = () => {
 }
 
 const getDusterMetadata = (metadataUrl:string) => {
-  // for testing
-  /*
+  if (dev.value) {
   demographicsOptions.value = resp.data.demographics;
   labOptions.value = resp.data.labs;
   vitalOptions.value = resp.data.vitals;
   outcomeOptions.value = resp.data.outcomes;
   scoreOptions.value = resp.data.scores;
-    clinicalDateOptions.value = resp.data.clinical_dates
-    */
-  
+  clinicalDateOptions.value = resp.data.clinical_dates
+  } else {
+
     axios.get(metadataUrl)
-      .then(response => {
-      demographicsOptions.value = response.data.demographics;
-      labOptions.value = response.data.labs;
-      vitalOptions.value = response.data.vitals;
-      outcomeOptions.value = response.data.outcomes;
-      scoreOptions.value = response.data.scores;
-      clinicalDateOptions.value = response.data.clinical_dates
-        irbCheckVisible.value = false
-  }).catch(function(error) {
-    irbCheckMessage.value = "Unable to load Duster metadata"
-    console.log(error)
-  });
-  
+        .then(response => {
+          demographicsOptions.value = response.data.demographics;
+          labOptions.value = response.data.labs;
+          vitalOptions.value = response.data.vitals;
+          outcomeOptions.value = response.data.outcomes;
+          scoreOptions.value = response.data.scores;
+          clinicalDateOptions.value = response.data.clinical_dates
+          irbCheckVisible.value = false
+        }).catch(function (error) {
+      irbCheckMessage.value = "Unable to load Duster metadata"
+      console.log(error)
+    });
+  }
 }
 
 const updateRpDate = (rpDate:BasicConfig) => {
@@ -304,7 +304,7 @@ const checkValidation = (values:any) => {
             'Some collection windows have no clinical variables configured', life: 3000
       });
     }
-    if (!invalidTiming && !missingVars) {
+    if (!invalidTiming) {
       showSummary.value = true
     }
   }

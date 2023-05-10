@@ -42,7 +42,7 @@ export const INTERVAL_OPTIONS:Array<TextValuePair> = [
 ]
 
 export const INIT_TIMING_INTERVAL: TimingInterval = {
-    label: "",
+    label: undefined,
     type: undefined,
     length: undefined
 }

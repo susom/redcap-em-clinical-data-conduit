@@ -2,12 +2,11 @@
   <div class="container">
     <Panel header="Demographics">
       <div class="mb-2">
-        Select demographics below that you'd like to collect on your cohort.          
+        Select demographics below that you'd like to collect on your cohort.
           <br>
           <em>Please bear in mind HIPAA Minimum Necessary when selecting identifying information.</em>
       </div>
-      <Card>
-        <template #content>        
+
       <div class="formgrid grid">
 
           <div v-for="field in sorted" :key="field.duster_field_name"
@@ -21,17 +20,14 @@
 
           </div>
       </div>
-        </template>
-          <template #footer>
+<div>
           <Checkbox v-model="selectAll"
                     id="selectAll"
                     :binary="true"
           />
           <label for="selectAll" class="ml-2">Select All</label>
-        </template>
 
-      </Card>
-
+</div>
     </Panel>
   </div>
 </template>
