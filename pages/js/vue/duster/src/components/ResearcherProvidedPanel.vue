@@ -97,17 +97,6 @@
               header="Actions">
             <template
                 #body="slotProps">
-                <i class="pi pi-trash mr-2"
-                    v-if="(slotProps.index > 1)"
-                    style="color:green;font-size:1.25em"
-                   :class="(slotProps.index < 2)? 'hidden' : 'mr-2'"
-                   @click="confirmDeleteRpDate(slotProps.data)" />
-
-                <i class="pi pi-plus-circle"
-                    style="color:green;font-size:1.25em"
-                   :class="((slotProps.index == (localRpProvidedData.length -1)) && slotProps.index < 5  )? '': 'hidden'"
-                   @click="addRpDate" />
-                <!--
               <Button
                   icon="pi pi-trash"
                   outlined
@@ -125,7 +114,7 @@
                   :class="((slotProps.index == (localRpProvidedData.length -1)) && slotProps.index < 5  )? '': 'hidden'"
                   @click="addRpDate" >
               </Button>
-              -->
+              
             </template>
           </Column>
         </DataTable>

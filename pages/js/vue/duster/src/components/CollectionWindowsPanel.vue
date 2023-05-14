@@ -8,12 +8,24 @@
           :value="localCollectionWindows"
           dataKey="id"
   >
-    <Column  key="timing_config" header="Timing" style="width: 3rem">
-      <template #body="{ data }">
-        <Button icon="pi pi-pencil" class="ml-2"
-        @click="showTiming(data)"/>
+    <Column  key="timing_config" header="Timing" style="width: 5%">
+      <template #body="{ data }">        
+        <Button icon="pi pi-pencil" class="ml-2 p-1" size="small"
+            @click="showTiming(data)" v-tooltip.top="'Configure Timing'"/>
       </template>
     </Column>
+    <Column  key="timing_display" header="Period" style="width: 30%" class="text-sm">
+      <template #body="{ data }">
+        <div v-if="data['timing']['start']['label']">
+            {{ data['timing']['start']['label'] }} to {{ data['timing']['end']['label'] }}
+            <div v-if="data['timing']['repeat_interval']['label']">Repeat: {{ data['timing']['repeat_interval']['label'] }}</div>
+        </div>
+        <div v-else>
+            &lt;Not configured yet&gt;
+        </div>        
+      </template>
+    </Column>    
+    <!--
         <Column key="timing.start.label" field="" header="Start" style="width: 8rem">
           <template #body="{ data }" >
             <span v-if="data['timing']['start']['label']">
@@ -37,35 +49,34 @@
         <Column  key="repeat_config" header="Repeat Interval" style="width: 8rem">
           <template #body="{ data }">
             {{ data['timing']['repeat_interval']['label'] }}&nbsp;
-            <!--Button icon="pi pi-pencil" class="ml-2"
-                    @click="showRepeat(data)"/-->
           </template>
         </Column>
-    <Column  key="label" field="label" header="Label" style="width: 20rem">
+        -->
+    <Column  key="label" field="label" header="Label" style="width: 15%">
       <template #body="slotProps">
         <div class="field">
         <InputTextRequired
             :name="`localCollectionWindows[${slotProps.index}].label`"
             v-model="slotProps.data[slotProps.field]"
-            classDef="w-full md:w-8rem"
+            classDef="w-full mr-2 mt-1 p-inputtext-sm"
             :rules="{required: true, not_one_of:otherFormLabels(slotProps.index)}"
         />
         </div>
       </template>
     </Column>
 
-    <Column key="data" field="data" header="Clinical Data" style="width: 30rem">
+    <Column key="data" field="data" header="Clinical Data" style="width: 40%">
       <template #body="{ data }">
-        <Button @click="showClinicalData('labs', data)" size="small" class=" p-1" rounded>
+        <Button @click="showClinicalData('labs', data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
             Labs<span class="p-badge p-component p-badge-no-gutter">{{ data.data.labs.length }}</span>
         </Button>
-        <Button @click="showClinicalData('vitals', data)" size="small" class="ml-1 p-1" rounded>
+        <Button @click="showClinicalData('vitals', data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
             Vitals<span class="p-badge p-component p-badge-no-gutter">{{ data.data.vitals.length }}</span>
         </Button>
-        <Button @click="showClinicalData('outcomes', data)" size="small" class="ml-1 p-1" rounded>
+        <Button @click="showClinicalData('outcomes', data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
             Outcomes<span class="p-badge p-component p-badge-no-gutter">{{ data.data.outcomes.length }}</span>
         </Button>
-        <Button @click="showClinicalData('scores', data)" size="small" class="ml-1 p-1" rounded>
+        <Button @click="showClinicalData('scores', data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
             Scores<span class="p-badge p-component p-badge-no-gutter">{{ data.data.scores.length }}</span>
         </Button>
         <!--
@@ -86,10 +97,11 @@
       -->
       </template>
     </Column>
-        <Column  key="id" field="id" header="Delete" style="width: 8rem">
+        <Column  key="id" field="id" header="Actions" style="width: 10%">
           <template #body="{ data, field }">
-            <Button icon="pi pi-trash" outlined rounded severity="danger" class="ml-2"
-            @click="deleteCw(data[field])"/>
+            <Button icon="pi pi-copy" outlined rounded severity="success" class="ml-2 p-1 small-icon" size="small" v-tooltip.top="'Duplicate'"/>
+            <Button icon="pi pi-trash" outlined rounded severity="danger" class="ml-2 p-1 small-icon" size="small"
+            @click="deleteCw(data[field])" v-tooltip.top="'Delete'"/>
           </template>
         </Column>
         <template #footer>
@@ -433,8 +445,7 @@ const toSnakeCase = (label:string) => {
 
 
 <style scoped>
-:deep(.p-datatable-header) {
-  background: blue
-}
-
+    :deep(.p-datatable-header) {
+        background: blue
+    }
 </style>
