@@ -1,18 +1,6 @@
 import type Subscore from "@/types/Subscore"
 import type TextValuePair from "@/types/TextValuePair";
 
-export interface BasicConfig{
-    label: string |  undefined
-    value_type?: string
-    redcap_field_name?: string
-    redcap_field_type?: string
-    phi?: string
-    id?: string
-    duster_field_name?: string
-    redcap_field_note?: string
-    redcap_options?: string
-}
-
 interface FieldMetadata {
     label: string
     duster_field_name: string
@@ -31,7 +19,7 @@ interface FieldMetadata {
 }
 
 export type AGGREGATE_TYPE = "default" | "custom"
-export type VALUE_TYPE = "numeric" | "text"
+export type VALUE_TYPE = "numeric" | "text" | "date" | "datetime" | "boolean"
 export type REDCAP_FIELD_TYPE = "text"
 export type PHI = "t" | "f" | ""
 export type CATEGORY = "demographics" | "labs" | "vitals" | "scores" | "outcomes" | "clinical_dates"

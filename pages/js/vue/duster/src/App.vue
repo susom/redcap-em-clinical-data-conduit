@@ -23,7 +23,6 @@
         </nav>
 
         <div v-show="!showSummary">
-          <Form @submit="checkValidation">
 
           <p>Define your project.</p>
             <div class="grid">
@@ -68,13 +67,13 @@
                 <Toast />
                 <Toolbar class="col">
                     <template #start>
-                        <Button type="submit" label="Review & Create Project" class="ml-2"/>
+                        <Button type="submit" label="Review & Create Project" class="ml-2"
+                        @click="checkValidation"/>
                         <!--@click="showSummary=true"/-->
                     </template>
                 </Toolbar>
             </div>
         </div>
-        </Form>
         </div>
 
         <div :style="(showSummary) ?  '': 'display: none !important'">
@@ -93,9 +92,15 @@
 </div>
   <Dialog v-model:visible="irbCheckVisible" modal header="Checking IRB" :style="{ width: '50vw' }">
     <p>
-      {{ irbCheckMessage }}
+      <span v-html="irbCheckMessage"></span>
     </p>
+    <div v-if="!irbValid && irbCheckStatus=='checked'" class="field">
+      <label>IRB Number: </label>
+      <InputText v-model="projectIrb"/>
+    </div>
     <template #footer>
+      <Button v-if="!irbValid && irbCheckStatus=='checked'"
+              label="Try again" icon="pi pi-refresh" class="p-button-success" @click="irbRetry" text />
       <Button label="Cancel" icon="pi pi-times" @click="irbCheckCancel" text />
     </template>
   </Dialog>
@@ -113,12 +118,12 @@ import ResearcherProvidedPanel from "@/components/ResearcherProvidedPanel.vue";
 import DemographicsPanel from './components/DemographicsPanel.vue'
 import CollectionWindowsPanel from './components/CollectionWindowsPanel.vue'
 import ReviewPanel from './components/ReviewPanel.vue'
-import {Form}  from 'vee-validate';
 
 // for testing
 import resp from './dusterTestMetadata.json';
 import {useToast} from "primevue/usetoast";
 import Toast from 'primevue/toast'
+import {useVuelidate} from "@vuelidate/core";
 
 const projectConfig = JSON.parse(localStorage.getItem('postObj') || '{}');
 console.log("postObj" + localStorage.getItem('postObj'))
@@ -135,7 +140,8 @@ const rpProvidedData = ref<BasicConfig[]>([
       value_type:"Identifier", // this needs to be replace by "text" in review step
       redcap_field_note:"8-digit number (including leading zeros, e.g., '01234567')",
       phi:"t",
-      id: "mrn"
+      id: "mrn",
+      duster_field_name: undefined
     },
     {
       redcap_field_name: "enroll_date",
@@ -143,7 +149,8 @@ const rpProvidedData = ref<BasicConfig[]>([
       value_type: "date",
       label: "Study Enrollment Date",
       phi: "t",
-      id: "enroll_date"
+      id: "enroll_date",
+      duster_field_name: undefined
     }])
 
 // separating out identifiers and dates for review step
@@ -164,8 +171,10 @@ const clinicalDateOptions = ref<FieldMetadata[]>([])
 const demographicsSelects = ref<FieldMetadata[]>([])
 const collectionWindows = ref<CollectionWindow[]>([])
 
+const projectIrb = ref<string>(projectConfig.project_irb_number)
 const irbValid = ref<boolean>(false)
-const irbCheckMessage = ref<string>("Checking IRB ...")
+const irbCheckStatus = ref<string>("checking")
+const irbCheckMessage = ref<string>("Checking IRB #" + projectIrb.value + " ...")
 const irbCheckVisible = ref<boolean>(false)
 
 onMounted(() => {
@@ -190,12 +199,14 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
     axios.post(checkIrbUrl, formData)
         .then(function (response) {
           // response.data === 1 is valid
+          irbCheckStatus.value = 'checked'
           if (response.data === 1) {
             irbValid.value = true
             irbCheckMessage.value = "IRB " + projectIrbNumber + " check success.  Fetching Duster metadata."
           } else {
             irbValid.value = false
-            irbCheckMessage.value = "IRB " + projectIrbNumber + " is invalid"
+            irbCheckMessage.value = "IRB " + projectIrbNumber
+                + " is invalid. Enter a different IRB to try again."
           }
 
         })
@@ -205,6 +216,12 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
           console.log(error)
         });
   }
+}
+
+const irbRetry = () => {
+  irbCheckStatus.value = "retry"
+  irbCheckMessage.value = "Checking IRB #" + projectIrb.value + " ..."
+  checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectIrb.value)
 }
 
 const irbCheckCancel = () => {
@@ -270,43 +287,23 @@ const reservedFieldNames = computed(() => {
   return names
 })
 
-const checkValidation = (values:any) => {
-  // if vee-validate gets to this method, that means all the vee-validated fields are error free
-  // so just checking self-validated fields here
+const v$ = useVuelidate()
+
+const checkValidation = () => {
+  v$.value.$touch()
+
   toast.removeAllGroups()
-  if (collectionWindows.value) {
-    const invalidTiming = collectionWindows.value.find(cw => !cw.timing_valid)
-
-    /*
-    not sure why this doesn't work
-    const hasClinicalVars = collectionWindows.value.find(cw => {
-      ((cw.data) ?
-          (cw.data.labs.length || cw.data.vitals.length || cw.data.vitals.length || cw.data.vitals.length) :
-          false)
-
-    })*/
-    let missingVars = true
-    collectionWindows.value.forEach(cw => {
-      missingVars = missingVars
-          && !(cw.data.labs.length || cw.data.vitals.length || cw.data.outcomes.length || cw.data.scores.length)
-    })
-    console.log(missingVars)
-
-    if (invalidTiming) {
-      toast.add({
-        severity: 'error', summary: 'Missing timing configuration', detail:
-            'Required timing configuration missing.', life: 3000
-      });
-    }
-    if (missingVars) {
-      toast.add({
-        severity: 'warn', summary: 'Missing clinical variables', detail:
-            'Some collection windows have no clinical variables configured', life: 3000
-      });
-    }
-    if (!invalidTiming) {
-      showSummary.value = true
-    }
+  if (!v$.value.$error) {
+    showSummary.value = true
+  } else {
+    console.log(v$)
+    v$.value.$errors.forEach(error =>
+        toast.add({
+          severity: 'error',
+          summary: 'Missing values', detail: error.$message,
+          life: 3000
+        })
+    )
   }
   return false
 }

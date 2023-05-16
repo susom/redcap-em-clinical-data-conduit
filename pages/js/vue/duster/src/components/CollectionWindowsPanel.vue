@@ -1,5 +1,20 @@
 <template>
-  <Panel header="Data Collection Configuration">
+  <Panel header='Data Collection Configuration '>
+    <!--template #icons>
+      <Button icon="pi pi-info-circle"
+              aria-label="Info"
+              class="p-button ml-2 my-3"
+              @click="showDataCollectionInfo = true" />
+    </template-->
+    <template #header>
+      <span class="flex my-0"><h4>Data Collection Configuration</h4>
+        <Button icon="pi pi-info-circle"
+                text rounded
+                aria-label="Info"
+                class="ml-2 mt-2"
+                @click="showDataCollectionInfo = true"/>
+        </span>
+    </template>
       <DataTable
           editMode="row"
           class="p-datatable-sm"
@@ -9,22 +24,31 @@
           dataKey="id"
   >
     <Column  key="timing_config" header="Timing" style="width: 5%">
-      <template #body="{ data }">        
+      <template #body="{ data }">
         <Button icon="pi pi-pencil" class="ml-2 p-1" size="small"
             @click="showTiming(data)" v-tooltip.top="'Configure Timing'"/>
       </template>
     </Column>
-    <Column  key="timing_display" header="Period" style="width: 30%" class="text-sm">
+    <Column  key="timing_display"
+             header="Period"
+             style="width: 30%"
+             class="text-sm">
       <template #body="{ data }">
-        <div v-if="data['timing']['start']['label']">
-            {{ data['timing']['start']['label'] }} to {{ data['timing']['end']['label'] }}
-            <div v-if="data['timing']['repeat_interval']['label']">Repeat: {{ data['timing']['repeat_interval']['label'] }}</div>
+        <div v-if="data['timing']['start']['label']"
+             :class="{'p-invalid': !data['timing']['timing_valid']}"
+        >
+          <strong>From: </strong>{{ data['timing']['start']['label'] }}<br>
+          <strong>To: </strong>{{ data['timing']['end']['label'] }}<br>
+            <span v-if="data['timing']['repeat_interval']
+            && data['timing']['repeat_interval']['label']">
+              <strong>Repeat:</strong> {{
+                data['timing']['repeat_interval']['label'] }}</span>
         </div>
         <div v-else>
             &lt;Not configured yet&gt;
-        </div>        
+        </div>
       </template>
-    </Column>    
+    </Column>
     <!--
         <Column key="timing.start.label" field="" header="Start" style="width: 8rem">
           <template #body="{ data }" >
@@ -55,12 +79,22 @@
     <Column  key="label" field="label" header="Label" style="width: 15%">
       <template #body="slotProps">
         <div class="field">
-        <InputTextRequired
+          <InputText
+            v-model="slotProps.data[slotProps.field]"
+            :class="['w-full md:w-8rem',
+            {'p-invalid': v$.localCollectionWindows.$each.$response.$errors[slotProps.index].label.length}]"
+            classDef="w-full md:w-8rem">
+          </InputText>
+          <small v-if="v$.localCollectionWindows.$each.$response.$errors[slotProps.index].label.length"
+                 class="flex p-error mb-3">
+            {{ v$.localCollectionWindows.$each.$response.$errors[slotProps.index].label[0].$message }}
+          </small>
+        <!--InputTextRequired
             :name="`localCollectionWindows[${slotProps.index}].label`"
             v-model="slotProps.data[slotProps.field]"
             classDef="w-full mr-2 mt-1 p-inputtext-sm"
             :rules="{required: true, not_one_of:otherFormLabels(slotProps.index)}"
-        />
+        /-->
         </div>
       </template>
     </Column>
@@ -99,7 +133,8 @@
     </Column>
         <Column  key="id" field="id" header="Actions" style="width: 10%">
           <template #body="{ data, field }">
-            <Button icon="pi pi-copy" outlined rounded severity="success" class="ml-2 p-1 small-icon" size="small" v-tooltip.top="'Duplicate'"/>
+            <Button icon="pi pi-copy" outlined rounded severity="success" class="ml-2 p-1 small-icon" size="small"
+                    @click="duplicateCw(data[field])" v-tooltip.top="'Duplicate'"/>
             <Button icon="pi pi-trash" outlined rounded severity="danger" class="ml-2 p-1 small-icon" size="small"
             @click="deleteCw(data[field])" v-tooltip.top="'Delete'"/>
           </template>
@@ -137,18 +172,32 @@
       :vital-options="vitalOptions"
       :score-options="scoreOptions"
       :outcome-options="outcomeOptions"
-      v-model:show-labs="showLabs"
-      v-model:show-vitals="showVitals"
-      v-model:show-scores="showScores"
-      v-model:show-outcomes="showOutcomes"
+      v-model:active-options="activeClinicalOptions"
       v-model:closest-to-event = "currentCollectionWindow.event"
       v-model:closest-to-time = "currentCollectionWindow.closest_time"
-
       :event-options="eventDts"
       :rp-dates="rpDates"
       @save-clinical-data-update="saveUpdate"
       @cancel-clinical-data-update="restoreInitialStates"
   />
+
+  <Dialog v-model:visible="showDataCollectionInfo" modal header="Data Collection Windows" :style="{ width: '50vw' }">
+    <p>
+      Clinical data is partly defined by relative windows of time.
+      </p>
+      <p>
+      DUSTER uses Data Collection Windows to apply this concept of creating windows of time in which you'd like to
+        gather clinical data.
+      Each Data Collection Window will appear in the form of REDCap Instruments in your project.
+      Within each window, you may add your desired clinical data.
+      </p>
+      <p>
+      You may create Data Collection Windows below with the options to choose among preset configurations or to configure from scratch.
+      </p>
+    <template #footer>
+      <button @click="showDataCollectionInfo=false">Close</button>
+    </template>
+  </Dialog>
   <!--div>Current: {{ currentCollectionWindow }}</div>
 <br>
   <div>Values: {{ localCollectionWindows }}</div>
@@ -164,14 +213,14 @@ import type CollectionWindow from "@/types/CollectionWindow";
 import ClinicalDataDialog from "./ClinicalDataDialog.vue"
 import TimingDialog from "./TimingDialog.vue"
 import InputTextRequired from "./InputTextWithValidation.vue"
-import {INTERVAL_OPTIONS} from "@/types/TimingConfig";
 import type {TIMING_TYPE} from "@/types/TimingConfig";
 
 import {INIT_COLLECTION_WINDOW} from "@/types/CollectionWindow";
 import type FieldMetadata from "@/types/FieldMetadata";
 import type FieldConfig from "@/types/FieldConfig";
 import type TimingConfig from "@/types/TimingConfig";
-import { required } from '@vee-validate/rules';
+import {helpers, required, sameAs} from "@vuelidate/validators";
+import {useVuelidate} from "@vuelidate/core";
 
 
 const props = defineProps({
@@ -212,8 +261,8 @@ const savedCollectionWindow = ref<CollectionWindow>()
 //const localCollectionWindows = ref<CollectionWindow[]>([currentCollectionWindow.value])
 const localCollectionWindowsEditing = ref<CollectionWindow[]>([])
 const showTimingDialog = ref(false)
-const showRepeatDialog = ref(false)
 const showClinicalDataDialog = ref(false)
+const showDataCollectionInfo = ref(false)
 
 const localCollectionWindows = computed({
 get() {
@@ -262,24 +311,25 @@ const showTiming = (cw:CollectionWindow) => {
   showTimingDialog.value = true
 }
 
-const showLabs = ref<boolean>(false)
-const showVitals = ref<boolean>(false)
-const showScores = ref<boolean>(false)
-const showOutcomes = ref<boolean>(false)
-
+const activeClinicalOptions = ref<number[]>([])
 const showClinicalData = (category:string, cw: CollectionWindow) => {
   saveInitialState(cw)
   clinicalDataCategory.value = category
+  activeClinicalOptions.value.length = 0
+  switch (category) {
+    case 'labs' :
+      activeClinicalOptions.value.push(0);
+      break;
+    case 'vitals' :
+      activeClinicalOptions.value.push(1);
+      break;
+    case 'outcomes' :
+      activeClinicalOptions.value.push(2);
+      break;
+    case 'scores' :
+      activeClinicalOptions.value.push(3);
+  }
   showClinicalDataDialog.value = true
-  showLabs.value = (category == 'labs')
-  showVitals.value = (category == 'vitals')
-  showScores.value = (category == 'scores')
-  showOutcomes.value = (category == 'outcomes')
-}
-
-const showRepeat = (cw:CollectionWindow) => {
-  saveInitialState(cw)
-  showRepeatDialog.value = true
 }
 
 const eventDts = computed<TimingConfig[]>(
@@ -295,7 +345,9 @@ const eventDts = computed<TimingConfig[]>(
             duster_field_name: opt.duster_field_name,
             value_type: opt.value_type,
             preposition: "",
-            phi: "t"
+            phi: "t",
+            rp_date: undefined,
+            interval: undefined
           }
           /*if (opt.duster_field_name.indexOf('adm') > -1) {
             event.preposition = 'before'
@@ -312,6 +364,8 @@ const eventDts = computed<TimingConfig[]>(
             type: rpdateType,
             label: opt.label,
             redcap_field_name: opt.redcap_field_name,
+            interval: undefined,
+            rp_date: undefined,
             redcap_field_type: opt.redcap_field_type,
             duster_field_name: undefined,
             value_type: opt.value_type,
@@ -321,44 +375,6 @@ const eventDts = computed<TimingConfig[]>(
       }
       return events;
     });
-
-/*const saveRepeat = () => {
-  if (currentCollectionWindow.value && currentCollectionWindow.value.id) {
-    let cw = currentCollectionWindow.value
-    if (cw && cw.timing && cw.timing.repeat_interval) {
-      let type = cw.timing.repeat_interval?.type
-      let intervalOption = INTERVAL_OPTIONS.filter(option => option.value === type)
-      let label = "Every " + cw.timing.repeat_interval.length + " " + intervalOption[0].text
-      cw.timing.repeat_interval.label = label
-      if (localCollectionWindows.value && localCollectionWindowsEditing.value) {
-        let editIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindowsEditing.value)
-        if (editIndex > -1 && localCollectionWindowsEditing.value
-            && localCollectionWindowsEditing.value[editIndex]
-            && localCollectionWindowsEditing.value[editIndex].timing
-            // @ts-ignore
-            && localCollectionWindowsEditing.value[editIndex].timing.repeat_interval) {
-          // @ts-ignore
-          localCollectionWindowsEditing.value[editIndex].timing.repeat_interval['label'] = label
-      }
-      let cwIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindows.value)
-      if (cwIndex > -1 && localCollectionWindows.value && localCollectionWindows.value[editIndex] &&
-          localCollectionWindows.value[editIndex].timing &&
-          // @ts-ignore
-          localCollectionWindows.value[editIndex].timing.repeat_interval) {
-        // @ts-ignore
-        localCollectionWindows.value[editIndex].timing.repeat_interval.label = label
-      }
-    }
-    }
-  }
-  saveUpdate()
-  showRepeatDialog.value = false
-}
-
-const cancelRepeat = () => {
-  restoreInitialStates()
-  showRepeatDialog.value = false
-}*/
 
 const clinicalDataCategory = ref<string>()
 
@@ -398,18 +414,46 @@ const deleteCw = (id:string) => {
 
 }
 
+const duplicateCw = (id:string) => {
+  if (localCollectionWindows.value) {
+    const index = getRowIndex(id, localCollectionWindows.value)
+    const duplicate = JSON.parse(JSON.stringify(localCollectionWindows.value[index]))
+    duplicate.id = "cw" + new Date().getTime()
+    localCollectionWindows.value.push(duplicate)
+  }
+}
+
 const getRowIndex = (id:string, haystack:any[]) => {
   //console.log(id)
   return haystack.findIndex(
       (cw) => cw.id === id)
 }
 
-// return array of other formNames
-const otherFormLabels = (formIndex: number) => {
-  return localCollectionWindows.value
-      .filter((cw, index) => index != formIndex)
-      .map(cw => cw.label)
+const uniqueLabel = (value:String, siblings:any, vm:any) => {
+  return (localCollectionWindows.value.findIndex(cw => cw.id != siblings.id && cw.label == value) == -1)
 }
+
+const validationState = computed(() => {
+  return {
+    localCollectionWindows: localCollectionWindows.value
+  }
+})
+const rules = {
+  localCollectionWindows: {
+    $each: helpers.forEach({
+          label: {
+            required: helpers.withMessage('Labels are required', required),
+            uniqueLabel: helpers.withMessage('Labels must be unique', uniqueLabel)
+          },
+          timing_valid: {
+            sameAs: helpers.withMessage("Timing Configuration is invalid.", sameAs(true))
+          }
+        }
+      )
+    }
+  }
+
+const v$ = useVuelidate(rules, validationState)
 
 /*const saveClinicalData = (clinicalData:any, aggregateDefaults:any[]) => {
   showClinicalDataDialog.value = false

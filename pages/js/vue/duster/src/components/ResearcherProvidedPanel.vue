@@ -1,6 +1,4 @@
-<!-- inline version of Rp Info, not currently used-->
 <template>
-
   <Panel header="Researcher Provided Information">
     <div>
         The minimum required information for each record is an MRN and a study enrollment date.
@@ -16,17 +14,7 @@
               field="value_type"
               header="Type">
             <template #body="slotProps">
-
-              <!--Dropdown
-                  v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'"
-                  v-model="data[field]"
-                  :options="dateTypes"
-                  optionLabel="text"
-                  optionValue="value"
-                  class="w-full md:w-6rem"
-              /-->
-
-              <DropdownWithValidation
+              <!--DropdownWithValidation
                   v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'"
                   v-model="localRpProvidedData[slotProps.index].value_type"
                   :name="`localRpProvidedData[${slotProps.index}].value_type`"
@@ -36,28 +24,22 @@
                   class-def="w-full"
                   placeholder="Select a type"
                   rules="required"
-              />
-              <!-- recommended method of handleChange was not working -->
-              <!--Field v-slot="{ field, errorMessage }"
-                     v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'"
-                     :name="`localRpProvidedData[${slotProps.index}].value_type`"
-                     v-model="localRpProvidedData[slotProps.index].value_type"
-                     class="w-full md:w-6rem"
-                     rules="required"
-              >
-                <Dropdown
-                    v-bind="field"
+              /-->
+              <div class="field"
+                   v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'">
+              <Dropdown
+                  v-model="slotProps.data[slotProps.field]"
                     :options="dateTypes"
-                    :class="['w-full md:w-6rem',{ 'p-invalid': errorMessage }]"
-                    :modelValue="field.value"
+                    :class="['w-full md:w-6rem',{'p-invalid':v$.rpData.$each.$response.$errors[slotProps.index].value_type.length}]"
                     optionLabel="text"
                     optionValue="dtValue"
-                    placeholder="Select a type"
-                    @input="field.onInput.forEach((fn) => fn($event.value))"
-                    @change="field.onChange.forEach((fn) => fn($event.value))"                />
-                <small class="p-error" id="type-missing-error">{{ errorMessage || '&nbsp;' }}</small>
-
-              </Field-->
+                    placeholder="Select a type">
+                </Dropdown>
+                <small v-if="v$.rpData.$each.$response.$errors[slotProps.index].value_type.length"
+                       class="flex p-error mb-3">
+                  {{ v$.rpData.$each.$response.$errors[slotProps.index].value_type[0].$message }}
+                </small>
+              </div>
               <span v-else>{{slotProps.data.value_type}}</span>
             </template>
           </Column>
@@ -67,12 +49,22 @@
               header="Label">
             <template
                 #body="slotProps">
-              <InputTextRequired
+              <div class="field">
+              <InputText
+                  v-model="slotProps.data[slotProps.field]"
+                  :class="['w-full', {'p-invalid': v$.rpData.$each.$response.$errors[slotProps.index].label.length}]">
+              </InputText>
+              <small v-if="v$.rpData.$each.$response.$errors[slotProps.index].label.length"
+                     class="flex p-error mb-3">
+                {{ v$.rpData.$each.$response.$errors[slotProps.index].label[0].$message }}
+              </small>
+              </div>
+              <!--InputTextRequired
                   :name="`localRpProvidedData[${slotProps.index}].label`"
                   v-model="slotProps.data[slotProps.field]"
                   classDef="w-full"
                   rules="required"
-              />
+              /-->
             </template>
           </Column>
           <Column
@@ -82,14 +74,24 @@
               >
             <template
                 #body="slotProps">
-              <InputTextRequired
+              <div class="field">
+                <InputText
+                    v-model="slotProps.data[slotProps.field]"
+                    :class="['w-full', {'p-invalid': v$.rpData.$each.$response.$errors[slotProps.index].redcap_field_name.length}]">
+                </InputText>
+                <small v-if="v$.rpData.$each.$response.$errors[slotProps.index].redcap_field_name.length"
+                       class="flex p-error mb-3">
+                  {{ v$.rpData.$each.$response.$errors[slotProps.index].redcap_field_name[0].$message }}
+                </small>
+              </div>
+              <!--InputTextRequired
                   :name="`localRpProvidedData[${slotProps.index}].redcap_field_name`"
                    v-model="localRpProvidedData[slotProps.index].redcap_field_name"
                   classDef="w-full"
                   :rules="{required: true,
                   redcap_field_name:true,
                   not_one_of:otherFieldNames(slotProps.index)}"
-              />
+              /-->
             </template>
           </Column>
           <Column
@@ -114,7 +116,7 @@
                   :class="((slotProps.index == (localRpProvidedData.length -1)) && slotProps.index < 5  )? '': 'hidden'"
                   @click="addRpDate" >
               </Button>
-              
+
             </template>
           </Column>
         </DataTable>
@@ -153,13 +155,11 @@
 import {computed, ref} from 'vue'
 import type {PropType} from 'vue'
 import type {BasicConfig} from "@/types/FieldConfig";
-import {INIT_TIMING_CONFIG} from "@/types/TimingConfig";
-import {Field} from 'vee-validate'
 import InputTextRequired from "./InputTextWithValidation.vue";
 import DropdownWithValidation from "./DropdownWithValidation.vue";
 import {INIT_BASIC_CONFIG} from "@/types/FieldConfig";
-import { defineRule } from 'vee-validate';
-import { required } from '@vee-validate/rules';
+import {helpers, required} from "@vuelidate/validators";
+import {useVuelidate} from "@vuelidate/core";
 
 
 const props = defineProps({
@@ -175,7 +175,6 @@ const props = defineProps({
 const emit = defineEmits(
     ['updateRpDate','update:rpProvidedData','deleteRpDate']
 )
-//defineRule('required', required);
 
 const dateTypes = ref([
   {text: 'Date', dtValue: 'date'},
@@ -221,13 +220,53 @@ const deleteRpDate = () => {
   rpDate.value = newRpDate();
 }
 
-// returns array of field names not including indexed field
-const otherFieldNames = (currentIndex:number) => {
+// returns array of field names not including current field
+// includes reserved redcap_field_names of demographics
+const otherFieldNames = (id:string) => {
   return localRpProvidedData.value
-      .filter((data, index) => index != currentIndex)
+      .filter((data) => data.id != id)
       .map(data => data.redcap_field_name)
       .concat(props.reservedFieldNames)
 }
+
+const uniqueLabel = (value:string, siblings:any, vm: any) => {
+  return (localRpProvidedData.value.findIndex(rp => rp.id != siblings.id && rp.label == value) == -1)
+}
+
+const uniqueRedcapFieldName = (value:string, siblings:any, vm: any) => {
+  return (otherFieldNames(siblings.id ?? "").indexOf(value) == -1)
+}
+
+const isRedcapFieldName = helpers.regex(/^[a-z][a-z0-9_]*$/)
+
+const state = computed(() => {
+  return {
+    rpData: localRpProvidedData.value
+  }
+})
+const rules = {
+  rpData: {
+    $each: helpers.forEach({
+          value_type: {
+            required: helpers.withMessage('Date types are required', required)
+          },
+          label: {
+            required: helpers.withMessage('Labels are required', required),
+            uniqueLabel: helpers.withMessage('Labels must be unique', uniqueLabel)
+          },
+      redcap_field_name: {
+            required: helpers.withMessage('Redcap field names are required', required),
+            isRedcapFieldName: helpers.withMessage('Only lowercase letters, numbers and underscores allowed',
+                isRedcapFieldName),
+            uniqueRedcapFieldName: helpers.withMessage('Must be unique',
+                uniqueRedcapFieldName)
+      }
+        }
+    )
+  }
+}
+
+const v$ = useVuelidate(rules, state)
 
 </script>
 

@@ -1,5 +1,7 @@
 import { createApp } from 'vue'
 import PrimeVue from 'primevue/config';
+import Accordion from "primevue/accordion";
+import AccordionTab from "primevue/accordiontab";
 import Badge from 'primevue/badge'
 
 import Button from 'primevue/button'
@@ -25,16 +27,17 @@ import Tooltip from 'primevue/tooltip'
 import App from './App.vue'
 import 'primeflex/primeflex.css'
 
-// import "primevue/resources/themes/bootstrap4-light-blue/theme.css";
+//import "primevue/resources/themes/bootstrap4-light-blue/theme.css";
 import '@/assets/themes/stanford/theme.scss'
 import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css'
-import {defineRule} from "vee-validate";
 // import './assets/main.css'
 
 const app = createApp(App)
     .use(PrimeVue)
     .use(ToastService)
+    .component('Accordion', Accordion)
+    .component('AccordionTab', AccordionTab)
     .component( 'Badge', Badge)
     .component( 'Button', Button)
     .component( 'Card', Card)

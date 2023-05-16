@@ -44,7 +44,7 @@
             <!-- select/unselect filters -->
             <div class="flex flex-wrap gap-3">
               <label class="flex align-items-center">Show: </label>
-              <div v-for="(value, index) in showSelectOptions" :key="index" class="flex align-items-center">
+              <div v-for="(value, index) in selectOptions" :key="index" class="flex align-items-center">
                 <RadioButton v-model="selectFilter"
                              name="filterSelected"
                              :inputId="value"
@@ -64,20 +64,13 @@
           <div class="col">
             <div class="formgroup-inline">
               <div v-for="(option) in filteredAggregates" :key="option.value" class="field-checkbox">
-                <!--
-                Can't get vee-validate working with primevue checkboxes, but works with plain inputs
-                Field name="defaultAggregate" type="checkbox"
-                       :value="option"
-                       v-model="localAggregateDefaults"
-                       rules="defaultAggregateRequired"
-                /-->
                 <Checkbox
                     name="defaultAggregate"
                     v-model="localAggregateDefaults"
                     :value="option"
                     :input-id="option.value"
                     :id="option.value"
-                    :class="{ 'p-invalid': aggOptionErrorMessage }"
+                    :class="{ 'p-invalid': v$.aggregateDefaults.$error }"
                 />
                 <label :for="option.value">{{ option.text }}</label>
               </div>
@@ -88,29 +81,19 @@
                             name="defaultAggregate"
                             :id="closestTimeOption.value"
                             :value="closestTimeOption"
-                            :class="{ 'p-invalid': aggOptionErrorMessage }"
+                            :class="{ 'p-invalid': v$.aggregateDefaults.$error }"
                   />
                   <label :for="closestTimeOption.value">{{ closestTimeOption.text }}</label>
                 </div>
-                <!--InputTextWithValidation
-                    v-if="showClosestTime"
-                    ref="closestTimeRef"
-                    name="closestTime"
-                    v-model="closestTime"
-                    classDef="w-full md:w-10rem"
-                    rules="required|timeformat"
-                    placeholder="00:00:00"
-                /-->
-                <div class="field">
+                <div class="field" v-if="showClosestTime">
                 <InputText v-model="closestTime"
-                           v-if="showClosestTime"
                            style="width:10rem"
                            placeholder="00:00:00"
-                           :class="['w-full md:w-10rem',{'p-invalid': closestTimeError }]"
+                           :class="['w-full md:w-10rem',{'p-invalid': v$.closestTime.$error}]"
                 />
-                <small v-if="closestTimeError"
+                <small v-if="v$.closestTime.$error"
                        class="flex p-error mb-3">
-                  {{ closestTimeError }}
+                  {{ v$.closestTime.$errors[0].$message }}
                 </small>
                 </div>
               </div>
@@ -126,23 +109,25 @@
                           name="defaultAggregate"
                           :id="closestEventOption.value"
                           :value="closestEventOption"
-                          :class="{ 'p-invalid': aggOptionErrorMessage }"
+                          :class="{ 'p-invalid': v$.aggregateDefaults.$error }"
                 />
                 <label :for="closestEventOption.value">{{ closestEventOption.text }}</label>
               </div>
               <div v-if="showClosestEvent" class="formgroup-inline">
                 <div class="field">
                   <Dropdown v-model="localClosestEvent"
-                            :options="filteredEventOptions"
-                            optionLabel="label"
-                            :class="{ 'p-invalid': closestEventError }"
-                            style="width:10rem"/>
-                  <small v-if="closestEventError"
-                         class="flex p-error mb-3">
-                    {{ closestEventError }}
-                  </small>
-                </div>
-                <!--div v-if="localClosestEvent.duster_field_name" class="field">
+                    :options="datetimeEventOptions"
+                    optionLabel="label"
+                    :class="{ 'p-invalid': v$.closestEventValue.$error }"
+              style="width:10rem"/>
+    <small v-if="v$.closestEventValue.$error"
+           class="flex p-error mb-3">
+      {{ v$.closestEventValue.$errors[0].$message }}
+    </small>
+  </div>
+                <!--This is to set the rp_date -- will default to start of collection window instead
+                of user configuration
+                div v-if="localClosestEvent.duster_field_name" class="field">
                   <label> based on </label>
                   <span>
                   <Dropdown v-model="localClosestEvent.rp_date"
@@ -161,17 +146,15 @@
               </div>
             </div>
             <small
-                v-if="aggOptionErrorMessage"
+                v-if="v$.aggregateDefaults.$error"
                 id="aggOption-help"
                 class="flex p-error mb-3">
-              {{ aggOptionErrorMessage }}
+              {{ v$.aggregateDefaults.$errors[0].$message }}
             </small>
           </div>
         </div>
-        <Panel header="Labs"
-               toggleable
-               :collapsed="!expandLabs"
-        >
+        <Accordion :multiple="true" :activeIndex="activeClinicalOptions">
+        <AccordionTab header="Labs">
           <ClinicalDataOptions
               category="labs"
               :options="labOptions"
@@ -181,10 +164,8 @@
               :select-filter="selectFilter"
               v-model:selected-options="localClinicalData.labs"
           />
-        </Panel>
-        <Panel header="Vitals"
-               :collapsed="!expandVitals"
-               toggleable>
+        </AccordionTab>
+        <AccordionTab header="Vitals">
           <ClinicalDataOptions
               category="vitals"
               :options="vitalOptions"
@@ -194,10 +175,8 @@
               :select-filter="selectFilter"
               v-model:selected-options="localClinicalData.vitals"
           />
-        </Panel>
-        <Panel header="Outcomes"
-               :collapsed="!expandOutcomes"
-               toggleable>
+        </AccordionTab>
+        <AccordionTab header="Outcomes">
           <ClinicalDataOptions
               category="outcomes"
               :options="outcomeOptions"
@@ -207,10 +186,8 @@
               :select-filter="selectFilter"
               v-model:selected-options="localClinicalData.outcomes"
           />
-        </Panel>
-        <Panel header="Scores"
-               :collapsed="!expandScores"
-               toggleable>
+        </AccordionTab>
+        <AccordionTab header="Scores">
           <ClinicalDataOptions
               category="scores"
               :options="scoreOptions"
@@ -220,7 +197,8 @@
               :select-filter="selectFilter"
               v-model:selected-options="localClinicalData.scores"
           />
-        </Panel>
+        </AccordionTab>
+</Accordion>
         <Toast />
         <template #footer>
           <Button label="Cancel" icon="pi pi-times" text @click="cancelClinicalData"/>
@@ -239,22 +217,15 @@ import type FieldConfig from "@/types/FieldConfig";
 import type TimingConfig from "@/types/TimingConfig";
 import type TextValuePair from "@/types/TextValuePair";
 import ClinicalDataOptions from "./ClinicalDataOptions.vue";
-import InputTextWithValidation from "./InputTextWithValidation.vue"
-import {configure, defineRule} from "vee-validate";
-import {required} from "@vee-validate/rules";
-import {localize} from "@vee-validate/i18n";
 import { useToast } from "primevue/usetoast";
 import Toast from 'primevue/toast'
 import {INIT_TIMING_CONFIG} from "@/types/TimingConfig";
-
-
+import {helpers, requiredIf, minLength} from "@vuelidate/validators";
+import {useVuelidate} from "@vuelidate/core";
 
 const props = defineProps({
   showClinicalDataDialog: Boolean,
-  showLabs: Boolean,
-  showVitals: Boolean,
-  showOutcomes: Boolean,
-  showScores: Boolean,
+  activeOptions: Array as PropType<Array<number>>,
   timing: {
     type: Object,
     required: true
@@ -301,8 +272,7 @@ const props = defineProps({
 const emit = defineEmits(
     ['saveClinicalDataUpdate', 'cancelClinicalDataUpdate',
       'update:clinicalData', 'update:aggregateDefaults', 'update:showClinicalDataDialog',
-      'update:showLabs', 'update:showVitals',
-      'update:showOutcomes', 'update:showScores',
+      'update:activeOptions',
       'update:closestToEvent', 'update:closestToTime']
 )
 
@@ -359,6 +329,8 @@ const closestEvent = computed({
   }
 })
 
+/* closestEvent is an array with only one element
+so this makes accessing it more convenient*/
 const localClosestEvent = ref<TimingConfig>(JSON.parse(JSON.stringify(INIT_TIMING_CONFIG)))
 watchEffect(() => {
   if (!closestEvent.value) {
@@ -379,26 +351,21 @@ const showClosestEvent = computed(() => {
   if (localAggregateDefaults.value) {
     show = (localAggregateDefaults.value.findIndex(agg => agg.value === 'closest_event') > -1)
   }
-    if (!show) {
+  if (!show) {
       // show closest event if it's selected as a custom aggregate
       show = localClinicalData.value.labs.findIndex((cd: any) =>
           (cd.selected && cd.aggregate_type === 'custom' &&
               (JSON.stringify(cd.aggregates).indexOf("closest_event") > -1))) > -1
-    }
-    if (!show) {
-      // show closest event if it's selected as a custom aggregate
-      show = localClinicalData.value.vitals.findIndex((cd: any) =>
-          (cd.selected && cd.aggregate_type === 'custom' &&
-              (JSON.stringify(cd.aggregates).indexOf("closest_event") > -1))) > -1
-
   }
   return show
 })
 
 /** closest event selector should only show datetime options **/
-const filteredEventOptions = computed(() => {
+const datetimeEventOptions = computed(() => {
   return props.eventOptions.filter(option => option.value_type === 'datetime')
 })
+
+
 /*** closest time ***/
 
 const closestTime = computed({
@@ -409,8 +376,6 @@ const closestTime = computed({
     emit('update:closestToTime', value)
   }
 })
-
-const closestTimeRef = ref(null)
 
 /** closest time checkbox option **/
 const closestTimeOption = computed(() => {
@@ -427,7 +392,9 @@ const hasClosestTime = computed(() => {
     if (props.timing.end.interval.type == "day" && props.timing.end.interval.length == 1) {
       return true
     }
-    if (props.timing.repeat_interval.type == "day" && props.timing.repeat_interval.length == 1) {
+    if (props.timing.repeat_interval &&
+        props.timing.repeat_interval.type == "day" &&
+        props.timing.repeat_interval.length == 1) {
       return true
     }
     /*if (props.timing.start.interval.type=="hour" && props.timing.start.interval.length == 24) {
@@ -465,68 +432,69 @@ const showClosestTime = computed(() => {
   return show
 })
 
+const defaultAggregatesRequired = computed(() => {
+  let hasDefaults = (localClinicalData.value.labs.findIndex((cd: any) =>
+      (cd.selected && cd.aggregate_type == 'default')) > -1)
 
-/****/
+  if (!hasDefaults) {
+    hasDefaults = (localClinicalData.value.vitals.findIndex((cd: any) =>
+        (cd.selected && cd.aggregate_type === 'default')) > -1)
+  }
+  return hasDefaults
+  }
+)
 
-/* expand or collapse different sections */
-const expandLabs = computed({
-  get() {
-    return props.showLabs
-  },
-  set(value) {
-    emit('update:showLabs', value)
+const closestTimeRef = ref<String>()
+
+const timeFormat = helpers.regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)
+
+const validationFields = computed(() => {
+  return {
+    aggregateDefaults: localAggregateDefaults.value,
+    closestEventValue: (localClosestEvent.value.duster_field_name)
+        ? localClosestEvent.value.duster_field_name :
+        localClosestEvent.value.redcap_field_name,
+   closestTime: closestTime.value
   }
 })
-const expandVitals = computed({
-  get() {
-    return props.showVitals
-  },
-  set(value) {
-    emit('update:showVitals', value)
-  }
-})
-const expandOutcomes = computed({
-  get() {
-    return props.showOutcomes
-  },
-  set(value) {
-    emit('update:showOutcomes', value)
-  }
-})
-const expandScores = computed({
-  get() {
-    return props.showScores
-  },
-  set(value) {
-    emit('update:showScores', value)
-  }
-})
-const expandAll = () => {
-  expandLabs.value = true
-  expandVitals.value = true
-  expandOutcomes.value = true
-  expandScores.value = true
 
-}
+const rules = computed(() =>({
+  aggregateDefaults: {
+    requiredIf: helpers.withMessage(
+        "At least one default aggregate must be selected.",
+        requiredIf(defaultAggregatesRequired.value)
+    ),
+    minLength: minLength(1)
+  },
+  closestEventValue: {
+      requiredIf: helpers.withMessage(
+          "Closest event is required", requiredIf(showClosestEvent.value))
+    },
+    closestTime: {
+      requiredIf: helpers.withMessage("Closest time is required",
+        requiredIf(showClosestTime.value)),
+      timeFormat: helpers.withMessage("Incorrect time format",
+          timeFormat)
+    }
+})
+)
+const v$ = useVuelidate(rules, validationFields,{ $stopPropagation: true })
 
-/**** selected/unselected options****/
-const showSelectOptions = ref<string[]>(['Selected', 'Unselected', 'All'])
-const selectFilter = ref<string>("All")
-/****/
 const toast = useToast();
 
 const saveClinicalData = () => {
-  console.log(closestTimeRef.value)
-  //if (closestTimeRef.value) closestTimeRef.value.validate()
-  if (!aggOptionErrorMessage.value
-      && !closestEventError.value
-      && !closestEventRpDateError.value
-      && !closestTimeError.value) {
+  v$.value.$touch() ;
+  if (!v$.value.$error) {
     visible.value = false
     emit('saveClinicalDataUpdate')
   } else {
-    toast.add({ severity: 'error', summary: 'Missing fields', detail: 'Some required fields are missing.', life: 3000
-    });
+    v$.value.$errors.forEach(error =>
+      toast.add({
+        severity: 'error',
+        summary: 'Missing values', detail: error.$message,
+        life: 3000
+      })
+    )
   }
 }
 
@@ -536,7 +504,9 @@ const cancelClinicalData = () => {
 }
 
 /**** validation rules and messages *****/
-/* can't get vee-validate working with checkboxes.  this is diy solution **/
+
+
+/* can't get vee-validate working with checkboxes.  this is diy solution **
 const aggOptionErrorMessage = computed(() => {
   if (localAggregateDefaults.value
       && localAggregateDefaults.value.length) {
@@ -565,14 +535,6 @@ const closestEventError = computed(() => {
   return ""
 })
 
-const closestEventRpDateError = computed(() => {
-  if (showClosestEvent.value && closestEvent.value && closestEvent.value[0].duster_field_name
-      && !closestEvent.value[0].rp_date) {
-    return "This field is required"
-  }
-  return ""
-})
-
 const closestTimeError = computed(() => {
   if (showClosestTime.value) {
     if (!closestTime.value || !closestTime.value.length) {
@@ -589,47 +551,29 @@ const hasTimeFormat = (value: string) => {
     return 'This field must follow 00:00:00 time format';
   }
   return "";
+}*/
+
+
+/**** selected/unselected options****/
+const selectOptions = ref<string[]>(['Selected', 'Unselected', 'All'])
+const selectFilter = ref<string>("All")
+/****/
+
+/* expand or collapse different sections */
+/* these controls are currently commented out*/
+const activeClinicalOptions = computed({
+  get() {
+    return props.activeOptions
+  },
+  set(value) {
+    emit('update:activeOptions', value)
+  }
+})
+
+const expandAll = () => {
+  activeClinicalOptions.value = [0,1,2,3]
 }
-
-defineRule('required', required);
-defineRule('timeformat', (value: string) => {
-  // Field is empty, let required validator handle it
-  if (!value || !value.length) {
-    return true;
-  }
-  // Check if time format
-  if (!/^[0-2][0-3]:[0-5][0-9]:[0-5][0-9]$/.test(value)) {
-    return 'This field must follow 00:00:00 time format';
-  }
-  return true;
-});
-
-defineRule('defaultAggregateRequired', (value: any[]) => {
-  if (value && value.length) {
-    return true
-  }
-
-  // check selected options to see if any have defaults
-  let hasDefaults = (localClinicalData.value.labs.findIndex((cd: any) =>
-      (cd.selected && cd.aggregate_type == 'default')) > -1)
-
-  if (!hasDefaults) {
-    hasDefaults = (localClinicalData.value.vitals.findIndex((cd: any) =>
-        (cd.selected && cd.aggregate_type === 'default')) > -1)
-  }
-  // fail validation if value is empty and some options have default aggregates
-  return !hasDefaults;
-});
-
-configure({
-  // Generates an English message locale generator
-  generateMessage: localize('en', {
-    messages: {
-      required: 'This field is required',
-      defaultAggregateRequired: 'At least one aggregate default must be selected'
-    },
-  }),
-});
+/****/
 
 </script>
 

@@ -1,7 +1,9 @@
 <template>
   <div class="field grid">
 
-    <label class="col-12 mb-2 md:col-2 md:mb-0">{{ eventTypeLabel }}</label>
+    <label class="col-12 mb-2 md:col-2 md:mb-0">{{ eventTypeLabel }}
+      <i class="ml-2 pi pi-info-circle" style="color:blue"
+      v-tooltip="eventTooltip"></i></label>
     <div class="col-12 md:col-10">
       <div class="formgroup">
 
@@ -13,10 +15,11 @@
                 :inputId="type.value"
                 :id="type.value"
                 :value="type.value"
-                :class="{ 'p-invalid': eventTypeMissing }"
+                :class="{ 'p-invalid': v$.type.$error }"
                 @change="event.label = eventLabel; emit('clearPreset')"
             />
-            <label :for="type.value" class="ml-2">{{ type.text }}</label>
+            <label :for="type.value" class="ml-2" v-tooltip="type.tooltip"
+            >{{ type.text }}</label>
           </div>
           <div v-if="type.value === event.type && type.value.indexOf('date') > -1" class="formgroup-inline">
             <div class="field">
@@ -30,13 +33,18 @@
                         :options="filteredEventOptions"
                         optionLabel="label"
                         style="width:12rem"
-                        :class="{ 'p-invalid': selectedEventMissing }"
+                        :class="{ 'p-invalid': v$.eventValue.$error }"
                         @change="event.label = eventLabel; emit('clearPreset')"
               />
-              <small v-if="selectedEventMissing"
+              <small v-if="v$.eventValue.$error"
+                     class="flex p-error mb-3">
+                {{ v$.eventValue.$errors[0].$message }}
+              </small>
+
+              <!--small v-if="selectedEventMissing"
                      class="flex p-error mb-3">
                 {{ selectedEventMissing }}
-              </small>
+              </small-->
               <!-- can't use DropdownWithValidation component here because it's returning an object>
               <Field v-slot="{ field, errorMessage }"
                      name="selectedEvent"
@@ -73,12 +81,17 @@
                         optionLabel="label"
                         optionValue="redcap_field_name"
                         style="width:12rem"
-                        :class="{ 'p-invalid': rpDateMissing }"
+                        :class="{ 'p-invalid': v$.rp_date.$error }"
               />
-              <small v-if="rpDateMissing"
+              <small v-if="v$.rp_date.$error"
+                     class="flex p-error mb-3">
+                {{ v$.rp_date.$errors[0].$message }}
+              </small>
+
+              <!--small v-if="rpDateMissing"
                      class="flex p-error mb-3">
                 {{ rpDateMissing }}
-              </small>
+              </small-->
             </div>
           </div>
           <!-- interval options-->
@@ -96,14 +109,19 @@
             <InputNumber
                 v-model="intervalLength"
                 id="intervalLength"
-                inputId="integeronly"
+                input-id="integeronly"
                 style="width:3rem"
-                :class="{ 'p-invalid': eventIntervalLengthMissing }"
+                :class="{ 'p-invalid': v$.interval['length'].$error }"
                 @value="emit('clearPreset')"/>
-              <small v-if="eventIntervalLengthMissing"
+              <small v-if="v$.interval['length'].$error"
+                     class="flex p-error mb-3">
+                {{ v$.interval.length.$errors[0].$message }}
+              </small>
+
+              <!--small v-if="eventIntervalLengthMissing"
                      class="flex p-error mb-3">
                 {{ eventIntervalLengthMissing }}
-              </small>
+              </small-->
             </div>
 
             <div class="field ">
@@ -124,12 +142,17 @@
                         optionValue="value"
                         style="width:10rem"
                         placeholder="Hours / Days"
-                        :class="{ 'p-invalid': eventIntervalTypeMissing }"
+                        :class="{ 'p-invalid': v$.interval['type'].$error }"
                         @change="emit('clearPreset')"/>
-              <small v-if="eventIntervalTypeMissing"
+              <small v-if="v$.interval['type'].$error"
+                     class="flex p-error mb-3">
+                {{ v$.interval.type.$errors[0].$message }}
+              </small>
+
+              <!--small v-if="eventIntervalTypeMissing"
                      class="flex p-error mb-3">
                 {{ eventIntervalTypeMissing }}
-              </small>
+              </small-->
 
             </div>
             <div class="field">
@@ -142,10 +165,15 @@
             </div>
           </div>
         </div>
-        <small v-if="eventTypeMissing"
+        <small v-if="v$.type.$error"
+               class="flex p-error mb-3">
+          {{ v$.type.$errors[0].$message }}
+        </small>
+
+        <!--small v-if="eventTypeMissing"
                class="flex p-error mb-3">
           {{ eventTypeMissing }}
-        </small>
+        </small-->
       </div>
     </div>
   </div>
@@ -154,18 +182,20 @@
 <script setup lang="ts">
 import {computed, ref, watch, watchEffect} from "vue";
 import type {PropType} from "vue";
-import type TextValuePair from "@/types/TextValuePair";
+import type {MenuOption} from "@/types/TextValuePair";
 import type TimingConfig from "@/types/TimingConfig";
 import type {INTERVAL_TYPE} from "@/types/TimingConfig";
 import type FieldConfig from "@/types/FieldConfig";
 import {INIT_TIMING_CONFIG, INIT_TIMING_INTERVAL, INTERVAL_OPTIONS} from "@/types/TimingConfig";
-import {defineRule, configure} from 'vee-validate'
-import { required } from '@vee-validate/rules';
-import {localize} from "@vee-validate/i18n";
+//import {defineRule, configure} from 'vee-validate'
+//import { required } from '@vee-validate/rules';
+//import {localize} from "@vee-validate/i18n";
+import {required, integer, requiredIf, helpers} from "@vuelidate/validators";
+import {useVuelidate} from "@vuelidate/core";
 
 const props = defineProps({
   timeTypeOptions: {
-    type: Array as PropType<Array<TextValuePair>>,
+    type: Array as PropType<Array<MenuOption>>,
     required: true
   },
   typeLabel: String,
@@ -193,7 +223,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(
-    ['update:timingObject', 'clearPreset', 'validateTiming']
+    ['update:timingObject', 'clearPreset']
 )
 
 const event = computed({
@@ -234,6 +264,15 @@ const filteredIntervalOptions = computed(() => {
     }
 )
 
+// match the date types of one event to the other if they are both date types
+watch(props.otherTimingEvent, (newOtherEvent) => {
+  if (((newOtherEvent?.type ?? "").indexOf("date") > -1)
+      && event.value.type
+      && event.value.type.indexOf("date") > -1) {
+    event.value.type = newOtherEvent.type
+  }
+
+})
 
 
 // if the event type is datetime, only return list of datetimes
@@ -387,7 +426,60 @@ const getDateText = (options: TimingConfig[],
   return ""
 }
 
+/*** vuelidate
+ */
+
+/* Validation Rules */
+
+
+const nonNegativeInteger = helpers.regex(/^[0-9]+$/)
+
+const validationState = computed(() => {
+  return {
+    type: event.value.type,
+    eventValue: (selectedEvent.value.duster_field_name) ? selectedEvent.value.duster_field_name : selectedEvent.value.redcap_field_name,
+    interval: event.value.interval,
+    rp_date: event.value.rp_date
+  }
+})
+
+
+const rules = computed(() => ( {
+  type: { required: helpers.withMessage('Required', required) },
+  eventValue: {
+    requiredIf: helpers.withMessage('Required ' + capitalizedEventType.value + " Event",
+        requiredIf(event.value.type !== 'interval'))
+  },
+  interval: {
+    requiredIf: requiredIf(event.value.type == 'interval'),
+    type: {
+      requiredIf: helpers.withMessage('Required',
+          requiredIf(event.value.type == 'interval'))
+    },
+    length: {
+      requiredIf: helpers.withMessage('Required',
+          requiredIf(event.value.type == 'interval')),
+      nonNegativeInteger: helpers.withMessage('Value must be a non-negative integer',
+          nonNegativeInteger)
+    }
+  },
+  rp_date: {
+    requiredIf: helpers.withMessage('Required',
+        requiredIf(!!event.value.duster_field_name))
+  }
+})
+)
+const v$ = useVuelidate(rules, validationState)
+
+/***********/
+
 /*validation rule and messages*/
+/*const eventRequired = computed(() =>{
+  return !event.value.duster_field_name
+      && !event.value.redcap_field_name
+      && !(event.value.type === 'interval')
+})
+
 const eventTypeMissing = computed(() =>{
   if (props.submitted && !event.value.type) {
     return "Event type required."
@@ -424,39 +516,23 @@ const eventIntervalTypeMissing = computed(() => {
     return "Interval type required"
   }
   return ""
-})
+})*/
 
 watchEffect(() => {
   if (props.submitted) {
-    emit('validateTiming', (!eventTypeMissing.value
-        && !selectedEventMissing.value
-        && !rpDateMissing.value
-        && !eventIntervalLengthMissing.value
-        && !eventIntervalTypeMissing.value))
+    v$.value.$touch() ;
+    //console.log("Validation errors :" + v$.value.$error) ;
+    console.log('timing event ' + v$.value)
   }
 })
 
-/*watch([eventTypeMissing, selectedEventMissing, rpDateMissing,
-    eventIntervalLengthMissing, eventIntervalTypeMissing],([
-  newEventTypeMissing, newSelectedEventMissing, newRpDateMissing,
-  newEventIntervalLengthMissing, newEventIntervalTypeMissing] ) =>{
-  if (props.submitted) {
-    emit('validateTiming', (!newEventTypeMissing && !newSelectedEventMissing && !newRpDateMissing
-        && !newEventIntervalLengthMissing && !newEventIntervalTypeMissing))
+const eventTooltip = computed(() => {
+  if (props.eventType == 'start') {
+    return "Some description about start"
+  } else {
+    return "Some description about end"
   }
-})*/
-
-
-defineRule('required', required);
-
-configure({
-  // Generates an English message locale generator
-  generateMessage: localize('en', {
-    messages: {
-      required: 'This field is required'
-    },
-  }),
-});
+})
 
 </script>
 

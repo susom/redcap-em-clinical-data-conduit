@@ -10,7 +10,7 @@ export interface BasicConfig{
     redcap_field_type: string |  undefined
     phi?: string
     id?: string
-    duster_field_name?: string
+    duster_field_name: string | undefined
     redcap_field_note?: string
     redcap_options?: string
 }

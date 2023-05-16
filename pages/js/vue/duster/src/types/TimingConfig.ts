@@ -1,26 +1,32 @@
 import type TextValuePair from "@/types/TextValuePair";
+import type {MenuOption} from "@/types/TextValuePair";
+
 import type {BasicConfig} from "@/types/FieldConfig";
 
 interface TimingConfig extends BasicConfig {
     type: TIMING_TYPE // this is different from value_type since it also includes interval
     event_type?: EVENT_TYPE
-    rp_date?: string
-    interval?: TimingInterval
+    rp_date: string | undefined
+    interval: TimingInterval | undefined
     preposition?: string
 }
 
 export type EVENT_TYPE = "start" | "end" | "event"
 export type TIMING_TYPE = "datetime" |  "date" | "interval" | undefined
-export const START_TIME_TYPE_OPTIONS:Array<TextValuePair> =  [
-    {text: 'Specific Date & Time', value: 'datetime'},
-    {text: "Specific Date", value: "date"},
-    {text: "Time relative to End", value: "interval"}
+export const START_TIME_TYPE_OPTIONS:Array<MenuOption> =  [
+    {text: 'Specific Date & Time', value: 'datetime', tooltip: 'Collection starts at specific date and time'},
+    {text: "Specific Date", value: "date", tooltip: 'Collection starts at 00:00:00 of the specified day'},
+    {text: "Time relative to End", value: "interval", tooltip: 'If the end is a date time, collection start' +
+            ' specified number of hours before end.  If the end is a date with no specific time, collection starts' +
+            ' specified number of calendar days before end.'}
 ]
 
-export const END_TIME_TYPE_OPTIONS:Array<TextValuePair> = [
-    {text: 'Specific Date & Time', value: 'datetime'},
-    {text: "Specific Date", value: "date"},
-    {text: "Time relative to Start", value: "interval"}
+export const END_TIME_TYPE_OPTIONS:Array<MenuOption> = [
+    {text: 'Specific Date & Time', value: 'datetime', tooltip: 'Collection ends at specific date and time'},
+    {text: "Specific Date", value: "date", tooltip: 'Collection ends at 23:59:00 of the specified day'},
+    {text: "Time relative to Start", value: "interval", tooltip: 'If the start is a date time, collection ends' +
+            ' specified number of hours after start.  If the start is a date with no specific time, collection ends' +
+            ' specified number of calendar days after start.'}
 ]
 
 export const TIME_TYPE_OPTIONS:Array<TextValuePair> =  [
