@@ -19,10 +19,8 @@
     "primeflex": "^3.3.0",
     "primeicons": "^6.0.1",
     "primevue": "^3.26.1",
-    "vee-validate": "^4.8.6",
     "vue": "^3.2.47",
-    "vue-router": "^4.1.6",
-    "yup": "^1.1.1"
+    "vue-router": "^4.1.6"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",

@@ -1,11 +1,5 @@
 <template>
   <Panel header='Data Collection Configuration '>
-    <!--template #icons>
-      <Button icon="pi pi-info-circle"
-              aria-label="Info"
-              class="p-button ml-2 my-3"
-              @click="showDataCollectionInfo = true" />
-    </template-->
     <template #header>
       <span class="flex my-0"><h4>Data Collection Configuration</h4>
         <Button icon="pi pi-info-circle"
@@ -49,33 +43,6 @@
         </div>
       </template>
     </Column>
-    <!--
-        <Column key="timing.start.label" field="" header="Start" style="width: 8rem">
-          <template #body="{ data }" >
-            <span v-if="data['timing']['start']['label']">
-            {{ data['timing']['start']['label'] }}
-              </span>
-            <span v-else style="color:red">
-            Undefined
-          </span>
-          </template>
-        </Column>
-        <Column key="timing.end.label" field ="timing.end.label" header="End" style="width: 8rem">
-          <template #body="{ data }">
-             <span v-if="data['timing']['start']['label']">
-            {{ data['timing']['end']['label'] }}
-              </span>
-            <span v-else style="color:red">
-            Undefined
-          </span>
-          </template>
-        </Column>
-        <Column  key="repeat_config" header="Repeat Interval" style="width: 8rem">
-          <template #body="{ data }">
-            {{ data['timing']['repeat_interval']['label'] }}&nbsp;
-          </template>
-        </Column>
-        -->
     <Column  key="label" field="label" header="Label" style="width: 15%">
       <template #body="slotProps">
         <div class="field">
@@ -89,12 +56,6 @@
                  class="flex p-error mb-3">
             {{ v$.localCollectionWindows.$each.$response.$errors[slotProps.index].label[0].$message }}
           </small>
-        <!--InputTextRequired
-            :name="`localCollectionWindows[${slotProps.index}].label`"
-            v-model="slotProps.data[slotProps.field]"
-            classDef="w-full mr-2 mt-1 p-inputtext-sm"
-            :rules="{required: true, not_one_of:otherFormLabels(slotProps.index)}"
-        /-->
         </div>
       </template>
     </Column>
@@ -113,22 +74,6 @@
         <Button @click="showClinicalData('scores', data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
             Scores<span class="p-badge p-component p-badge-no-gutter">{{ data.data.scores.length }}</span>
         </Button>
-        <!--
-      <Button
-          @click="showClinicalData('labs', data)" link size="small">
-        Labs&nbsp;<Tag :value="data.data.labs.length"/>
-
-      </Button>
-      <Button @click="showClinicalData('vitals', data)" link size="small">
-        Vitals&nbsp;<Tag :value="data.data.vitals.length"/>
-      </Button>
-      <Button @click="showClinicalData('outcomes', data)" link size="small">
-        Outcomes&nbsp;<Tag :value="data.data.outcomes.length"/>
-      </Button>
-      <Button @click="showClinicalData('scores', data)" link size="small">
-        Scores&nbsp;<Tag :value="data.data.scores.length"/>
-      </Button>
-      -->
       </template>
     </Column>
         <Column  key="id" field="id" header="Actions" style="width: 10%">
@@ -212,7 +157,6 @@ import presets from '../types/CollectionWindowPresets.json';
 import type CollectionWindow from "@/types/CollectionWindow";
 import ClinicalDataDialog from "./ClinicalDataDialog.vue"
 import TimingDialog from "./TimingDialog.vue"
-import InputTextRequired from "./InputTextWithValidation.vue"
 import type {TIMING_TYPE} from "@/types/TimingConfig";
 
 import {INIT_COLLECTION_WINDOW} from "@/types/CollectionWindow";
@@ -454,36 +398,6 @@ const rules = {
   }
 
 const v$ = useVuelidate(rules, validationState)
-
-/*const saveClinicalData = (clinicalData:any, aggregateDefaults:any[]) => {
-  showClinicalDataDialog.value = false
-  if (currentCollectionWindow.value && currentCollectionWindow.value.id) {
-    let index = getRowIndex(currentCollectionWindow.value.id, localCollectionWindows.value)
-    localCollectionWindows.value[index].data = JSON.parse(JSON.stringify(clinicalData))
-    localCollectionWindows.value[index]['aggregate_defaults'] = JSON.parse(JSON.stringify(aggregateDefaults))
-    localCollectionWindowsEditing.value = JSON.parse(JSON.stringify(localCollectionWindows.value))
-  }
-}
-
-const updateCwTiming = (event:any, data:any) => {
-  console.log(event.value)
-  const eventValue = event.value
-  if (eventValue == "custom") {
-    data.timing = undefined
-  } else {
-    presets.cw_presets.forEach((preset, index) => {
-      if (data.timing_preset == preset.timing_preset) {
-        data.label = preset.label
-        data.form_name = toSnakeCase(preset.timing_preset)
-        data.timing = preset.timing
-      }
-    });
-  }
-}
-
-const toSnakeCase = (label:string) => {
-  return label.replace(/ /g,"_").toLowerCase();
-}*/
 
 </script>
 

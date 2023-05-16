@@ -69,7 +69,6 @@
                     <template #start>
                         <Button type="submit" label="Review & Create Project" class="ml-2"
                         @click="checkValidation"/>
-                        <!--@click="showSummary=true"/-->
                     </template>
                 </Toolbar>
             </div>
@@ -94,12 +93,12 @@
     <p>
       <span v-html="irbCheckMessage"></span>
     </p>
-    <div v-if="!irbValid && irbCheckStatus=='checked'" class="field">
+    <div v-if="!irbValid && irbCheckStatus==='checked'" class="field">
       <label>IRB Number: </label>
       <InputText v-model="projectIrb"/>
     </div>
     <template #footer>
-      <Button v-if="!irbValid && irbCheckStatus=='checked'"
+      <Button v-if="!irbValid && irbCheckStatus==='checked'"
               label="Try again" icon="pi pi-refresh" class="p-button-success" @click="irbRetry" text />
       <Button label="Cancel" icon="pi pi-times" @click="irbCheckCancel" text />
     </template>
@@ -107,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, onMounted, watch, watchEffect} from 'vue'
+import {computed, ref, onMounted, watchEffect} from 'vue'
 
 import axios from 'axios'
 import type FieldMetadata from "@/types/FieldMetadata";
@@ -279,12 +278,11 @@ const toast = useToast();
 
 // tracks all redcap field names to ensure uniqueness
 const reservedFieldNames = computed(() => {
-  let names:string[] = []
   // reserve the demographics names?
-  demographicsOptions.value.forEach(demo => names.push(demo.duster_field_name))
-  // reserve the clinical date names?
-  clinicalDateOptions.value.forEach(demo => names.push(demo.duster_field_name))
-  return names
+  if (demographicsOptions.value && demographicsOptions.value.length > 0) {
+    return demographicsOptions.value.map(demo => demo.duster_field_name)
+  }
+  return []
 })
 
 const v$ = useVuelidate()

@@ -14,17 +14,6 @@
               field="value_type"
               header="Type">
             <template #body="slotProps">
-              <!--DropdownWithValidation
-                  v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'"
-                  v-model="localRpProvidedData[slotProps.index].value_type"
-                  :name="`localRpProvidedData[${slotProps.index}].value_type`"
-                  :options="dateTypes"
-                  option-label="text"
-                  option-value="dtValue"
-                  class-def="w-full"
-                  placeholder="Select a type"
-                  rules="required"
-              /-->
               <div class="field"
                    v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'">
               <Dropdown
@@ -59,12 +48,6 @@
                 {{ v$.rpData.$each.$response.$errors[slotProps.index].label[0].$message }}
               </small>
               </div>
-              <!--InputTextRequired
-                  :name="`localRpProvidedData[${slotProps.index}].label`"
-                  v-model="slotProps.data[slotProps.field]"
-                  classDef="w-full"
-                  rules="required"
-              /-->
             </template>
           </Column>
           <Column
@@ -84,14 +67,6 @@
                   {{ v$.rpData.$each.$response.$errors[slotProps.index].redcap_field_name[0].$message }}
                 </small>
               </div>
-              <!--InputTextRequired
-                  :name="`localRpProvidedData[${slotProps.index}].redcap_field_name`"
-                   v-model="localRpProvidedData[slotProps.index].redcap_field_name"
-                  classDef="w-full"
-                  :rules="{required: true,
-                  redcap_field_name:true,
-                  not_one_of:otherFieldNames(slotProps.index)}"
-              /-->
             </template>
           </Column>
           <Column
@@ -155,8 +130,6 @@
 import {computed, ref} from 'vue'
 import type {PropType} from 'vue'
 import type {BasicConfig} from "@/types/FieldConfig";
-import InputTextRequired from "./InputTextWithValidation.vue";
-import DropdownWithValidation from "./DropdownWithValidation.vue";
 import {INIT_BASIC_CONFIG} from "@/types/FieldConfig";
 import {helpers, required} from "@vuelidate/validators";
 import {useVuelidate} from "@vuelidate/core";
