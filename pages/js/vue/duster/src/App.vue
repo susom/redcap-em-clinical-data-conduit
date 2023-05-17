@@ -202,6 +202,8 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
           if (response.data === 1) {
             irbValid.value = true
             irbCheckMessage.value = "IRB " + projectIrbNumber + " check success.  Fetching Duster metadata."
+            // irb will be updated in project create
+            projectConfig.project_irb_number = projectIrbNumber
           } else {
             irbValid.value = false
             irbCheckMessage.value = "IRB " + projectIrbNumber
