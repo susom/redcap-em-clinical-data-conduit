@@ -1,4 +1,5 @@
 <?php
+
 namespace Stanford\Duster;
 /** @var $module Duster */
 
@@ -10,7 +11,8 @@ use Exception;
  * Class OdmXmlString
  * Used to construct a string in ODM-XML format as a parameter for creating a REDCap project via REDCap API
  */
-class OdmXmlString {
+class OdmXmlString
+{
   private $project_title;
   private $purpose;
   private $purpose_other;
@@ -18,6 +20,7 @@ class OdmXmlString {
 
   private $forms;
   private $fields;
+  private $repeating_forms;
 
   /**
    * constructor
@@ -26,31 +29,39 @@ class OdmXmlString {
    * @param string $purpose_other
    * @param string $project_note
    */
-  public function __construct(string $project_title, string $purpose, string $purpose_other = "", string $project_note = "") {
+  public function __construct(string $project_title, string $purpose, string $purpose_other = "", string $project_note = "")
+  {
     $this->project_title = $project_title;
     $this->purpose = $purpose;
     $this->purpose_other = $purpose_other;
     $this->project_note = $project_note;
     $this->forms = array();
     $this->fields = array();
+    $this->repeating_forms = array();
   }
 
-    /** adds an instrument form to the project
-     * @param $label
-     * @param $form_name
-     * @return void
-     */
-    public function addForm($form_name, $label) {
-        if (!array_key_exists($form_name, $this->forms)) {
-            $this->forms[$form_name] = [
-                "form_name" => $form_name,
-                "label" => $label,
-                "item_groups" => []
-            ];
-        } else {
-            throw new Exception ("Unable to create form.  A form with this name already exists: '$form_name'.");
-        }
+  /** adds an instrument form to the project
+   * @param string $form_name
+   * @param string $label
+   * @param bool $repeating
+   * @return void
+   * @throws Exception
+   */
+  public function addForm(string $form_name, string $label, bool $repeating = false)
+  {
+    if (!array_key_exists($form_name, $this->forms)) {
+      if($repeating === true) {
+        $this->repeating_forms[] = $form_name;
+      }
+      $this->forms[$form_name] = [
+        "form_name" => $form_name,
+        "label" => $label,
+        "item_groups" => []
+      ];
+    } else {
+      throw new Exception ("Unable to create form.  A form with this name already exists: '$form_name'.");
     }
+  }
 
   /**
    * adds REDCap fields to a form if the given form exists
@@ -61,15 +72,16 @@ class OdmXmlString {
    * @param $fields_arr
    * @return void
    */
-  public function addFields($form_name, $item_group_name = null, $item_group_label = null, $section_header = "", $fields_arr) {
-    if(array_key_exists($form_name, $this->forms)) {
+  public function addFields($form_name, $item_group_name = null, $item_group_label = null, $section_header = "", $fields_arr)
+  {
+    if (array_key_exists($form_name, $this->forms)) {
       // only add fields that don't already exist in the project
       $fields_curr = $this->fields;
-      $fields_arr = array_filter($fields_arr, function($v, $k) use ($fields_curr) {
+      $fields_arr = array_filter($fields_arr, function ($v, $k) use ($fields_curr) {
         return !in_array($v["redcap_field_name"], $fields_curr);
       }, ARRAY_FILTER_USE_BOTH);
 
-      if(count($fields_arr) > 0) {
+      if (count($fields_arr) > 0) {
         // if $item_group_name is null, use the name of the first index in $fields_arr
         $item_group_name = $item_group_name === null ? $fields_arr[0]["redcap_field_name"] : $item_group_name;
 
@@ -95,7 +107,7 @@ class OdmXmlString {
         }
       }
     } else {
-       throw new Exception("Unable to add fields to form $form_name.  Form does not exist.");
+      throw new Exception("Unable to add fields to form $form_name.  Form does not exist.");
     }
   }
 
@@ -103,7 +115,19 @@ class OdmXmlString {
    * concatenates and returns the completed string in ODM-XML format
    * @return string
    */
-  public function getOdmXmlString() {
+  public function getOdmXmlString()
+  {
+    $repeating_instruments = "";
+    if (count($this->repeating_forms) > 0) {
+      $repeating_instruments .= "\t<redcap:RepeatingInstrumentsAndEvents>\n"
+        . "\t\t<redcap:RepeatingInstruments>\n";
+      foreach ($this->repeating_forms as $form_name) {
+        $repeating_instruments .= "\t\t\t<redcap:RepeatingInstrument redcap:UniqueEventName=\"event_1_arm_1\" redcap:RepeatInstrument=\"{$form_name}\" redcap:CustomLabel=\"\"/>\n";
+      }
+      $repeating_instruments .= "\t\t</redcap:RepeatingInstruments>\n"
+      . "\t</redcap:RepeatingInstrumentsAndEvents>\n";
+    }
+
     $odm_str = ODM::getOdmOpeningTag($this->project_title)
       . "<Study OID=\"Project." . ODM::getStudyOID($this->project_title) . "\">\n"
       . "<GlobalVariables>\n"
@@ -119,6 +143,7 @@ class OdmXmlString {
       . "\t<redcap:Purpose>{$this->purpose}</redcap:Purpose>\n"
       . "\t<redcap:PurposeOther>{$this->purpose_other}</redcap:PurposeOther>\n"
       . "\t<redcap:ProjectNotes>{$this->project_note}</redcap:ProjectNotes>\n"
+      . $repeating_instruments
       . "</GlobalVariables>\n"
       . "<MetaDataVersion OID=\"" . ODM::getMetadataVersionOID($this->project_title) . "\" Name=\"" . RCView::escape($this->project_title) . "\" redcap:RecordIdField=\"record_id\">\n";
 
@@ -142,18 +167,18 @@ class OdmXmlString {
     $item_def = "";
     $code_list_def = "";
     // foreach form in forms
-    foreach($this->forms as $form) {
+    foreach ($this->forms as $form) {
       // add form to form string
       $form_def .= "\t<FormDef OID=\"Form.{$form["form_name"]}\" Name=\"{$form["label"]}\" Repeating=\"No\" redcap:FormName=\"{$form["form_name"]}\">\n";
       // foreach item group in form
-      foreach($form["item_groups"] as $item_group) {
+      foreach ($form["item_groups"] as $item_group) {
         // add item group to form string
         $form_def .= "\t\t<ItemGroupRef ItemGroupOID = \"{$form["form_name"]}.{$item_group["name"]}\" Mandatory=\"No\"/>\n";
         // add item group to item group string
         $item_group_def .= "\t<ItemGroupDef OID=\"{$form["form_name"]}.{$item_group["name"]}\" Name=\"{$item_group["label"]}\" Repeating=\"No\">\n";
         // foreach field in item group
         $section_header = $item_group["section_header"] !== "" ? " redcap:SectionHeader=\"{$item_group["section_header"]}\"" : $item_group["section_header"];
-        foreach($item_group["items"] as $field) {
+        foreach ($item_group["items"] as $field) {
           $field_note = htmlentities($field["redcap_field_note"]);
 
           // add field to item def string
@@ -176,7 +201,7 @@ class OdmXmlString {
 
             case "checkbox":
               $options = explode("|", $field["redcap_options"]);
-              for ($option_index=1; $option_index <= count($options); $option_index++) {
+              for ($option_index = 1; $option_index <= count($options); $option_index++) {
                 $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}___{$option_index}\" Name=\"{$field["redcap_field_name"]}___{$option_index}\" DataType=\"boolean\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"checkbox\" redcap:FieldNote=\"{$field_note}\"{$section_header}>\n"
                   . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
                   . "\t\t<CodeListRef CodeListOID=\"{$field["redcap_field_name"]}___{$option_index}.choices\"/>\n"
@@ -203,7 +228,7 @@ class OdmXmlString {
               // add field to code list
               $code_list_def .= "\t<CodeList OID=\"{$field["redcap_field_name"]}.choices\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" redcap:Variable=\"{$field["redcap_field_name"]}\">\n";
               $field_choices = explode("|", $field["redcap_options"]);
-              foreach($field_choices as $choice) {
+              foreach ($field_choices as $choice) {
                 $choice_arr = explode(",", $choice);
                 $code_list_def .= "\t\t<CodeListItem CodedValue=\"{$choice_arr[0]}\"><Decode><TranslatedText>{$choice_arr[1]}</TranslatedText></Decode></CodeListItem>\n";
               }
@@ -216,8 +241,8 @@ class OdmXmlString {
             case "calc":
               $calculation = htmlentities($field["redcap_options"]);
               $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"float\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"calc\" redcap:FieldNote=\"{$field_note}\" redcap:Calculation=\"{$calculation}\"{$section_header}>\n"
-              . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
-              . "\t</ItemDef>\n";
+                . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
+                . "\t</ItemDef>\n";
 
               // add field to item group string
               $item_group_def .= "\t\t<ItemRef ItemOID=\"{$field["redcap_field_name"]}\" Mandatory=\"No\" redcap:Variable=\"{$field["redcap_field_name"]}\"/>\n";
@@ -284,4 +309,3 @@ class OdmXmlString {
     return $odm_str;
   }
 }
-
