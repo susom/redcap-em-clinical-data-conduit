@@ -315,10 +315,8 @@ watchEffect(()=> {
     }
     if (props.otherTimingEvent.type === 'datetime') {
       intervalType.value = 'hour'
-      event.value.value_type = 'datetime'
     } else if (props.otherTimingEvent.type === 'date') {
       intervalType.value = 'day'
-      event.value.value_type = 'date'
     }
     // note to self: event.value.interval.label was incorrect value when two statements were combine
     event.value.interval.label = intervalLength.value.toString() + " " + intervalType.value
@@ -365,7 +363,6 @@ const selectedEvent = computed<TimingConfig>({
   set(value) {
     if (event.value) {
       //event.value.preposition = value.preposition
-      event.value.value_type = event.value.type
       event.value.redcap_field_type = value.redcap_field_type
       if (value.duster_field_name) {
         event.value.duster_field_name = value.duster_field_name

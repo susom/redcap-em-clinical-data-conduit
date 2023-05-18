@@ -294,7 +294,7 @@ const getTimingCols = (timingObj:any, events:any) => {
 
 const getRepeatCols=(timingObj:any)=> {
   if (timingObj.repeat_interval)
-  return [timingObj.repeat_interval]
+    return [timingObj.repeat_interval]
 }
 
 const getTiming=(timing:any, index:number) => {

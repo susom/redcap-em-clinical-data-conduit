@@ -173,7 +173,6 @@ const visible = computed({
   }
 });
 
-
 const cw = computed({
   get() {
     return props.collectionWindow;
@@ -185,8 +184,6 @@ const cw = computed({
 
 /*****  repeat interval *****/
 
-const repeatIntervalType = ref<INTERVAL_TYPE>(cw.value.timing.repeat_interval?.type)
-
 const filteredIntervalOptions = computed(() => {
       if (cw.value.timing.start.type === 'datetime' || cw.value.timing.end.type === 'datetime') {
         return INTERVAL_OPTIONS.filter(opt => opt.value === 'hour')
@@ -197,29 +194,37 @@ const filteredIntervalOptions = computed(() => {
     }
 )
 
-const repeatIntervalLength = ref<number | undefined>(cw.value.timing.repeat_interval?.length)
-watch([repeatIntervalLength, repeatIntervalType], ([newLength, newType]) =>
-{
-  if (!cw.value.timing.repeat_interval) {
-    cw.value.timing.repeat_interval ={...INIT_TIMING_INTERVAL}
+const repeatIntervalType = computed({
+  get() {
+    return cw.value.timing.repeat_interval?.type ?? undefined
+  },
+  set(value) {
+    if (!cw.value.timing.repeat_interval) {
+      cw.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
+    }
+    cw.value.timing.repeat_interval.type = value
   }
-  cw.value.timing.repeat_interval.length = newLength
-  cw.value.timing.repeat_interval.type = newType
-  if (newLength != undefined && newType != undefined)
-    cw.value.timing.repeat_interval.label = "Every " + newLength
-        + " " + newType + "(s)"
 })
 
-/*watchEffect(() => {
-  if (!cw.value.timing.repeat_interval) {
-    cw.value.timing.repeat_interval ={...INIT_TIMING_INTERVAL}
+const repeatIntervalLength = computed({
+  get() {
+    return cw.value.timing.repeat_interval?.length ?? undefined
+  },
+  set(value) {
+    if (!cw.value.timing.repeat_interval) {
+      cw.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
+    }
+    cw.value.timing.repeat_interval.length = value
   }
-  cw.value.timing.repeat_interval.length = repeatIntervalLength.value
-  cw.value.timing.repeat_interval.type = repeatIntervalType.value
-  if (repeatIntervalLength.value && repeatIntervalLength.value >= 0 && repeatIntervalType.value)
+})
+
+watchEffect(() => {
+  if (cw.value.timing.repeat_interval &&
+      repeatIntervalLength.value && repeatIntervalLength.value >= 0
+      && repeatIntervalType.value)
   cw.value.timing.repeat_interval.label = "Every " + repeatIntervalLength.value
       + " " + repeatIntervalType.value + "(s) "
-})*/
+})
 
 const hasRepeatIntervals = ref<boolean>(false)
 /*watch(hasRepeatIntervals, (updatedHasRepeatIntervals) =>
