@@ -24,7 +24,6 @@
           :event-options="eventOptions"
           :rp-dates="rpDates"
           :other-timing-event="cw.timing.end"
-          :submitted="submitted"
           @clear-preset="clearPreset"
       />
     </div>
@@ -37,7 +36,6 @@
           :event-options="eventOptions"
           :rp-dates="rpDates"
           :other-timing-event="cw.timing.start"
-          :submitted="submitted"
           @clear-preset="clearPreset"
       />
     </div>
@@ -49,63 +47,56 @@
           <Checkbox
               id="hasRepeatIntervals"
               v-model="hasRepeatIntervals"
-              :binary="true"/>
+              :binary="true"
+              :disabled="repeatIntervalDisabled"
+              v-tooltip="'Start and end points must be defined before configuring repeat intervals.'"
+          />
           <label
               class="ml-2"
-              for="hasRepeatIntervals">
+              for="hasRepeatIntervals"
+          >
             Repeat Data Collection at defined intervals between Start & End?
             <i class="ml-2 pi pi-info-circle" style="color:blue"
-               v-tooltip="'Collect data multiple times in the collection window at the defined intervals '"></i>
+               v-tooltip="'Collect data multiple times in the collection window at the defined intervals.'"></i>
           </label>
 
         </div>
       </div>
       <div v-if="hasRepeatIntervals" class="field grid">
 
-        <div class="col-12 mb-2 md:col-2 md:mb-0">
+        <div class="col-12 mt-2 md:col-2 md:mb-0">
           <label>Collect Data Every: </label>
         </div>
         <div class="col-12 md:col-10">
           <div class="formgroup-inline">
             <div class="field ">
 
-          <span class="p-float-label">
             <InputNumber
                 v-model="repeatIntervalLength"
                 id="repeatIntervalLength"
                 input-id="integeronly"
+                :min="1"
                 :class="{ 'p-invalid': v$.repeatIntervalLength.$error }"
-                style="width:3rem"/>
-          <label for="repeatIntervalLength" style="width:3rem">
-            # of
-          </label>
-          </span>
-              <!--small v-if="repeatIntervalLengthMissing"
-                     class="flex p-error mb-3">
-                {{ repeatIntervalLengthMissing }}
-              </small-->
+                :input-style="{'width': '3rem'}"
+                placeholder="# of"/>
               <small v-if="v$.repeatIntervalLength.$error"
                      class="flex p-error mb-3">
                 {{ v$.repeatIntervalLength.$errors[0].$message }}
               </small>
             </div>
             <div class="field ">
-              <Dropdown v-model="repeatIntervalType"
+              <!--Dropdown v-model="repeatIntervalType"
                         :options="filteredIntervalOptions"
                         optionLabel="text"
                         optionValue="value"
                         placeholder="Hours/Days"
                         :class="['ml-1 mr-2', { 'p-invalid': v$.repeatIntervalType.$error }]"
-                        />
-              <label> between Start and End Date/Datetimes</label>
+                        /-->
+              <label class="mt-2">{{ repeatIntervalType }}(s) between Start and End Date/Datetimes</label>
               <small v-if="v$.repeatIntervalType.$error"
                      class="flex p-error mb-3">
                 {{ v$.repeatIntervalType.$errors[0].$message }}
               </small>
-              <!--small v-if="repeatIntervalTypeMissing"
-                     class="flex p-error mb-3">
-                {{ repeatIntervalTypeMissing }}
-              </small-->
             </div>
           </div>
         </div>
@@ -113,7 +104,7 @@
     </div>
     <Toast />
     <template #footer>
-      <Button label="Save" class="p-button-success" icon="pi pi-check" text @click="submitted= true;saveTiming()"/>
+      <Button label="Save" class="p-button-success" icon="pi pi-check" text @click="saveTiming()"/>
       <Button label="Cancel" class="p-button-danger" icon="pi pi-times" text @click="cancelTiming"/>
       <Button label="Reset" class="p-button" text @click="resetTiming"/>
     </template>
@@ -226,25 +217,32 @@ watchEffect(() => {
       + " " + repeatIntervalType.value + "(s) "
 })
 
-const hasRepeatIntervals = ref<boolean>(false)
-/*watch(hasRepeatIntervals, (updatedHasRepeatIntervals) =>
-{
-  if (hasRepeatIntervals.value) {
-    cw.value.type = 'repeating'
-    cw.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
-  } else {
-    cw.value.type = 'nonrepeating'
-    cw.value.timing.repeat_interval = undefined
-    repeatIntervalLength.value = undefined
-    repeatIntervalType.value = undefined
+const hasRepeatIntervals = computed({
+  get() {
+    return (cw.value.type === 'repeating')
+  },
+  set(value) {
+    cw.value.type = (value) ? 'repeating':'nonrepeating'
   }
-})*/
+})
+
+const repeatIntervalDisabled = computed(() => {
+  return !(cw.value.timing &&
+      cw.value.timing.start &&
+      cw.value.timing.end &&
+      cw.value.timing.start.type &&
+      cw.value.timing.end.type)
+})
+
 watchEffect(() => {
-  if (hasRepeatIntervals.value) {
-    cw.value.type = 'repeating'
+  if (hasRepeatIntervals.value && !cw.value.timing.repeat_interval?.type) {
     cw.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
+    if (cw.value.timing.start.type === 'datetime' || cw.value.timing.end.type === 'datetime') {
+      cw.value.timing.repeat_interval.type = 'hour'
+    } else if (cw.value.timing.start.type  === 'date' || cw.value.timing.end.type === 'date') {
+      cw.value.timing.repeat_interval.type = 'day'
+    }
   } else {
-    cw.value.type = 'nonrepeating'
     cw.value.timing.repeat_interval = undefined
     repeatIntervalLength.value = undefined
     repeatIntervalType.value = undefined
@@ -267,9 +265,7 @@ watchEffect(() => {
   }
 })
 
-const submitted = ref<boolean>(false)
-
-const nonNegativeInteger = helpers.regex(/^[0-9]+$/)
+const poistiveInteger = helpers.regex(/^[1-9][0-9]*$/)
 
 const validationValues = computed(()=> {
   return {
@@ -281,8 +277,8 @@ const rules = computed(() => ({
   repeatIntervalLength: {
     requiredIf: helpers.withMessage('Repeat interval length required',
         requiredIf(hasRepeatIntervals.value)),
-    nonNegativeInteger: helpers.withMessage('Value must be a non-negative integer',
-        nonNegativeInteger)
+    poistiveInteger: helpers.withMessage('Value must be a positive integer',
+        poistiveInteger)
   },
   repeatIntervalType: {
       requiredIf: helpers.withMessage('Repeat interval type required',
@@ -293,38 +289,10 @@ const rules = computed(() => ({
 const v$ = useVuelidate(rules, validationValues)
 
 const toast = useToast();
-/*this requires one failed validation before it kicks in.  why???
-const validationState = computed(() => {
-  return (startTimingValid.value
-  && endTimingValid.value
-  && !repeatIntervalTypeMissing.value
-  && !repeatIntervalLengthMissing.value)
-})*/
-
-/*const timingObjectIsValid = (timingObject: TimingConfig) => {
-  return !!((timingObject.type !== 'interval'
-          //should have either duster_field_name or redcap_field_name defined
-          && (timingObject.duster_field_name || timingObject.redcap_field_name)
-          //if duster_field_name then rp_date should be defined
-          && (timingObject.duster_field_name ? timingObject['rp_date'] : true)
-      )
-      // if the start type is an interval
-      || (timingObject.type === 'interval' ?
-          // both interval type and length must be defined, length > 0
-          (timingObject.interval && timingObject.interval.type &&
-              ((timingObject.interval?.length ?? 0) > 0)) : true));
-
-}
-
-const validationState = computed<boolean>(() => {
-  return (timingObjectIsValid(cw.value.timing.start)
-      && timingObjectIsValid(cw.value.timing.end))
-})*/
 
 const saveTiming = () => {
   //emit('timingValidationUpdate', validationState.value)
   v$.value.$touch() ;
-  submitted.value=true
   console.log("Validation errors :" + v$.value.$error) ;
   console.log(v$.value) ;
   clearPreset()
@@ -332,6 +300,7 @@ const saveTiming = () => {
     cw.value.timing_valid = true
     visible.value = false
     emit('saveTimingUpdate')
+    v$.value.$reset() ;
   } else {
     cw.value.timing_valid = false
     v$.value.$errors.forEach(error =>
@@ -343,11 +312,11 @@ const saveTiming = () => {
 
 const cancelTiming = () => {
   cw.value.timing_valid = !v$.value.$error
-  v$.value.$reset()
   clearPreset()
   visible.value = false
   //emit('timingValidationUpdate', validationState.value )
   emit('cancelTimingUpdate')
+  v$.value.$reset()
 }
 
 const clearPreset = () => {
@@ -355,8 +324,6 @@ const clearPreset = () => {
 }
 
 const resetTiming = () => {
-  v$.value.reset()
-  submitted.value = false
   clearPreset()
   cw.value.label = ""
   cw.value.type = "nonrepeating"
@@ -365,28 +332,8 @@ const resetTiming = () => {
   repeatIntervalLength.value = undefined
   repeatIntervalType.value = undefined
   cw.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
+  v$.value.reset()
 }
-
-/*
-const repeatIntervalLengthMissing = computed(() => {
-  if (submitted.value &&
-      hasRepeatIntervals.value
-      && (cw.value.timing.repeat_interval?.length ?? 0) <= 0) {
-    return "Interval length must be a positive integer"
-  }
-  return ""
-})
-
-const repeatIntervalTypeMissing = computed(() => {
-  if (submitted.value &&
-      hasRepeatIntervals.value
-      && !cw.value.timing.repeat_interval?.type) {
-    return "Interval type required"
-  }
-  return ""
-})*/
-
-
 
 </script>
 

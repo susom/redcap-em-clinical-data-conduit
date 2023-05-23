@@ -2,7 +2,10 @@
 
   <div class="grid">
     <div v-for="(col, index) in filtered" :key="index" class="col mr-3" style="max-width: 500px">
-      <!-- set visibility-->
+        <div class="flex justify-content-between flex-wrap">
+          <div class="mb-2"><strong>Selections</strong></div>
+          <div v-if="hasAggregates" class="mb-2 mr-3"><strong>Aggregates</strong></div>
+        </div>
       <div v-for="field in col" :key="field.duster_field_name"
            :style="(field.visible) ? '' : hide"
            class="my-2 flex justify-content-between flex-wrap">

@@ -44,9 +44,6 @@
       <Column field="label" header="Label"></Column>
       <Column field="redcap_field_name" header="REDCap Field Name"></Column>
       <Column field="type" header="Type"></Column>
-
-      <Column field="value_type" header="Value Type"></Column>
-
       <Column field="redcap_field_type" header="REDCap Field Type"></Column>
     </DataTable>
 
@@ -58,8 +55,10 @@
           <span class="text-0 text-900 font-bold">Repeating Interval</span>
         </div>
       </template>
+      <Column field="label" header="Label"></Column>
       <Column field="type" header="Type"></Column>
       <Column field="length" header="Length"></Column>
+      <Column field="redcap_field_name" header="REDCap Field Name"></Column>
     </DataTable>
 
     <DataTable :value="cw.data.labs" class="mt-2"
@@ -244,7 +243,8 @@ const cwConfigs = computed<CollectionWindow[]>(()=>{
         timing: getTiming(cw.timing, index),
         event: (cw.event) ? getEvent(cw.event, index) : []
       }
-      config.data = getData(cw.data, index, cw.aggregate_defaults, config.event, cw.closest_time)
+      const closestTime = (cw.closest_time) ? cw.closest_time + ":00": undefined
+      config.data = getData(cw.data, index, cw.aggregate_defaults, config.event, closestTime)
       configs.push(config)
     })
   }
@@ -271,21 +271,44 @@ const getTimingCols = (timingObj:any, events:any) => {
     event: "Start",
     label: timingObj.start.label,
     redcap_field_name: timingObj.start.redcap_field_name,
-    redcap_field_type: timingObj.start.redcap_field_type
+    redcap_field_type: timingObj.start.redcap_field_type,
+    value_type: timingObj.start.value_type,
+    type: timingObj.start.type
+
   })
   cols.push({
     event: "End",
     label: timingObj.end.label,
     redcap_field_name: timingObj.end.redcap_field_name,
-    redcap_field_type: timingObj.end.redcap_field_type
+    redcap_field_type: timingObj.end.redcap_field_type,
+    value_type: timingObj.start.value_type,
+    type: timingObj.start.type
   })
+  if (timingObj.repeat_interval) {
+    cols.push({
+      event: "Interval Start",
+      label: timingObj.repeat_interval.label + " Start",
+      redcap_field_name: getIntervalFieldName(timingObj.start.redcap_field_name),
+      redcap_field_type: "text",
+      type: "datetime"
+    })
+    cols.push({
+      event: "Interval End",
+      label: timingObj.repeat_interval.label + " End",
+      redcap_field_name: getIntervalFieldName(timingObj.end.redcap_field_name),
+      redcap_field_type: "text",
+      type: "datetime"
+    })
+  }
   if (events) {
     events.forEach((event:any) => {
       cols.push({
         event: "Closest to Event",
         label: event.label,
         redcap_field_name: event.redcap_field_name,
-        redcap_field_type: event.redcap_field_type
+        redcap_field_type: event.redcap_field_type,
+        value_type: event.value_type,
+        type: event.type
       })
     })
   }
@@ -293,8 +316,16 @@ const getTimingCols = (timingObj:any, events:any) => {
 }
 
 const getRepeatCols=(timingObj:any)=> {
-  if (timingObj.repeat_interval)
-    return [timingObj.repeat_interval]
+  if (timingObj.repeat_interval) {
+    const prefix = timingObj.start.redcap_field_name.substring(0,
+        timingObj.start.redcap_field_name.indexOf("_"));
+    return [{
+      label: "Repeat Instance - " + timingObj.repeat_interval.label,
+      type: timingObj.repeat_interval.type,
+      length: timingObj.repeat_interval.length,
+      redcap_field_name: prefix + "_repeat_instance"
+    }]
+  }
 }
 
 const getTiming=(timing:any, index:number) => {
@@ -356,6 +387,12 @@ const getTimingConfig = (timing:TimingConfig, index: number, eventType:string) =
   return tconfig
 }
 
+const getIntervalFieldName = (eventName: string) => {
+  const insertIndex = eventName.indexOf("_datetime")
+  return eventName.substring(0, insertIndex) + "_interval" + eventName.substring(insertIndex);
+
+}
+
 const getData = (data:any, index:number, aggDefaults?: TextValuePair[], event?:TimingConfig[], closestTime?:string) => {
   let dconfig:any = {}
   dconfig.labs = getConfigWithAggregates(data.labs, index, aggDefaults, event, closestTime)
@@ -397,7 +434,6 @@ const getConfigWithAggregates = (data:FieldMetadata[],
         config.aggregate_options = {}
         config.aggregate_options.time = closestTime
         }
-
       configArray.push(config)
     }
   }

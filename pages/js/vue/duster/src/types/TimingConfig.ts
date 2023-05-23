@@ -59,8 +59,8 @@ export const INIT_TIMING_CONFIG: TimingConfig = {
     rp_date: undefined,
     duster_field_name: undefined,
     redcap_field_name: undefined,
-    redcap_field_type: "datetime",
-    value_type: "",
+    redcap_field_type: "text",
+    value_type: "datetime",
     interval: {...INIT_TIMING_INTERVAL},
     phi: "t"
 }

@@ -20,14 +20,19 @@
 
           </div>
       </div>
-<div>
-          <Checkbox v-model="selectAll"
+      <div class="formgrid grid">
+        <div class="col-offset-6 col-6">
+        <Button
+          label="Select All"
+          size="small"
+          @click="selectAll" />
+  <!--Checkbox v-model="selectAll"
                     id="selectAll"
                     :binary="true"
           />
-          <label for="selectAll" class="ml-2">Select All</label>
-
-</div>
+          <label for="selectAll" class="ml-2">Select All</label-->
+        </div>
+      </div>
     </Panel>
   </div>
 </template>
@@ -82,7 +87,17 @@ const sorted = computed(()=>{
   return props.demographicsOptions
 });
 
-const selectAll = ref<Boolean>(false)
+const selectAll = () => {
+  if (!selected.value) {
+    selected.value = []
+  }
+  selected.value.length = 0
+  if (sorted.value) {
+    selected.value = [...sorted.value]
+  }
+}
+
+/*const selectAll = ref<Boolean>(false)
 watch(selectAll, (newSelectAll: any) => {
   if (selected.value) {
     if (newSelectAll) {
@@ -94,7 +109,7 @@ watch(selectAll, (newSelectAll: any) => {
       selected.value.length = 0
     }
   }
-})
+})*/
 
 
 

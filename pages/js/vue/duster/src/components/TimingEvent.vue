@@ -23,10 +23,12 @@
           </div>
           <div v-if="type.value === event.type && type.value.indexOf('date') > -1" class="formgroup-inline">
             <div class="field">
-              <label v-if="event.type==='date' && eventType==='start'">
+              <label
+                  v-if="event.type==='date' && eventType==='start'">
                 00:00:00 of
               </label>
-              <label v-else-if="event.type==='date' && eventType==='end'">
+              <label
+                  v-else-if="event.type==='date' && eventType==='end'">
                 23:59:00 of
               </label>
               <Dropdown v-model="selectedEvent"
@@ -41,41 +43,9 @@
                 {{ v$.eventValue.$errors[0].$message }}
               </small>
 
-              <!--small v-if="selectedEventMissing"
-                     class="flex p-error mb-3">
-                {{ selectedEventMissing }}
-              </small-->
-              <!-- can't use DropdownWithValidation component here because it's returning an object>
-              <Field v-slot="{ field, errorMessage }"
-                     name="selectedEvent"
-                     v-model="selectedEvent"
-                     :rules="required"
-              >
-                <Dropdown
-                    v-bind="field"
-                    :options="filteredEventOptions"
-                    :class="{ 'p-invalid': errorMessage }"
-                    :modelValue="field.value"
-                    optionLabel="label"
-                    placeholder="Select an event"
-                    @input="field.onInput.forEach((fn) => fn($event.value))"
-                    @change="field.onChange.forEach((fn) => fn($event.value))"                />
-                <small class="p-error">{{ errorMessage || '&nbsp;' }}</small>
-              </Field-->
-
             </div>
             <div v-if="selectedEvent && selectedEvent.duster_field_name" class="field">
               <label> based on </label> <!--{{ selectedEvent.preposition }}&nbsp;-->
-              <!--DropdownWithValidation
-                  name="event.rp_date"
-                  v-model="event.rp_date"
-                  :options="rpDates"
-                  option-label="label"
-                  option-value="redcap_field_name"
-                  placeholder="Select an event"
-                  rules="required"
-                  style="width:8rem"
-              /-->
               <Dropdown v-model="event.rp_date"
                         :options="rpDates"
                         optionLabel="label"
@@ -87,55 +57,27 @@
                      class="flex p-error mb-3">
                 {{ v$.rp_date.$errors[0].$message }}
               </small>
-
-              <!--small v-if="rpDateMissing"
-                     class="flex p-error mb-3">
-                {{ rpDateMissing }}
-              </small-->
             </div>
           </div>
           <!-- interval options-->
           <div v-if="type.value === event.type && type.value === 'interval'" class="formgroup-inline">
             <div class="field ">
-                          <!--InputTextWithValidation
-                              id="intervalLength"
-                              name="event.interval.length"
-                              v-model="event.interval.length"
-                              classDef="w-full md:w-3rem"
-                              rules="required|integer"
-                              placeholder="# of"
-                              @value="event.label = eventLabel; emit('clearPreset')"
-                          /-->
             <InputNumber
                 v-model="intervalLength"
                 id="intervalLength"
                 input-id="integeronly"
-                style="width:3rem"
+                :min="1"
                 :class="{ 'p-invalid': v$.interval['length'].$error }"
+                :input-style="{'width': '3rem'}"
+                placeholder="# of"
                 @value="emit('clearPreset')"/>
               <small v-if="v$.interval['length'].$error"
                      class="flex p-error mb-3">
                 {{ v$.interval.length.$errors[0].$message }}
               </small>
-
-              <!--small v-if="eventIntervalLengthMissing"
-                     class="flex p-error mb-3">
-                {{ eventIntervalLengthMissing }}
-              </small-->
             </div>
 
             <div class="field ">
-              <!--DropdownWithValidation
-                  name="event.interval.type"
-                  v-model="event.interval.type"
-                  :options="INTERVAL_OPTIONS"
-                  option-label="text"
-                  option-value="value"
-                  classDef="w-full md:w-10rem"
-                  rules="required"
-                  placeholder="Hours / Days"
-                  @change="event.label = eventLabel; emit('clearPreset')"
-              /-->
               <Dropdown v-model="intervalType"
                         :options="filteredIntervalOptions"
                         optionLabel="text"
@@ -148,12 +90,6 @@
                      class="flex p-error mb-3">
                 {{ v$.interval.type.$errors[0].$message }}
               </small>
-
-              <!--small v-if="eventIntervalTypeMissing"
-                     class="flex p-error mb-3">
-                {{ eventIntervalTypeMissing }}
-              </small-->
-
             </div>
             <div class="field">
               <label v-if="eventType === 'start' && otherTimingEvent">
@@ -218,8 +154,7 @@ const props = defineProps({
   otherTimingEvent: {
     type: Object as PropType<TimingConfig>,
     required: true
-  },
-  submitted: Boolean
+  }
 })
 
 const emit = defineEmits(
@@ -242,46 +177,67 @@ if otherTimingEvent has type datetime, then this timing event should also have t
 of type hour
  */
 const filteredTimingTypes = computed( () => {
-  if (props.otherTimingEvent.type === 'interval') {
+  if (props.eventType === 'end' && props.otherTimingEvent.type) {
+      // match the type of start
+      if (props.otherTimingEvent.type.indexOf('date') > -1) {
+        return props.timeTypeOptions.filter(opt => (opt.value == props.otherTimingEvent.type
+            || opt.value == 'interval'))
+      } else if (props.otherTimingEvent.type === 'interval' && props.otherTimingEvent.interval?.type) {
+        const dateType = (props.otherTimingEvent.interval.type === 'day') ? "date" : "datetime"
+        return props.timeTypeOptions.filter(opt =>
+            opt.value === dateType)
+      }
+  } else if (props.otherTimingEvent.type === 'interval') {
     return props.timeTypeOptions.filter(opt => opt.value !== 'interval')
-  }
-  else if (props.eventType === 'end'
-      && props.otherTimingEvent.type
-      && props.otherTimingEvent.type.indexOf('date') > -1) {
-    return props.timeTypeOptions.filter(opt => (opt.value == props.otherTimingEvent.type
-        || opt.value == 'interval'))
   }
   return props.timeTypeOptions
 })
 
 const filteredIntervalOptions = computed(() => {
-      if (props.otherTimingEvent.type === 'datetime') {
-        return INTERVAL_OPTIONS.filter(opt => opt.value === 'hour')
-      } else if (props.otherTimingEvent.type === 'date') {
-        return INTERVAL_OPTIONS.filter(opt => opt.value === 'day')
-      }
-      return INTERVAL_OPTIONS
+  if (props.eventType === 'end') {
+    if (props.otherTimingEvent.type === 'datetime') {
+      return INTERVAL_OPTIONS.filter(opt => opt.value === 'hour')
+    } else if (props.otherTimingEvent.type === 'date') {
+      return INTERVAL_OPTIONS.filter(opt => opt.value === 'day')
     }
-)
+  }
+      return INTERVAL_OPTIONS
+})
 
 // match the date types of one event to the other if they are both date types
 watch(props.otherTimingEvent, (newOtherEvent) => {
-  if (((newOtherEvent?.type ?? "").indexOf("date") > -1)
-      && event.value.type
-      && event.value.type.indexOf("date") > -1) {
-    event.value.type = newOtherEvent.type
+  if (newOtherEvent.type) {
+    if ((newOtherEvent.type.indexOf("date") > -1)
+        && event.value.type
+        && event.value.type.indexOf("date") > -1) {
+      event.value.type = newOtherEvent.type
+    } else // the other event is an interval or undefined
+    if (!event.value.type
+        && newOtherEvent.interval
+        && newOtherEvent.interval.type) {
+      // if this event does not yet have a type then assign the correct datetime based on the interval type
+      event.value.type = (newOtherEvent.interval.type === 'hour') ? 'datetime' : 'date'
+    }
   }
-
 })
 
 
 // if the event type is datetime, only return list of datetimes
+// also filter out any researcher provided date/datetimes that don't have value_type or redcap_field_name configured
 const filteredEventOptions = computed(() => {
   if (event.value.type === 'datetime')
-      return props.eventOptions.filter(event => event.value_type === 'datetime')
+      return props.eventOptions
+          .filter(option => option
+              && option.value_type
+              && (option.duster_field_name || option.redcap_field_name)
+              && option.value_type === 'datetime')
   else
     return props.eventOptions
-    }
+        .filter(option => option
+            && option.value_type
+            && (option.duster_field_name || option.redcap_field_name)
+        )
+}
 )
 
 const intervalType = computed({
@@ -301,10 +257,10 @@ const intervalLength = computed({
     return event.value.interval?.length ?? 0
   },
   set(value:number) {
-    if (!event.value.interval) {
-      event.value.interval = {...INIT_TIMING_INTERVAL}
-    }
-    event.value.interval.length = value
+      if (!event.value.interval) {
+        event.value.interval = {...INIT_TIMING_INTERVAL}
+      }
+      event.value.interval.length = value
   }
 })
 
@@ -429,7 +385,7 @@ const getDateText = (options: TimingConfig[],
 /* Validation Rules */
 
 
-const nonNegativeInteger = helpers.regex(/^[0-9]+$/)
+const positiveInteger = helpers.regex(/^[1-9][0-9]*$/)
 
 const validationState = computed(() => {
   return {
@@ -454,10 +410,10 @@ const rules = computed(() => ( {
           requiredIf(event.value.type == 'interval'))
     },
     length: {
-      requiredIf: helpers.withMessage('Required',
+      requiredIf: helpers.withMessage('Value must be a positive integer',
           requiredIf(event.value.type == 'interval')),
-      nonNegativeInteger: helpers.withMessage('Value must be a non-negative integer',
-          nonNegativeInteger)
+      positiveInteger: helpers.withMessage('Value must be a positive integer',
+          positiveInteger)
     }
   },
   rp_date: {
@@ -468,60 +424,14 @@ const rules = computed(() => ( {
 )
 const v$ = useVuelidate(rules, validationState)
 
-/***********/
-
-/*validation rule and messages*/
-/*const eventRequired = computed(() =>{
-  return !event.value.duster_field_name
-      && !event.value.redcap_field_name
-      && !(event.value.type === 'interval')
-})
-
-const eventTypeMissing = computed(() =>{
-  if (props.submitted && !event.value.type) {
-    return "Event type required."
-  }
-  return ""
-})
-
-const selectedEventMissing = computed(() =>{
-  if (props.submitted && (!selectedEvent.value ||
-      (!selectedEvent.value.duster_field_name && !selectedEvent.value.redcap_field_name))) {
-    return "Event required"
-  }
-  return ""
-})
-
-const rpDateMissing = computed(() => {
-  if (props.submitted && !selectedEventMissing.value.length && !event.value.rp_date) {
-    return "Researcher provided date required"
-  }
-  return ""
-})
-
-const eventIntervalLengthMissing = computed(() => {
-  if (props.submitted && event.value.type === 'interval'
-      && (event.value.interval?.length ?? 0) <= 0) {
-    return "Interval length must be a positive integer"
-  }
-  return ""
-})
-
-const eventIntervalTypeMissing = computed(() => {
-  if (props.submitted && event.value.type === 'interval'
-      && !event.value.interval?.type) {
-    return "Interval type required"
-  }
-  return ""
-})*/
-
+/*vuelidate should propagate touch?
 watchEffect(() => {
   if (props.submitted) {
     v$.value.$touch() ;
     //console.log("Validation errors :" + v$.value.$error) ;
     console.log('timing event ' + v$.value)
   }
-})
+})*/
 
 const eventTooltip = computed(() => {
   if (props.eventType == 'start') {

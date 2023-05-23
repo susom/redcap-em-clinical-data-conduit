@@ -25,7 +25,7 @@
     </Column>
     <Column  key="timing_display"
              header="Period"
-             style="width: 30%"
+             style="width: 20%"
              class="text-sm">
       <template #body="{ data }">
         <div v-if="data['timing']['start']['label']"
@@ -43,16 +43,16 @@
         </div>
       </template>
     </Column>
-    <Column  key="label" field="label" header="Label" style="width: 15%">
+    <Column  key="label" field="label" header="Label" style="width: 25%">
       <template #body="slotProps">
         <div class="field">
           <InputText
             v-model="slotProps.data[slotProps.field]"
-            :class="['w-full md:w-8rem',
-            {'p-invalid': v$.localCollectionWindows.$each.$response.$errors[slotProps.index].label.length}]"
-            classDef="w-full md:w-8rem">
+            :class="['w-full md:w-12rem',
+            {'p-invalid': labelInvalid(slotProps.index)}]"
+            classDef="w-full md:w-12rem">
           </InputText>
-          <small v-if="v$.localCollectionWindows.$each.$response.$errors[slotProps.index].label.length"
+          <small v-if="labelInvalid(slotProps.index)"
                  class="flex p-error mb-3">
             {{ v$.localCollectionWindows.$each.$response.$errors[slotProps.index].label[0].$message }}
           </small>
@@ -227,6 +227,7 @@ onMounted(()=> {
       addNew()
     }
   }
+  v$.value.$reset()
 })
 
 const addNew = () => {
@@ -236,9 +237,6 @@ const addNew = () => {
   if (localCollectionWindows.value) {
     localCollectionWindows.value.push(newCw)
   }
-  /*if (localCollectionWindowsEditing.value) {
-    localCollectionWindowsEditing.value.push(newCw)
-  }*/
 }
 
 
@@ -322,7 +320,45 @@ const eventDts = computed<TimingConfig[]>(
 
 const clinicalDataCategory = ref<string>()
 
+/*** vuelidate ***/
+const labelInvalid = (index: number) =>{
+  if (v$.value.localCollectionWindows.$each.$response
+    && v$.value.localCollectionWindows.$each.$response['$errors']
+  && v$.value.localCollectionWindows.$each.$response.$errors[index]
+  && v$.value.localCollectionWindows.$each.$response.$errors[index].label.length) {
+    return true
+  }
+  return false
+}
+
+const uniqueLabel = (value:String, siblings:any, vm:any) => {
+  return (localCollectionWindows.value.findIndex(cw => cw.id != siblings.id && cw.label == value) == -1)
+}
+const validationState = computed(() => {
+  return {
+    localCollectionWindows: localCollectionWindows.value
+  }
+})
+const rules = {
+  localCollectionWindows: {
+    $each: helpers.forEach({
+          label: {
+            required: helpers.withMessage('Labels are required', required),
+            uniqueLabel: helpers.withMessage('Labels must be unique', uniqueLabel)
+          },
+          timing_valid: {
+            sameAs: helpers.withMessage("Timing Configuration is invalid.", sameAs(true))
+          }
+        }
+    )
+  }
+}
+
+const v$ = useVuelidate(rules, validationState, {$lazy: true})
+/****/
+
 const saveUpdate = () => {
+  v$.value.$reset()
   // remove from editing?
   if (currentCollectionWindow.value && currentCollectionWindow.value.id) {
     let editIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindowsEditing.value)
@@ -333,6 +369,7 @@ const saveUpdate = () => {
 }
 
 const restoreInitialStates = () => {
+  v$.value.$reset()
   if (localCollectionWindows.value && currentCollectionWindow.value && currentCollectionWindow.value.id) {
     let editIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindowsEditing.value)
     if (savedCollectionWindow.value && editIndex > -1) {
@@ -373,31 +410,8 @@ const getRowIndex = (id:string, haystack:any[]) => {
       (cw) => cw.id === id)
 }
 
-const uniqueLabel = (value:String, siblings:any, vm:any) => {
-  return (localCollectionWindows.value.findIndex(cw => cw.id != siblings.id && cw.label == value) == -1)
-}
 
-const validationState = computed(() => {
-  return {
-    localCollectionWindows: localCollectionWindows.value
-  }
-})
-const rules = {
-  localCollectionWindows: {
-    $each: helpers.forEach({
-          label: {
-            required: helpers.withMessage('Labels are required', required),
-            uniqueLabel: helpers.withMessage('Labels must be unique', uniqueLabel)
-          },
-          timing_valid: {
-            sameAs: helpers.withMessage("Timing Configuration is invalid.", sameAs(true))
-          }
-        }
-      )
-    }
-  }
 
-const v$ = useVuelidate(rules, validationState)
 
 </script>
 

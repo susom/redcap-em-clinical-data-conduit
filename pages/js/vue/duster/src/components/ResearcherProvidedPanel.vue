@@ -19,12 +19,12 @@
               <Dropdown
                   v-model="slotProps.data[slotProps.field]"
                     :options="dateTypes"
-                    :class="['w-full md:w-6rem',{'p-invalid':v$.rpData.$each.$response.$errors[slotProps.index].value_type.length}]"
+                    :class="['w-full md:w-6rem',{'p-invalid':rpFieldInvalid('value_type', slotProps.index)}]"
                     optionLabel="text"
                     optionValue="dtValue"
                     placeholder="Select a type">
                 </Dropdown>
-                <small v-if="v$.rpData.$each.$response.$errors[slotProps.index].value_type.length"
+                <small v-if="rpFieldInvalid('value_type', slotProps.index)"
                        class="flex p-error mb-3">
                   {{ v$.rpData.$each.$response.$errors[slotProps.index].value_type[0].$message }}
                 </small>
@@ -38,16 +38,18 @@
               header="Label">
             <template
                 #body="slotProps">
-              <div class="field">
-              <InputText
+              <div class="field"
+                v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'">
+                <InputText
                   v-model="slotProps.data[slotProps.field]"
-                  :class="['w-full', {'p-invalid': v$.rpData.$each.$response.$errors[slotProps.index].label.length}]">
+                  :class="['w-full', {'p-invalid': rpFieldInvalid('label', slotProps.index)}]">
               </InputText>
-              <small v-if="v$.rpData.$each.$response.$errors[slotProps.index].label.length"
+              <small v-if="rpFieldInvalid('label', slotProps.index)"
                      class="flex p-error mb-3">
                 {{ v$.rpData.$each.$response.$errors[slotProps.index].label[0].$message }}
               </small>
               </div>
+              <span v-else>{{slotProps.data.label}}</span>
             </template>
           </Column>
           <Column
@@ -57,16 +59,18 @@
               >
             <template
                 #body="slotProps">
-              <div class="field">
-                <InputText
+              <div class="field"
+                   v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'">
+              <InputText
                     v-model="slotProps.data[slotProps.field]"
-                    :class="['w-full', {'p-invalid': v$.rpData.$each.$response.$errors[slotProps.index].redcap_field_name.length}]">
+                    :class="['w-full', {'p-invalid': rpFieldInvalid('redcap_field_name', slotProps.index)}]">
                 </InputText>
-                <small v-if="v$.rpData.$each.$response.$errors[slotProps.index].redcap_field_name.length"
+                <small v-if="rpFieldInvalid('redcap_field_name', slotProps.index)"
                        class="flex p-error mb-3">
                   {{ v$.rpData.$each.$response.$errors[slotProps.index].redcap_field_name[0].$message }}
                 </small>
               </div>
+              <span v-else>{{slotProps.data.redcap_field_name}}</span>
             </template>
           </Column>
           <Column
@@ -202,6 +206,18 @@ const otherFieldNames = (id:string) => {
       .concat(props.reservedFieldNames)
 }
 
+/**** vuelidate ***/
+/* this is needed b/c we have set initialization to lazy **/
+const rpFieldInvalid = (field:string, index: number) =>{
+  if (v$.value.rpData.$each.$response
+      && v$.value.rpData.$each.$response['$errors']
+      && v$.value.rpData.$each.$response.$errors[index]
+      && v$.value.rpData.$each.$response.$errors[index][field].length) {
+    return true
+  }
+  return false
+}
+
 const uniqueLabel = (value:string, siblings:any, vm: any) => {
   return (localRpProvidedData.value.findIndex(rp => rp.id != siblings.id && rp.label == value) == -1)
 }
@@ -239,7 +255,7 @@ const rules = {
   }
 }
 
-const v$ = useVuelidate(rules, state)
+const v$ = useVuelidate(rules, state, {$lazy: true})
 
 </script>
 

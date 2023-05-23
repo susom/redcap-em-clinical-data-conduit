@@ -57,12 +57,39 @@ try {
   // Clinical Windows
   if(array_key_exists("collection_windows", $config)) {
     foreach($config["collection_windows"] as $collection_window) {
-      $repeat_window = $collection_window["type"] === "finite_repeating" || $collection_window["type"] === "calculated_repeating";
+      $repeat_window = $collection_window["type"] === "repeating";
       // add form
       $odm->addForm($collection_window["form_name"], $collection_window["label"], $repeat_window);
       // add timing fields with its own section header
       $timing_fields_arr = [$collection_window["timing"]["start"], $collection_window["timing"]["end"]];
       $odm->addFields($collection_window["form_name"], null, null, "Timing", $timing_fields_arr);
+      // add repeat instance start/stop
+      if ($repeat_window) {
+          $repeat_fields_arr = [];
+          $repeat_instance = [];
+          $repeat_instance['label'] = 'Repeat Instance';
+          $repeat_instance["value_type"] = "text";
+          $repeat_instance["redcap_field_name"] = substr($collection_window["timing"]["start"]["redcap_field_name"],
+              0, strpos($collection_window["timing"]["start"]["redcap_field_name"], "_")) . "_repeat_instance";
+          $repeat_instance["redcap_field_type"] = "text";
+          array_push($repeat_fields_arr, $repeat_instance);
+
+          $instance_start=[];
+          $instance_start["label"] = 'Start Interval Datetime';
+          $instance_start["value_type"] = "datetime";
+          $instance_start["redcap_field_name"] = substr_replace($collection_window["timing"]["start"]["redcap_field_name"],
+              "_instance", strpos($collection_window["timing"]["start"]["redcap_field_name"], "_datetime"), 0);
+          $instance_start["redcap_field_type"] = "text";
+          array_push($repeat_fields_arr, $instance_start);
+          $instance_end=[];
+          $instance_end["label"] = 'End Interval Datetime';
+          $instance_end["value_type"] = "datetime";
+          $instance_end["redcap_field_name"] = substr_replace($collection_window["timing"]["end"]["redcap_field_name"],
+            "_instance", strpos($collection_window["timing"]["end"]["redcap_field_name"], "_datetime"), 0);
+          $instance_end["redcap_field_type"] = "text";
+          array_push($repeat_fields_arr, $instance_end);
+          $odm->addFields($collection_window["form_name"], null, null, "Repeat Interval", $repeat_fields_arr);
+      }
       // if applicable, add closest to event with its own section header
       if(count($collection_window["event"]) > 0 && !empty((array)$collection_window["event"][0])) {
         $odm->addFields($collection_window["form_name"], null, null, "Closest Event Aggregation", $collection_window["event"]);

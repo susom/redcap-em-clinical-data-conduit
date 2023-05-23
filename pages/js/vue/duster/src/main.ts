@@ -5,6 +5,7 @@ import AccordionTab from "primevue/accordiontab";
 import Badge from 'primevue/badge'
 
 import Button from 'primevue/button'
+import Calendar from 'primevue/calendar'
 import Card from 'primevue/card'
 import Checkbox from 'primevue/checkbox'
 import Toast from 'primevue/toast';
@@ -40,6 +41,7 @@ const app = createApp(App)
     .component('AccordionTab', AccordionTab)
     .component( 'Badge', Badge)
     .component( 'Button', Button)
+    .component( 'Calendar', Calendar)
     .component( 'Card', Card)
     .component( 'Checkbox', Checkbox)
     .component( 'Column', Column)

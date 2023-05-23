@@ -4,15 +4,15 @@
   <DataTable rowGroupMode="subheader" groupRowsBy="category" :value="thisScore"
       sortMode="single" sortField="category" :sortOrder="1"
       v-model:expandedRowGroups="expandedRowGroups"
-      expandableRowGroups
-             @rowgroup-expand="onRowGroupExpand"
-             @rowgroup-collapse="onRowGroupCollapse">
+             expandableRowGroups
+             @rowgroup-expand="collapsed = false"
+             @rowgroup-collapse="expanded = false">
     <template #header>
       <div class="flex flex-wrap align-items-center justify-content-between gap-2">
         <span class="text-0 text-900 font-bold">REDCap values</span>
         <span>
-      <Button text icon="pi pi-plus" label="Expand All" @click="expanded = true" />
-      <Button text icon="pi pi-minus" label="Collapse All" @click="collapsed = true" />
+      <Button text icon="pi pi-plus" label="Expand All" @click="expandAll" />
+      <Button text icon="pi pi-minus" label="Collapse All" @click="collapseAll" />
     </span>
       </div>
     </template>
@@ -21,7 +21,7 @@
     {{ slotProps.data.category }}
       </span>
   </template>
-  <Column field="category" header="Category"></Column>
+  <Column field="" header=""></Column>
   <Column field="label" header="Label"></Column>
   <Column field="redcap_field_name" header="REDCap Field Name"></Column>
 
@@ -67,21 +67,6 @@ const expandAll = () => {
 const collapseAll = () => {
   expanded.value = false
   expandedRowGroups.value = [];
-};
-
-watchEffect(() => {
-  if (expanded.value) {
-    expandAll()
-  } else if (collapsed.value) {
-    collapseAll()
-  }
-})
-
-const onRowGroupExpand = () => {
-  collapsed.value=false
-};
-const onRowGroupCollapse = () => {
-  expanded.value=false
 };
 </script>
 

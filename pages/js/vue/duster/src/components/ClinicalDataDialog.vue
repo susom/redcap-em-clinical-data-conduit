@@ -86,11 +86,13 @@
                   <label :for="closestTimeOption.value">{{ closestTimeOption.text }}</label>
                 </div>
                 <div class="field" v-if="showClosestTime">
-                <InputText v-model="closestTime"
+                  <Calendar id="calendar-timeonly" v-model="closestCalendarTime" timeOnly />
+
+                  <!--InputText v-model="closestTime"
                            style="width:10rem"
                            placeholder="00:00:00"
                            :class="['w-full md:w-10rem',{'p-invalid': v$.closestTime.$error}]"
-                />
+                /-->
                 <small v-if="v$.closestTime.$error"
                        class="flex p-error mb-3">
                   {{ v$.closestTime.$errors[0].$message }}
@@ -101,9 +103,9 @@
           </div>
         </div>
         <!-- closest event-->
-        <div class="field grid">
-          <div class="col-offset-2 col-12">
-            <div class="formgroup-inline">
+        <div v-if="hasClosestEvent" class="field grid">
+            <div class="formgroup-inline col">
+              <div class="col-offset-2 col-12">
               <div class="field-checkbox">
                 <Checkbox v-model="localAggregateDefaults"
                           name="defaultAggregate"
@@ -367,7 +369,6 @@ const datetimeEventOptions = computed(() => {
 
 
 /*** closest time ***/
-
 const closestTime = computed({
   get() {
     return props.closestToTime;
@@ -377,10 +378,42 @@ const closestTime = computed({
   }
 })
 
+const calDate = new Date()
+const closestCalendarTime = ref(Date())
+
+/*const closestCalendarTime = computed({
+  get() {
+    if (props.closestToTime) {
+      calDate.setHours(parseInt(props.closestToTime.slice(0, 2)))
+      calDate.setMinutes(parseInt(props.closestToTime.slice(4, 6)))
+    } else {
+      calDate.setHours(0)
+      calDate.setMinutes(0)
+    }
+      calDate.setSeconds(0)
+    return calDate;
+  },
+  set(value: Date) {
+    emit('update:closestToTime', value.getHours() + ":" + value.getMinutes() + ":00")
+  }
+})*/
+
+
 /** closest time checkbox option **/
 const closestTimeOption = computed(() => {
   return (AGGREGATE_OPTIONS.find(option => option.value === 'closest_time')
       ?? {text:"Closest Time", value:"closest_time"})
+})
+
+/* whether to show closest event as default aggregate*/
+const hasClosestEvent = computed(() => {
+  if (props.timing) {
+    if (props.timing.repeat_interval
+        && props.timing.repeat_interval.length > 0) {
+      return false
+    }
+  }
+  return true
 })
 
 /* whether to show closest time as default aggregate*/
@@ -397,6 +430,13 @@ const hasClosestTime = computed(() => {
         props.timing.repeat_interval.length == 1) {
       return true
     }
+    if (props.timing.start.type ==='date' && props.timing.end.type ==='date' &&
+        (props.timing.start.duster_field_name === props.timing.end.duster_field_name ||
+            props.timing.start.redcap_field_name === props.timing.end.redcap_field_name)
+    ) {
+      return true
+    }
+
     /*if (props.timing.start.interval.type=="hour" && props.timing.start.interval.length == 24) {
       return true
     }
@@ -432,6 +472,25 @@ const showClosestTime = computed(() => {
   return show
 })
 
+watchEffect(() => {
+  if (!showClosestTime.value) {
+    closestCalendarTime.value = ""
+    closestTime.value = undefined
+  }
+})
+
+watchEffect(() => {
+  if (closestCalendarTime.value) {
+    let toDate = new Date(closestCalendarTime.value)
+    closestTime.value = ("0" + toDate.getHours()).slice(-2)
+        + ":" + ("0" + toDate.getMinutes()).slice(-2)
+        + ":00"
+  } else {
+    closestTime.value = "00:00:00"
+  }
+  console.log(closestTime.value)
+})
+
 const defaultAggregatesRequired = computed(() => {
   let hasDefaults = (localClinicalData.value.labs.findIndex((cd: any) =>
       (cd.selected && cd.aggregate_type == 'default')) > -1)
@@ -443,8 +502,6 @@ const defaultAggregatesRequired = computed(() => {
   return hasDefaults
   }
 )
-
-const closestTimeRef = ref<String>()
 
 const timeFormat = helpers.regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)
 
