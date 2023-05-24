@@ -47,12 +47,11 @@
     </Column>
     <Column  key="label" field="label" header="Label" style="width: 25%">
       <template #body="slotProps">
-        <div class="field">
-          <InputText
+        <div>
+          <InputText            
             v-model="slotProps.data[slotProps.field]"
-            :class="['w-full md:w-12rem',
-            {'p-invalid': labelInvalid(slotProps.index)}]"
-            classDef="w-full md:w-12rem">
+            :class="['p-inputtext-sm', 'w-11',{'p-invalid': labelInvalid(slotProps.index)}]"
+            >
           </InputText>
           <small v-if="labelInvalid(slotProps.index)"
                  class="flex p-error mb-3">
