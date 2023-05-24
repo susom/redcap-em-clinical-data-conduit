@@ -1,12 +1,14 @@
 <template>
-  <Panel header='Data Collection Configuration '>
+  <Panel>
     <template #header>
-      <span class="flex my-0"><h4>Data Collection Configuration</h4>
+      <span class="p-panel-title">Data Collection Configuration        
         <Button icon="pi pi-info-circle"
                 text rounded
                 aria-label="Info"
-                class="ml-2 mt-2"
-                @click="showDataCollectionInfo = true"/>
+                class="ml-2 pt-0 pb-0 mt-0 mb-0"
+                style="height:1.3em"
+                @click="showDataCollectionInfo = true"/>      
+        
         </span>
     </template>
       <DataTable

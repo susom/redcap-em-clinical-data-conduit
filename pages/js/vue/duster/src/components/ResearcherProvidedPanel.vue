@@ -14,7 +14,7 @@
               field="value_type"
               header="Type">
             <template #body="slotProps">
-              <div class="field"
+              <div
                    v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'">
               <Dropdown
                   v-model="slotProps.data[slotProps.field]"
@@ -38,7 +38,7 @@
               header="Label">
             <template
                 #body="slotProps">
-              <div class="field"
+              <div
                 v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'">
                 <InputText
                   v-model="slotProps.data[slotProps.field]"
@@ -59,7 +59,7 @@
               >
             <template
                 #body="slotProps">
-              <div class="field"
+              <div
                    v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'">
               <InputText
                     v-model="slotProps.data[slotProps.field]"
