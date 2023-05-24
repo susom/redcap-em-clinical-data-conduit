@@ -24,6 +24,8 @@
           :event-options="eventOptions"
           :rp-dates="rpDates"
           :other-timing-event="cw.timing.end"
+          :instigator="eventInstigator"
+          @instigate="(instigator) => eventInstigator = instigator"
           @clear-preset="clearPreset"
       />
     </div>
@@ -36,7 +38,9 @@
           :event-options="eventOptions"
           :rp-dates="rpDates"
           :other-timing-event="cw.timing.start"
+          :instigator="eventInstigator"
           @clear-preset="clearPreset"
+          @instigate="(instigator) => eventInstigator = instigator"
       />
     </div>
     <Divider/>
@@ -175,6 +179,7 @@ const cw = computed({
 
 /*****  repeat interval *****/
 
+/* no longer needed?*/
 const filteredIntervalOptions = computed(() => {
       if (cw.value.timing.start.type === 'datetime' || cw.value.timing.end.type === 'datetime') {
         return INTERVAL_OPTIONS.filter(opt => opt.value === 'hour')
@@ -209,6 +214,7 @@ const repeatIntervalLength = computed({
   }
 })
 
+/* set the repeat interval label.*/
 watchEffect(() => {
   if (cw.value.timing.repeat_interval &&
       repeatIntervalLength.value && repeatIntervalLength.value >= 0
@@ -234,9 +240,12 @@ const repeatIntervalDisabled = computed(() => {
       cw.value.timing.end.type)
 })
 
+/* set the repeat interval type based on start/end types*/
 watchEffect(() => {
-  if (hasRepeatIntervals.value && !cw.value.timing.repeat_interval?.type) {
-    cw.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
+  if (hasRepeatIntervals.value) {
+    if (!cw.value.timing.repeat_interval) {
+      cw.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
+    }
     if (cw.value.timing.start.type === 'datetime' || cw.value.timing.end.type === 'datetime') {
       cw.value.timing.repeat_interval.type = 'hour'
     } else if (cw.value.timing.start.type  === 'date' || cw.value.timing.end.type === 'date') {
@@ -250,7 +259,8 @@ watchEffect(() => {
 })
 
 const selectedPreset = ref<CollectionWindow>()
-// add a watch to selectedPresets
+
+// set start and end values based on presets
 watchEffect(() => {
   if (selectedPreset.value) {
     cw.value.timing.start = JSON.parse(JSON.stringify(selectedPreset.value.timing.start))
@@ -264,6 +274,10 @@ watchEffect(() => {
       cw.value.timing.end.rp_date = props.rpDates[0].redcap_field_name
   }
 })
+
+const eventInstigator = ref<string>()
+
+/*** validation **/
 
 const poistiveInteger = helpers.regex(/^[1-9][0-9]*$/)
 

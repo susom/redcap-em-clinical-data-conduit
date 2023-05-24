@@ -11,11 +11,12 @@
           <div class="field-radiobutton mt-1">
             <RadioButton
                 v-model="event.type"
-                name="startTimeType"
+                :name="eventType + 'TimeType'"
                 :inputId="type.value"
                 :id="type.value"
                 :value="type.value"
                 :class="{ 'p-invalid': v$.type.$error }"
+                @click="$emit('instigate', eventType)"
                 @change="event.label = eventLabel; emit('clearPreset')"
             />
             <label :for="type.value" class="ml-2" v-tooltip="type.tooltip"
@@ -120,13 +121,10 @@ import {computed, ref, watch, watchEffect} from "vue";
 import type {PropType} from "vue";
 import type {MenuOption} from "@/types/TextValuePair";
 import type TimingConfig from "@/types/TimingConfig";
-import type {INTERVAL_TYPE} from "@/types/TimingConfig";
+import type {TIMING_TYPE, INTERVAL_TYPE} from "@/types/TimingConfig";
 import type FieldConfig from "@/types/FieldConfig";
 import {INIT_TIMING_CONFIG, INIT_TIMING_INTERVAL, INTERVAL_OPTIONS} from "@/types/TimingConfig";
-//import {defineRule, configure} from 'vee-validate'
-//import { required } from '@vee-validate/rules';
-//import {localize} from "@vee-validate/i18n";
-import {required, integer, requiredIf, helpers} from "@vuelidate/validators";
+import {required, requiredIf, helpers} from "@vuelidate/validators";
 import {useVuelidate} from "@vuelidate/core";
 
 const props = defineProps({
@@ -154,11 +152,14 @@ const props = defineProps({
   otherTimingEvent: {
     type: Object as PropType<TimingConfig>,
     required: true
+  },
+  instigator: {
+    type: String
   }
 })
 
 const emit = defineEmits(
-    ['update:timingObject', 'clearPreset']
+    ['update:timingObject', 'clearPreset','instigate']
 )
 
 const event = computed({
@@ -170,7 +171,9 @@ const event = computed({
   }
 });
 
-/* if otherTimingEvent has type interval, than this timing event can not have type interval
+/* restrict type options based on selections
+**All options always available for "start"**
+if otherTimingEvent has type interval, than this timing event can not have type interval
 if otherTimingEvent has type date, then this timing event should also have type date,
 or an interval of type calendar day
 if otherTimingEvent has type datetime, then this timing event should also have type datetime or an interval
@@ -204,26 +207,25 @@ const filteredIntervalOptions = computed(() => {
       return INTERVAL_OPTIONS
 })
 
-// match the date types of one event to the other if they are both date types
-watch(props.otherTimingEvent, (newOtherEvent) => {
-  if (newOtherEvent.type) {
-    if ((newOtherEvent.type.indexOf("date") > -1)
-        && event.value.type
-        && event.value.type.indexOf("date") > -1) {
-      event.value.type = newOtherEvent.type
-    } else // the other event is an interval or undefined
-    if (!event.value.type
-        && newOtherEvent.interval
-        && newOtherEvent.interval.type) {
-      // if this event does not yet have a type then assign the correct datetime based on the interval type
-      event.value.type = (newOtherEvent.interval.type === 'hour') ? 'datetime' : 'date'
-    }
+// select event type based on selection of other event
+// Interval type is selected in different watchEffect method
+// props.instigator tracks who initiated the type change so we don't keep going around in circles
+watchEffect(() =>{
+  // if there's only one value option, then select it.
+  if (filteredTimingTypes.value.length === 1) {
+    // @ts-nocheck
+    event.value.type = filteredTimingTypes.value[0].value as TIMING_TYPE
+  } else if (props.eventType != props.instigator
+      && props.otherTimingEvent.type
+      && props.otherTimingEvent.type !== event.value.type
+      && props.otherTimingEvent.type !== 'interval'
+      && event.value.type !== 'interval') {
+    event.value.type = props.otherTimingEvent.type
   }
 })
 
-
 // if the event type is datetime, only return list of datetimes
-// also filter out any researcher provided date/datetimes that don't have value_type or redcap_field_name configured
+// also filter out any options that don't have redcap_field_names
 const filteredEventOptions = computed(() => {
   if (event.value.type === 'datetime')
       return props.eventOptions
@@ -237,7 +239,7 @@ const filteredEventOptions = computed(() => {
             && option.value_type
             && (option.duster_field_name || option.redcap_field_name)
         )
-}
+  }
 )
 
 const intervalType = computed({
@@ -269,10 +271,12 @@ watchEffect(()=> {
     if (!event.value.interval) {
       event.value.interval = {...INIT_TIMING_INTERVAL}
     }
-    if (props.otherTimingEvent.type === 'datetime') {
-      intervalType.value = 'hour'
-    } else if (props.otherTimingEvent.type === 'date') {
-      intervalType.value = 'day'
+    if (!intervalType.value) {
+      if (props.otherTimingEvent.type === 'datetime') {
+        intervalType.value = 'hour'
+      } else if (props.otherTimingEvent.type === 'date') {
+        intervalType.value = 'day'
+      }
     }
     // note to self: event.value.interval.label was incorrect value when two statements were combine
     event.value.interval.label = intervalLength.value.toString() + " " + intervalType.value
@@ -281,22 +285,6 @@ watchEffect(()=> {
   event.value.label = event.value.interval.label
   }
 })
-
-/*watch([intervalLength, intervalType],
-    ([newIntervalLength, newIntervalType]) => {
-  if (event.value.type == 'interval') {
-    if (!event.value.interval) {
-      event.value.interval = {...INIT_TIMING_INTERVAL}
-    }
-    //event.value.interval.type = newIntervalType
-    //event.value.interval.length = newIntervalLength
-    event.value.interval.label = newIntervalLength.toString() + " " + newIntervalType
-    event.value.interval.label += (props.eventType == 'start') ? "(s) before End"
-          : "(s) after Start"
-    event.value.label = event.value.interval.label
-  }
-    })*/
-
 
 const selectedEvent = computed<TimingConfig>({
   get() {
@@ -379,8 +367,7 @@ const getDateText = (options: TimingConfig[],
   return ""
 }
 
-/*** vuelidate
- */
+/*** vuelidate*/
 
 /* Validation Rules */
 
@@ -395,7 +382,6 @@ const validationState = computed(() => {
     rp_date: event.value.rp_date
   }
 })
-
 
 const rules = computed(() => ( {
   type: { required: helpers.withMessage('Required', required) },
@@ -423,15 +409,6 @@ const rules = computed(() => ( {
 })
 )
 const v$ = useVuelidate(rules, validationState)
-
-/*vuelidate should propagate touch?
-watchEffect(() => {
-  if (props.submitted) {
-    v$.value.$touch() ;
-    //console.log("Validation errors :" + v$.value.$error) ;
-    console.log('timing event ' + v$.value)
-  }
-})*/
 
 const eventTooltip = computed(() => {
   if (props.eventType == 'start') {
