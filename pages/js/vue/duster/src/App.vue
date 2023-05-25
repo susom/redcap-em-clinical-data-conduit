@@ -296,12 +296,18 @@ const checkValidation = () => {
     showSummary.value = true
   } else {
     console.log(v$)
-    v$.value.$errors.forEach(error =>
-        toast.add({
-          severity: 'error',
-          summary: 'Missing values', detail: error.$message,
-          life: 3000
-        })
+    v$.value.$errors.forEach(error => {
+          // @ts-ignore
+          error.$message.forEach(msgs =>
+              msgs.forEach( (msg:string) =>
+                  toast.add({
+                    severity: 'error',
+                    summary: 'Missing values', detail: msg,
+                    life: 3000
+              })
+              )
+          )
+        }
     )
   }
   return false

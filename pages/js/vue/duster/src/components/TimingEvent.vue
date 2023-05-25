@@ -117,7 +117,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, watch, watchEffect} from "vue";
+import {capitalize, computed, ref, watch, watchEffect} from "vue";
 import type {PropType} from "vue";
 import type {MenuOption} from "@/types/TextValuePair";
 import type TimingConfig from "@/types/TimingConfig";
@@ -324,15 +324,11 @@ const selectedEvent = computed<TimingConfig>({
   }
 })
 
-const capitalizedEventType = computed<string>(() => {
-  return props.eventType.charAt(0).toUpperCase() + props.eventType.slice(1)
-})
-
 const eventTypeLabel = computed<string>(() => {
   if (props.typeLabel) {
     return props.typeLabel
   } else {
-    return capitalizedEventType.value + " at: "
+    return capitalize(props.eventType) + " at: "
   }
 })
 
@@ -386,7 +382,7 @@ const validationState = computed(() => {
 const rules = computed(() => ( {
   type: { required: helpers.withMessage('Required', required) },
   eventValue: {
-    requiredIf: helpers.withMessage('Required ' + capitalizedEventType.value + " Event",
+    requiredIf: helpers.withMessage('Required ' + capitalize(props.eventType) + " Event",
         requiredIf(event.value.type !== 'interval'))
   },
   interval: {

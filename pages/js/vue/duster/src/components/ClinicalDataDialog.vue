@@ -488,7 +488,6 @@ watchEffect(() => {
   } else {
     closestTime.value = "00:00:00"
   }
-  console.log(closestTime.value)
 })
 
 const defaultAggregatesRequired = computed(() => {

@@ -41,6 +41,11 @@ export interface TimingInterval {
     length: number | undefined
 }
 
+export interface RepeatTimingInterval extends TimingInterval {
+    start_instance : BasicConfig
+    end_instance : BasicConfig
+}
+
 export type INTERVAL_TYPE = "day" |  "hour" | undefined
 export const INTERVAL_OPTIONS:Array<TextValuePair> = [
     {text: 'Hours', value: 'hour'},

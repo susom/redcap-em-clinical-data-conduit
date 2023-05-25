@@ -52,13 +52,18 @@
                tableStyle="min-width: 50rem">
       <template #header>
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-          <span class="text-0 text-900 font-bold">Repeating Interval</span>
+          <span class="text-0 text-900 font-bold">Repeat Instance</span>
         </div>
       </template>
+      <Column field="event" header="Date"></Column>
       <Column field="label" header="Label"></Column>
+      <Column field="redcap_field_name" header="REDCap Field Name"></Column>
+      <Column field="type" header="Type"></Column>
+      <Column field="redcap_field_type" header="REDCap Field Type"></Column>
+      <!--Column field="label" header="Label"></Column>
       <Column field="type" header="Type"></Column>
       <Column field="length" header="Length"></Column>
-      <Column field="redcap_field_name" header="REDCap Field Name"></Column>
+      <Column field="redcap_field_name" header="REDCap Field Name"></Column-->
     </DataTable>
 
     <DataTable :value="cw.data.labs" class="mt-2"
@@ -137,7 +142,7 @@
   <Dialog v-model:visible="showCreateProjectDialog"
           modal :style="{ width: '50vw' }"
           header="Create Project">
-      <div :class="{'p-error': createProjectError}">
+      <div :class="['my-3',{'p-error': createProjectError}]">
       {{createProjectMessage}}
       </div>
     <template #footer>
@@ -147,7 +152,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref} from "vue";
+import {capitalize, computed, ref} from "vue";
 import type {PropType} from "vue";
 import type CollectionWindow from "@/types/CollectionWindow";
 import {INIT_TIMING_CONFIG} from "@/types/TimingConfig";
@@ -284,22 +289,6 @@ const getTimingCols = (timingObj:any, events:any) => {
     value_type: timingObj.start.value_type,
     type: timingObj.start.type
   })
-  if (timingObj.repeat_interval) {
-    cols.push({
-      event: "Interval Start",
-      label: timingObj.repeat_interval.label + " Start",
-      redcap_field_name: getIntervalFieldName(timingObj.start.redcap_field_name),
-      redcap_field_type: "text",
-      type: "datetime"
-    })
-    cols.push({
-      event: "Interval End",
-      label: timingObj.repeat_interval.label + " End",
-      redcap_field_name: getIntervalFieldName(timingObj.end.redcap_field_name),
-      redcap_field_type: "text",
-      type: "datetime"
-    })
-  }
   if (events) {
     events.forEach((event:any) => {
       cols.push({
@@ -316,7 +305,7 @@ const getTimingCols = (timingObj:any, events:any) => {
 }
 
 const getRepeatCols=(timingObj:any)=> {
-  if (timingObj.repeat_interval) {
+  /*if (timingObj.repeat_interval) {
     const prefix = timingObj.start.redcap_field_name.substring(0,
         timingObj.start.redcap_field_name.indexOf("_"));
     return [{
@@ -325,7 +314,24 @@ const getRepeatCols=(timingObj:any)=> {
       length: timingObj.repeat_interval.length,
       redcap_field_name: prefix + "_repeat_instance"
     }]
+  }*/
+  if (timingObj.repeat_interval) {
+    return [{
+      event: "Instance Start",
+      label: "Instance Start Datetime - " + timingObj.repeat_interval.label,
+      redcap_field_name: getIntervalFieldName(timingObj.start.redcap_field_name),
+      redcap_field_type: "text",
+      type: "datetime"
+    },
+    {
+      event: "Interval End",
+      label: "Interval End Datetime - " + timingObj.repeat_interval.label,
+      redcap_field_name: getIntervalFieldName(timingObj.end.redcap_field_name),
+      redcap_field_type: "text",
+      type: "datetime"
+    }]
   }
+
 }
 
 const getTiming=(timing:any, index:number) => {
@@ -335,6 +341,8 @@ const getTiming=(timing:any, index:number) => {
   }
   if (timing.repeat_interval && timing.repeat_interval.type) {
     tconfig.repeat_interval = {...timing.repeat_interval}
+    tconfig.repeat_interval['start_instance'] = getRepeatInstanceTimingConfig(tconfig, 'start')
+    tconfig.repeat_interval['end_instance'] = getRepeatInstanceTimingConfig(tconfig, 'end')
   }
   return tconfig
 }
@@ -349,6 +357,16 @@ const getEvent = (events:TimingConfig[], index:number) => {
     })
   }
   return eventArr
+}
+
+const getRepeatInstanceTimingConfig = (timing:any, eventType:string) => {
+  return {
+    label: "Instance " + capitalize(eventType) + " Datetime - " + timing.repeat_interval.label,
+    redcap_field_name: getIntervalFieldName(timing[eventType].redcap_field_name),
+    phi: "t",
+    redcap_field_type: "text",
+    value_type: "datetime"
+  }
 }
 
 const getTimingConfig = (timing:TimingConfig, index: number, eventType:string) =>{
@@ -388,9 +406,11 @@ const getTimingConfig = (timing:TimingConfig, index: number, eventType:string) =
 }
 
 const getIntervalFieldName = (eventName: string) => {
-  const insertIndex = eventName.indexOf("_datetime")
-  return eventName.substring(0, insertIndex) + "_interval" + eventName.substring(insertIndex);
-
+  if (eventName) {
+    const insertIndex = eventName.indexOf("_datetime")
+    return eventName.substring(0, insertIndex) + "_interval" + eventName.substring(insertIndex);
+  }
+  return ""
 }
 
 const getData = (data:any, index:number, aggDefaults?: TextValuePair[], event?:TimingConfig[], closestTime?:string) => {
