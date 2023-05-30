@@ -21,7 +21,7 @@ import Panel from "primevue/panel";
 import RadioButton from 'primevue/radiobutton'
 import Divider from 'primevue/divider';
 import Tag from 'primevue/tag'
-
+import Chip from 'primevue/chip'
 import Toolbar from 'primevue/toolbar'
 import Tooltip from 'primevue/tooltip'
 
@@ -54,6 +54,7 @@ const app = createApp(App)
     .component( 'Panel', Panel)
     .component( 'RadioButton', RadioButton)
     .component( 'Divider', Divider)
+    .component( 'Chip', Chip)
 
     .component( 'Tag', Tag)
     .component( 'Toolbar', Toolbar)

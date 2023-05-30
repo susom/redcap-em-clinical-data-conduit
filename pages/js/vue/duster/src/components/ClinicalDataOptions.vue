@@ -1,7 +1,7 @@
 <template>
 
   <div class="grid">
-    <div v-for="(col, index) in filtered" :key="index" class="col mr-3" style="max-width: 500px">
+    <div v-for="(col, index) in filtered" :key="index" class="col mr-3">
         <div class="flex justify-content-between flex-wrap">
           <div class="mb-2"><strong>Selections</strong></div>
           <div v-if="hasAggregates" class="mb-2 mr-3"><strong>Aggregates</strong></div>
@@ -17,13 +17,22 @@
           />
           <label :for="field.duster_field_name" class="ml-2">{{ field.label }}</label>
         </div>
-        <div v-if="hasAggregates" class="mr-3">
-          <span v-if="field.selected">
-            {{ getAggregatesLabel(field.aggregate_type, field.aggregates) }}
+        <div v-if="hasAggregates" class="mr-3">            
+          <span v-if="field.selected" class="text-sm">
+            <span v-if="!field.aggregate_type || field.aggregate_type === 'default'">default aggregates</span>
+            <Chip v-else v-for="aggr in field.aggregates" :label="aggr.text" :key="aggr.text" class="text-sm pt-0 pb-0 mr-1" style="height:1.5em"/>
+            <!--{{ getAggregatesLabel(field.aggregate_type, field.aggregates) }}-->
           </span>
-          <Button icon="pi pi-pencil" rounded class="ml-2" style="width:1.75em;height:1.75em"
-                  :disabled="!field.selected"
+          <Button icon="pi pi-cog" outlined text class="ml-2" 
+                style="height:1.3em"
+                v-if="field.selected"
+                @click="showAggregatesDialog(field)" v-tooltip.top="'Edit Aggregates'"/>
+          <!--
+          <Button icon="pi pi-pencil" rounded class="ml-2"
+                  :disabled="!field.selected"  
+                  v-if="field.selected"                
                   @click="showAggregatesDialog(field)"/>
+            -->
         </div>
       </div>
     </div>
@@ -58,7 +67,7 @@
       <div v-for="aggOption in AGGREGATE_OPTIONS" :key="aggOption.value"
            class="flex align-items-center">
         <div v-if="aggOption.value!='closest_time' || (aggOption.value=='closest_time' && hasClosestTime)"
-          class="mb-3">
+          class="mb-3 mt-2">
           <Checkbox v-model="currentField.aggregates"
                     name="aggregateOptions"
                     :id="aggOption.value"
@@ -66,7 +75,7 @@
                     :class="{ 'p-invalid': aggOptionErrorMessage }"
                     @click="aggOptionErrorMessage=false"
           />
-          <label :for="aggOption.value">{{ aggOption.text }}</label>
+          <label :for="aggOption.value" class="ml-2">{{ aggOption.text }}</label>
         </div>
         </div>
       </div>
@@ -225,8 +234,8 @@ const aggregatesDialogVisible = ref(false)
 const customAggregatesVisible = ref(false)
 
 const getAggregatesLabel = (aggregateType?: string, aggregates?: any[]) => {
-  if (!aggregateType || aggregateType === 'default') {
-    return 'default'
+  if (!aggregateType || aggregateType === 'default') {    
+    return 'default aggregates'
   } else {
     if (aggregates) {
       let aggLabels: string[] = []

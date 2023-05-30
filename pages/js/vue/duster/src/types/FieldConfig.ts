@@ -25,10 +25,10 @@ interface AggregateOptions {
     event?: TimingConfig
 }
 
-export type AGGREGATE_OPTION = "max_agg" | "min_agg" | "first_agg" | "last_agg" | "closest_event" | "closest_time"
-export const AGGREGATE_OPTIONS: Array<TextValuePair> =[
-    {text: "Max", value: "max_agg"},
+export type AGGREGATE_OPTION = "min_agg" | "max_agg" | "first_agg" | "last_agg" | "closest_event" | "closest_time"
+export const AGGREGATE_OPTIONS: Array<TextValuePair> =[    
     {text: "Min", value: "min_agg"},
+    {text: "Max", value: "max_agg"},
     {text: "First", value: "first_agg"},
     {text: "Last", value: "last_agg"},
     {text: "Closest to Event", value: "closest_event"},
