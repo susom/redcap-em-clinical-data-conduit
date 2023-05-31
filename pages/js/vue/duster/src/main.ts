@@ -16,7 +16,8 @@ import Dialog from 'primevue/dialog'
 import Dropdown from 'primevue/dropdown'
 import InputNumber from 'primevue/inputnumber'
 import InputSwitch from 'primevue/inputswitch';
-import InputText from 'primevue/inputtext'
+import InputText from 'primevue/inputtext';
+import Message from 'primevue/message';
 import Panel from "primevue/panel";
 import RadioButton from 'primevue/radiobutton'
 import Divider from 'primevue/divider';
@@ -51,6 +52,7 @@ const app = createApp(App)
     .component( 'InputNumber', InputNumber)
     .component( 'InputSwitch', InputSwitch)
     .component( 'InputText', InputText)
+    .component('Message', Message)
     .component( 'Panel', Panel)
     .component( 'RadioButton', RadioButton)
     .component( 'Divider', Divider)

@@ -23,7 +23,7 @@
       <div class="formgrid grid">
         <div class="col-offset-6 col-6">
         <Button
-          label="Select All"
+          :label="selectButtonLabel"
           size="small"
           @click="selectAll" />
   <!--Checkbox v-model="selectAll"
@@ -45,10 +45,13 @@ import type FieldMetadata from "@/types/FieldMetadata"
 
 const props = defineProps({
   demographicsOptions: {
-    type: Array as PropType<Array<FieldMetadata>>
+    type: Array as PropType<Array<FieldMetadata>>,
+    required: true
   },
-  demographicsSelects:
-    Array as PropType<Array<FieldMetadata>>
+  demographicsSelects: {
+    type:  Array as PropType<Array<FieldMetadata>>,
+    required: true
+  }
 })
 const emit = defineEmits(['update:demographicsSelects'])
 
@@ -64,22 +67,25 @@ const selected = computed({
 const sorted = computed(()=>{
   if (props.demographicsOptions) {
     let toSort:any[] = JSON.parse(JSON.stringify(props.demographicsOptions))
+    // sort name and date options together
     toSort.forEach(option => {
-      option.selected = false
-      option.aggregate_type = "default"
-      option.aggregates = []
+      if (option.label.toLowerCase().indexOf("date") > -1) {
+        option['group'] = 1
+      } else if (option.label.toLowerCase().indexOf("name") > -1) {
+        option['group'] = 2
+      } else {
+        option['group'] = 3
+      }
     })
 
-    // sort alphabetically by label
+    // sort group, then alphabetically by label
     toSort.sort(function (a: any, b: any) {
-      let x = a.label.toLowerCase();
-      let y = b.label.toLowerCase();
-      if (x < y) {
-        return -1;
-      }
-      if (x > y) {
-        return 1;
-      }
+      let x = a.label.toLowerCase()
+      let y = b.label.toLowerCase()
+      if (a.group < b.group) return -1
+      if (a.group > b.group) return 1
+      if (x < y) return -1;
+      if (x > y) return 1;
       return 0;
     });
     return toSort
@@ -87,14 +93,19 @@ const sorted = computed(()=>{
   return props.demographicsOptions
 });
 
+const selectButtonLabel = computed(()=> {
+    return (selected.value.length < props.demographicsOptions.length)
+        ? "Select All"
+        : "Unselect All"
+})
+
 const selectAll = () => {
-  if (!selected.value) {
-    selected.value = []
-  }
+  // selectButtonLabel is computed after this invoked so can't use it here.
   selected.value.length = 0
-  if (sorted.value) {
+  if (selected.value.length < props.demographicsOptions.length) {
     selected.value = [...sorted.value]
   }
+
 }
 
 /*const selectAll = ref<Boolean>(false)

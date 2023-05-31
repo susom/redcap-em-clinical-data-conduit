@@ -1,16 +1,21 @@
 <template>
   <Panel>
     <template #header>
-      <span class="p-panel-title">Data Collection Configuration        
+      <span class="p-panel-title">Data Collection Configuration
         <Button icon="pi pi-info-circle"
                 text rounded
                 aria-label="Info"
                 class="ml-2 pt-0 pb-0 mt-0 mb-0"
                 style="height:1.3em"
-                @click="showDataCollectionInfo = true"/>      
-        
+                @click="showDataCollectionInfo = true"/>
+
         </span>
     </template>
+    <div
+        v-if="localCollectionWindows.length === 0"
+    >
+      <Message  severity="info" class="mb-3">No collection windows have been added.</Message>
+    </div>
       <DataTable
           editMode="row"
           class="p-datatable-sm"
@@ -27,8 +32,7 @@
     </Column>
     <Column  key="timing_display"
              header="Period"
-             style="width: 20%"
-             class="text-sm">
+             style="width: 20%">
       <template #body="{ data }">
         <div v-if="data['timing']['start']['label']"
              :class="{'p-invalid': !data['timing']['timing_valid']}"
@@ -48,7 +52,7 @@
     <Column  key="label" field="label" header="Label" style="width: 25%">
       <template #body="slotProps">
         <div>
-          <InputText            
+          <InputText
             v-model="slotProps.data[slotProps.field]"
             :class="['p-inputtext-sm', 'w-11',{'p-invalid': labelInvalid(slotProps.index)}]"
             >
@@ -224,9 +228,9 @@ onMounted(()=> {
   if (localCollectionWindows.value) {
     let index = getRowIndex("Undefined", localCollectionWindows.value)
     localCollectionWindows.value.splice(index, 1)
-    if (localCollectionWindows.value.length == 0) {
+    /*if (localCollectionWindows.value.length == 0) {
       addNew()
-    }
+    }*/
   }
   v$.value.$reset()
 })

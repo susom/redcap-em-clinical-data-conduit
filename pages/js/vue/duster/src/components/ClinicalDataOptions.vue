@@ -17,27 +17,29 @@
           />
           <label :for="field.duster_field_name" class="ml-2">{{ field.label }}</label>
         </div>
-        <div v-if="hasAggregates" class="mr-3">            
-          <span v-if="field.selected" class="text-sm">
-            <span v-if="!field.aggregate_type || field.aggregate_type === 'default'">default aggregates</span>
-            <Chip v-else v-for="aggr in field.aggregates" :label="aggr.text" :key="aggr.text" class="text-sm pt-0 pb-0 mr-1" style="height:1.5em"/>
-            <!--{{ getAggregatesLabel(field.aggregate_type, field.aggregates) }}-->
+        <div
+            v-if="hasAggregates" class="mr-3">
+          <span
+              v-if="field.selected" class="text-sm">
+            <span
+                v-if="!field.aggregate_type ||
+                field.aggregate_type === 'default'">
+              default aggregates
+            </span>
+            <Chip v-else
+                  v-for="aggr in field.aggregates" :label="aggr.text" :key="aggr.text" class="text-sm pt-0 pb-0 mr-1" style="height:1.5em"/>
           </span>
-          <Button icon="pi pi-cog" outlined text class="ml-2" 
+          <Button icon="pi pi-cog" outlined text class="ml-2"
                 style="height:1.3em"
                 v-if="field.selected"
                 @click="showAggregatesDialog(field)" v-tooltip.top="'Edit Aggregates'"/>
-          <!--
-          <Button icon="pi pi-pencil" rounded class="ml-2"
-                  :disabled="!field.selected"  
-                  v-if="field.selected"                
-                  @click="showAggregatesDialog(field)"/>
-            -->
         </div>
       </div>
     </div>
   </div>
-  <Dialog :visible="aggregatesDialogVisible" header="Aggregates">
+  <Dialog
+      :visible="aggregatesDialogVisible"
+      header="Aggregates">
     <div class="flex flex-wrap gap-3 my-3">
       <div class="flex align-items-center">
         <RadioButton v-model="currentField.aggregate_type"
@@ -48,7 +50,8 @@
                      autofocus
                      @change="customAggregatesVisible=false"
         />
-        <label for="defaultAggregates" class="ml-2">Default Aggregates</label>
+        <label for="defaultAggregates" class="ml-2">
+          Default Aggregates</label>
       </div>
       <div class="flex align-items-center">
         <RadioButton v-model="currentField.aggregate_type"
@@ -59,11 +62,74 @@
                      @change="customAggregatesVisible=true"
         />
 
-        <label for="customAggregates" class="ml-2">Custom Aggregates</label>
+        <label for="customAggregates" class="ml-2">
+          Custom Aggregates</label>
       </div>
     </div>
     <div v-if="currentField.aggregate_type=='custom'" class="mb-3">
-      <div class="flex flex-wrap gap-3">
+      <div class="card flex flex-wrap gap-4 mt-3">
+        <div v-for="(option) in filteredAggregates" :key="option.value" class="flex align-items-center">
+          <Checkbox
+              name="aggregateOptions"
+              v-model="currentField.aggregates"
+              :id="option.value"
+              :value="option"
+              :class="{ 'p-invalid': aggOptionErrorMessage }"
+              @click="aggOptionErrorMessage=false"
+          />
+          <label :for="option.value" class="ml-2">{{ option.text }}</label>        </div>
+        <!-- closest time-->
+        <div v-if="hasClosestTime" class="flex align-items-center">
+          <Checkbox
+              v-model="currentField.aggregates"
+              name="aggregateOptions"
+              :id="closestTimeOption.value"
+              :value="closestTimeOption"
+              :class="{ 'p-invalid': aggOptionErrorMessage }"
+          />
+          <label
+              :for="closestTimeOption.value"
+              class="ml-2 mr-2">
+            Closest to Time {{ closestTime ?? "Undefined" }}
+          </label>
+          <!--div
+              v-if="showClosestTime">
+              <Calendar id="calendar-timeonly"
+                        v-model="closestCalendarTime" timeOnly />
+            <small v-if="v$.closestTime.$error"
+                   class="flex p-error mb-3">
+              {{ v$.closestTime.$errors[0].$message }}
+            </small>
+          </div-->
+        </div>
+        <!-- closest event -->
+        <div v-if="hasClosestEvent"
+             class="flex align-items-center">
+          <Checkbox
+              v-model="currentField.aggregates"
+              name="aggregateOptions"
+              :id="closestEventOption.value"
+              :value="closestEventOption"
+              :class="{ 'p-invalid': aggOptionErrorMessage }"
+          />
+          <label :for="closestEventOption.value" class="ml-2 mr-2">
+            Closest to {{ ((closestEvent ?? "").length) ? closestEvent : "Event - Undefined" }}
+          </label>
+          <!--Dropdown v-model="localClosestEvent"
+                    :options="datetimeEventOptions"
+                    optionLabel="label"
+                    placeholder="Choose an event"
+                    v-if="showClosestEvent"
+                    :class="[{ 'p-invalid': v$.closestEventValue.$error }]"
+          />
+          <small v-if="v$.closestEventValue.$error"
+                 class="flex p-error ml-2">
+            {{ v$.closestEventValue.$errors[0].$message }}
+          </small-->
+        </div>
+      </div>
+
+      <!--div-- class="flex flex-wrap gap-3">
       <div v-for="aggOption in AGGREGATE_OPTIONS" :key="aggOption.value"
            class="flex align-items-center">
         <div v-if="aggOption.value!='closest_time' || (aggOption.value=='closest_time' && hasClosestTime)"
@@ -78,7 +144,7 @@
           <label :for="aggOption.value" class="ml-2">{{ aggOption.text }}</label>
         </div>
         </div>
-      </div>
+      </div-->
       <small
           v-if="aggOptionErrorMessage"
           id="aggOption-help"
@@ -87,10 +153,8 @@
       </small>
     </div>
     <template #footer>
-      <Button label="Close" icon="pi pi-times" @click="cancelAggregates" text/>
-      <!--Button label="Save" icon="pi pi-check" @click="aggregatesDialogVisible = false" autofocus/-->
-
-      <Button label="Save" icon="pi pi-check" @click="updateAggregates" autofocus/>
+      <Button label="Save" class="p-button-success" icon="pi pi-check" text @click="updateAggregates"/>
+      <Button label="Cancel" class="p-button-danger" icon="pi pi-times" text @click="cancelAggregates"/>
     </template>
   </Dialog>
 </template>
@@ -119,6 +183,16 @@ const props = defineProps({
   hasClosestTime: {
     type: Boolean,
     required: true
+  },
+  hasClosestEvent: {
+    type: Boolean,
+    required: true
+  },
+  closestTime: {
+    type: String
+  },
+  closestEvent: {
+    type: String
   },
   searchText: {
     type: String,
@@ -234,7 +308,7 @@ const aggregatesDialogVisible = ref(false)
 const customAggregatesVisible = ref(false)
 
 const getAggregatesLabel = (aggregateType?: string, aggregates?: any[]) => {
-  if (!aggregateType || aggregateType === 'default') {    
+  if (!aggregateType || aggregateType === 'default') {
     return 'default aggregates'
   } else {
     if (aggregates) {
@@ -258,6 +332,23 @@ const showAggregatesDialog = (field:any) => {
   aggregatesDialogVisible.value = true
 
 }
+
+// remove the "closest to" options to display them on a separate line
+const filteredAggregates = computed(() => {
+  return AGGREGATE_OPTIONS.filter(option => option.value.indexOf('closest') === -1);
+})
+
+/** closest time checkbox option **/
+const closestTimeOption = computed(() => {
+  return (AGGREGATE_OPTIONS.find(option => option.value === 'closest_time')
+      ?? {text:"Closest Time", value:"closest_time"})
+})
+
+/** separate out closest event checkbox option to be displayed separately **/
+const closestEventOption = computed(() => {
+  return (AGGREGATE_OPTIONS.find(option => option.value === 'closest_event')
+      ?? {text:"Closest Event", value:"closest_event"})
+})
 
 const aggOptionErrorMessage = ref<any>()
 

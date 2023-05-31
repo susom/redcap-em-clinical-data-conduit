@@ -67,7 +67,8 @@
                 <Toast />
                 <Toolbar class="col">
                     <template #start>
-                        <Button type="submit" label="Review & Create Project" class="ml-2"
+                      <Button type="submit" label="Review & Create Project" icon="pi pi-check"
+                              class="ml-2"
                         @click="checkValidation"/>
                     </template>
                 </Toolbar>
@@ -89,7 +90,10 @@
       </div>
     </div>
 </div>
-  <Dialog v-model:visible="irbCheckVisible" modal header="Checking IRB" :style="{ width: '50vw' }">
+  <Dialog v-model:visible="irbCheckVisible"
+          modal header="Checking IRB"
+          :style="{ width: '50vw' }"
+          :closable=false>
     <p>
       <span v-html="irbCheckMessage"></span>
     </p>
