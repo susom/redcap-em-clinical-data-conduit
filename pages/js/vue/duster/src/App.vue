@@ -73,7 +73,7 @@
                     </template>
                     <template #end>
                       <Button label="Exit from DUSTER" icon="pi pi-cross" severity="secondary" class="ml-2" @click="exitFromDuster"/>
-                    </template>                    
+                    </template>
                 </Toolbar>
             </div>
         </div>
@@ -110,7 +110,7 @@
       <Button label="Cancel" icon="pi pi-times" class="p-button-secondary" @click="irbCheckCancel" size="small" />
     </template>
   </Dialog>
-    <SystemErrorDialog v-if="systemError"/>  
+    <SystemErrorDialog v-if="systemError"/>
 </template>
 
 <script setup lang="ts">

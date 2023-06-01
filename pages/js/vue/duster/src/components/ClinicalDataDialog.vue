@@ -106,7 +106,8 @@
                   />
                   <label :for="closestEventOption.value" class="ml-2 mr-2"
                          >
-                    {{ closestEventOption.text }}</label>
+                    {{ closestEventOption.text }}
+                  </label>
                   <span
                       v-tooltip="'Closest Event value applies to both default and custom aggregates'">
 
@@ -132,83 +133,6 @@
           </div>
       </Panel>
 
-      <!--
-      <div class="field grid mt-2">
-        <label class="col-2">Default Aggregates:</label>
-
-        <div class="col">
-           <div class="formgroup-inline">
-            <div v-for="(option) in filteredAggregates" :key="option.value" class="field-checkbox">
-              <Checkbox
-                  name="defaultAggregate"
-                  v-model="localAggregateDefaults"
-                  :value="option"
-                  :input-id="option.value"
-                  :id="option.value"
-                  :class="{ 'p-invalid': v$.aggregateDefaults.$error }"
-              />
-              <label :for="option.value">{{ option.text }}</label>
-            </div>
-
-            <div v-if="hasClosestTime" class="formgroup-inline">
-              <div class="field-checkbox">
-                <Checkbox v-model="localAggregateDefaults"
-                          name="defaultAggregate"
-                          :id="closestTimeOption.value"
-                          :value="closestTimeOption"
-                          :class="{ 'p-invalid': v$.aggregateDefaults.$error }"
-                />
-                <label :for="closestTimeOption.value">{{ closestTimeOption.text }}</label>
-              </div>
-              <div class="field" v-if="showClosestTime">
-                <Calendar id="calendar-timeonly" v-model="closestCalendarTime" timeOnly />
-
-              <small v-if="v$.closestTime.$error"
-                     class="flex p-error mb-3">
-                {{ v$.closestTime.$errors[0].$message }}
-              </small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      -->
-      <!--
-      <div v-if="hasClosestEvent" class="field grid">
-          <div class="formgroup-inline col">
-            <div class="col-offset-2 col-12">
-              <div class="field-checkbox">
-                  <Checkbox v-model="localAggregateDefaults"
-                        name="defaultAggregate"
-                        :id="closestEventOption.value"
-                        :value="closestEventOption"
-                        :class="{ 'p-invalid': v$.aggregateDefaults.$error }"
-                  />
-                  <label :for="closestEventOption.value">{{ closestEventOption.text }}</label>
-              </div>
-              <div v-if="showClosestEvent" class="formgroup-inline">
-                  <div class="field">
-                      <Dropdown v-model="localClosestEvent"
-                          :options="datetimeEventOptions"
-                          optionLabel="label"
-                          :class="{ 'p-invalid': v$.closestEventValue.$error }"
-                          style="width:10rem"/>
-                          <small v-if="v$.closestEventValue.$error"
-                              class="flex p-error mb-3">
-                              {{ v$.closestEventValue.$errors[0].$message }}
-                          </small>
-                  </div>
-              </div>
-          </div>
-          <small
-              v-if="v$.aggregateDefaults.$error"
-              id="aggOption-help"
-              class="flex p-error mb-3">
-            {{ v$.aggregateDefaults.$errors[0].$message }}
-          </small>
-        </div>
-      </div>
-      -->
       <Accordion :multiple="true" :activeIndex="activeClinicalOptions" class="mt-2">
       <AccordionTab header="Labs">
         <ClinicalDataOptions
@@ -262,7 +186,7 @@
             v-model:selected-options="localClinicalData.scores"
         />
       </AccordionTab>
-</Accordion>
+  </Accordion>
       <Toast />
       <template #footer>
           <Button label="Save" class="p-button-primary" size="small" icon="pi pi-check" @click="saveClinicalData"/>
@@ -430,6 +354,13 @@ const showClosestEvent = computed(() => {
   return show
 })
 
+watchEffect(() => {
+  if (!showClosestEvent.value) {
+    closestEvent.value = []
+    localClosestEvent.value = JSON.parse(JSON.stringify(INIT_TIMING_CONFIG))
+  }
+})
+
 /** closest event selector should only show datetime options **/
 const datetimeEventOptions = computed(() => {
   return props.eventOptions.filter(option => option.value_type === 'datetime')
@@ -502,7 +433,7 @@ const hasClosestTime = computed(() => {
 })
 
 const showClosestTime = computed(() => {
-  // show closest event if it's selected as a default
+  // show closest time if it's selected as a default
   let show = false
   if (hasClosestTime.value && localAggregateDefaults.value) {
     show = (localAggregateDefaults.value.findIndex(agg => agg.value === 'closest_time') > -1)

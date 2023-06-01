@@ -112,8 +112,8 @@
         v-if="cw.data.scores.length > 0"
         v-model:scores="cw.data.scores"
       class="mt-2"
-    /-->
-    <hr/>
+    />
+    <hr/-->
 
 <!-- separate tables for each score -->
     <!--this version uses row grouping w/ Jonasel's score fields-->

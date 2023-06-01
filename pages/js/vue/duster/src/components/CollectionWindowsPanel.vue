@@ -115,6 +115,7 @@
       :event-options="eventDts"
       :rp-dates="rpDates"
       :presets="presets.cw_presets"
+      @update:visible="restoreInitialStates"
       @save-timing-update="saveUpdate"
       @cancel-timing-update="restoreInitialStates"
   />
@@ -134,6 +135,7 @@
       v-model:closest-to-time = "currentCollectionWindow.closest_time"
       :event-options="eventDts"
       :rp-dates="rpDates"
+      @update:visible="restoreInitialStates"
       @save-clinical-data-update="saveUpdate"
       @cancel-clinical-data-update="restoreInitialStates"
   />
@@ -249,6 +251,7 @@ const addNew = () => {
   if (localCollectionWindows.value) {
     localCollectionWindows.value.push(newCw)
   }
+  showTiming(currentCollectionWindow.value)
 }
 
 
@@ -378,6 +381,7 @@ const saveUpdate = () => {
       localCollectionWindowsEditing.value.splice(editIndex, 1)
     }
   }
+
 }
 
 const restoreInitialStates = () => {

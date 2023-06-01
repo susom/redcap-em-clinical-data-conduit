@@ -25,7 +25,7 @@
         <Button
           :label="selectButtonLabel"
           size="small"
-          @click="selectAll" />
+          @click="selectAll()" />
   <!--Checkbox v-model="selectAll"
                     id="selectAll"
                     :binary="true"
@@ -101,9 +101,10 @@ const selectButtonLabel = computed(()=> {
 
 const selectAll = () => {
   // selectButtonLabel is computed after this invoked so can't use it here.
-  selected.value.length = 0
   if (selected.value.length < props.demographicsOptions.length) {
     selected.value = [...sorted.value]
+  } else {
+    selected.value.length = 0
   }
 
 }

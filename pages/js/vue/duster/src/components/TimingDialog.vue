@@ -328,7 +328,6 @@ const cancelTiming = () => {
   cw.value.timing_valid = !v$.value.$error
   clearPreset()
   visible.value = false
-  //emit('timingValidationUpdate', validationState.value )
   emit('cancelTimingUpdate')
   v$.value.$reset()
 }
@@ -346,7 +345,6 @@ const resetTiming = () => {
   repeatIntervalLength.value = undefined
   repeatIntervalType.value = undefined
   cw.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
-  v$.value.reset()
 }
 
 </script>

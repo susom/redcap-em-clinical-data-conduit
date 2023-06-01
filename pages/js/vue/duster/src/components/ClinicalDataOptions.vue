@@ -39,7 +39,9 @@
   </div>
   <Dialog
       :visible="aggregatesDialogVisible"
-      header="Aggregates">
+      header="Aggregates"
+      @update:visible="cancelAggregates"
+  >
     <div class="flex flex-wrap gap-3 my-3">
       <div class="flex align-items-center">
         <RadioButton v-model="currentField.aggregate_type"
