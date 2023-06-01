@@ -71,6 +71,9 @@
                               class="ml-2"
                         @click="checkValidation"/>
                     </template>
+                    <template #end>
+                      <Button label="Exit from DUSTER" icon="pi pi-cross" severity="secondary" class="ml-2" @click="exitFromDuster"/>
+                    </template>                    
                 </Toolbar>
             </div>
         </div>
@@ -92,25 +95,27 @@
 </div>
   <Dialog v-model:visible="irbCheckVisible"
           modal header="Checking IRB"
-          :style="{ width: '50vw' }"
+          :style="{ width: '40vw' }"
           :closable=false>
     <p>
       <span v-html="irbCheckMessage"></span>
     </p>
-    <div v-if="!irbValid && irbCheckStatus==='checked'" class="field">
+    <div v-if="!irbValid && irbCheckStatus==='checked'" class="m-2">
       <label>IRB Number: </label>
       <InputText v-model="projectIrb"/>
     </div>
     <template #footer>
       <Button v-if="!irbValid && irbCheckStatus==='checked'"
-              label="Try again" icon="pi pi-refresh" class="p-button-success" @click="irbRetry" text />
-      <Button label="Cancel" icon="pi pi-times" @click="irbCheckCancel" text />
+              label="Submit" icon="pi pi-refresh" class="p-button-primary" @click="irbRetry" size="small"/>
+      <Button label="Cancel" icon="pi pi-times" class="p-button-secondary" @click="irbCheckCancel" size="small" />
     </template>
   </Dialog>
+    <SystemErrorDialog v-if="systemError"/>  
 </template>
 
 <script setup lang="ts">
 import {computed, ref, onMounted, watchEffect} from 'vue'
+import SystemErrorDialog from '@/components/SystemErrorDialog.vue'
 
 import axios from 'axios'
 import type FieldMetadata from "@/types/FieldMetadata";
@@ -132,6 +137,7 @@ const projectConfig = JSON.parse(localStorage.getItem('postObj') || '{}');
 console.log("postObj" + localStorage.getItem('postObj'))
 localStorage.removeItem('postObj');
 const dev = ref<boolean>(false)
+const systemError = ref<boolean>(false)
 
 const showSummary = ref<boolean>(false)
 
@@ -210,13 +216,14 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
           } else {
             irbValid.value = false
             irbCheckMessage.value = "IRB " + projectIrbNumber
-                + " is invalid. Enter a different IRB to try again."
+                + " is invalid. Please enter a different IRB number."
           }
 
         })
         .catch(function (error) {
           irbValid.value = false
           irbCheckMessage.value = "IRB Check Error"
+          systemError.value = true ;
           console.log(error)
         });
   }
@@ -289,6 +296,10 @@ const reservedFieldNames = computed(() => {
   }
   return []
 })
+
+const exitFromDuster = () => {
+    window.history.go(-1) ;
+}
 
 const v$ = useVuelidate()
 
