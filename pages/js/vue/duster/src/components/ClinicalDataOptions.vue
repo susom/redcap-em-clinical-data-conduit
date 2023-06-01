@@ -153,8 +153,8 @@
       </small>
     </div>
     <template #footer>
-      <Button label="Save" class="p-button-success" icon="pi pi-check" text @click="updateAggregates"/>
-      <Button label="Cancel" class="p-button-danger" icon="pi pi-times" text @click="cancelAggregates"/>
+      <Button label="Save" class="p-button-primary" size="small" icon="pi pi-check" @click="updateAggregates"/>
+      <Button label="Cancel" class="p-button-secondary" size="small" icon="pi pi-times" @click="cancelAggregates"/>
     </template>
   </Dialog>
 </template>

@@ -265,8 +265,8 @@
 </Accordion>
       <Toast />
       <template #footer>
-          <Button label="Save" class="p-button-success" icon="pi pi-check" text @click="saveClinicalData"/>
-          <Button label="Cancel" class="p-button-danger" icon="pi pi-times" text @click="cancelClinicalData"/>
+          <Button label="Save" class="p-button-primary" size="small" icon="pi pi-check" @click="saveClinicalData"/>
+          <Button label="Cancel" class="p-button-secondary" size="small" icon="pi pi-times" @click="cancelClinicalData"/>
       </template>
     </Dialog>
 </template>

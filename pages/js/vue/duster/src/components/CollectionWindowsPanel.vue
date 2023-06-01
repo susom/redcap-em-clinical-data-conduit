@@ -11,11 +11,13 @@
 
         </span>
     </template>
+    <!--
     <div
         v-if="localCollectionWindows.length === 0"
     >
       <Message  severity="info" class="mb-3">No collection windows have been added.</Message>
     </div>
+    -->
       <DataTable
           editMode="row"
           class="p-datatable-sm"
@@ -84,9 +86,9 @@
         <Column  key="id" field="id" header="Actions" style="width: 10%">
           <template #body="{ data, field }">
             <Button icon="pi pi-copy" outlined rounded severity="success" class="ml-2 p-1 small-icon" size="small"
-                    @click="duplicateCw(data[field])" v-tooltip.top="'Duplicate'"/>
+                    @click="duplicateCw(data[field])" v-tooltip.top="'Duplicate Collection Window'"/>
             <Button icon="pi pi-trash" outlined rounded severity="danger" class="ml-2 p-1 small-icon" size="small"
-            @click="deleteCw(data[field])" v-tooltip.top="'Delete'"/>
+            @click="deleteCw(data[field])" v-tooltip.top="'Delete Collection Window'"/>
           </template>
         </Column>
         <template #footer>
@@ -98,7 +100,12 @@
                     @click="addNew" />
           </div>
         </template>
-  </DataTable>
+        <template #empty>
+            <p class="w-full" style="text-align: center;">
+                No data collection windows/time periods have been defined yet.
+            </p>
+        </template>
+    </DataTable>
 
   </Panel>
 

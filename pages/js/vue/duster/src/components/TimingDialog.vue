@@ -108,9 +108,9 @@
     </div>
     <Toast />
     <template #footer>
-      <Button label="Save" class="p-button-success" icon="pi pi-check" text @click="saveTiming()"/>
-      <Button label="Cancel" class="p-button-danger" icon="pi pi-times" text @click="cancelTiming"/>
-      <Button label="Reset" class="p-button" text @click="resetTiming"/>
+      <Button label="Save" class="p-button-primary" size="small" icon="pi pi-check" @click="saveTiming()"/>
+      <Button label="Cancel" class="p-button-secondary" size="small" icon="pi pi-times" @click="cancelTiming"/>
+      <Button label="Reset" class="p-button p-button-secondary" size="small" @click="resetTiming"/>
     </template>
   </Dialog>
 </template>
