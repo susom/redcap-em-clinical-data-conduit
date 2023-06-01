@@ -179,12 +179,13 @@ class OdmXmlString
         // foreach field in item group
         $section_header = $item_group["section_header"] !== "" ? " redcap:SectionHeader=\"{$item_group["section_header"]}\"" : $item_group["section_header"];
         foreach ($item_group["items"] as $field) {
+          $hide_field = $field["hidden"] === true ? " redcap:FieldAnnotation=\"@HIDDEN\"" : "";
           $field_note = htmlentities($field["redcap_field_note"]);
 
           // add field to item def string
           switch ($field["redcap_field_type"]) {
             case "yesno":
-              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"boolean\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"yesno\" redcap:FieldNote=\"{$field_note}\"{$section_header}>\n"
+              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"boolean\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"yesno\" redcap:FieldNote=\"{$field_note}\"{$section_header}{$hide_field}>\n"
                 . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
                 . "\t\t<CodeListRef CodeListOID=\"{$field["redcap_field_name"]}.choices\"/>\n"
                 . "\t</ItemDef>\n";
@@ -202,7 +203,7 @@ class OdmXmlString
             case "checkbox":
               $options = explode("|", $field["redcap_options"]);
               for ($option_index = 1; $option_index <= count($options); $option_index++) {
-                $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}___{$option_index}\" Name=\"{$field["redcap_field_name"]}___{$option_index}\" DataType=\"boolean\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"checkbox\" redcap:FieldNote=\"{$field_note}\"{$section_header}>\n"
+                $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}___{$option_index}\" Name=\"{$field["redcap_field_name"]}___{$option_index}\" DataType=\"boolean\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"checkbox\" redcap:FieldNote=\"{$field_note}\"{$section_header}{$hide_field}>\n"
                   . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
                   . "\t\t<CodeListRef CodeListOID=\"{$field["redcap_field_name"]}___{$option_index}.choices\"/>\n"
                   . "\t</ItemDef>\n";
@@ -220,7 +221,7 @@ class OdmXmlString
 
             case "radio":
               // add field to item group string
-              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"radio\" redcap:FieldNote=\"{$field_note}\"{$section_header}>\n"
+              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"radio\" redcap:FieldNote=\"{$field_note}\"{$section_header}{$hide_field}>\n"
                 . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
                 . "\t\t<CodeListRef CodeListOID=\"{$field["redcap_field_name"]}.choices\"/>\n"
                 . "\t</ItemDef>\n";
@@ -240,7 +241,7 @@ class OdmXmlString
 
             case "calc":
               $calculation = htmlentities($field["redcap_options"]);
-              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"float\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"calc\" redcap:FieldNote=\"{$field_note}\" redcap:Calculation=\"{$calculation}\"{$section_header}>\n"
+              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"float\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"calc\" redcap:FieldNote=\"{$field_note}\" redcap:Calculation=\"{$calculation}\"{$section_header}{$hide_field}>\n"
                 . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
                 . "\t</ItemDef>\n";
 
@@ -263,7 +264,7 @@ class OdmXmlString
               // phi
               $phi = $field["phi"] === 't' ? "redcap:Identifier=\"y\"" : "";
 
-              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"text\" {$text_validation} {$phi} redcap:FieldNote=\"{$field_note}\"{$section_header}>\n"
+              $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}\" Name=\"{$field["redcap_field_name"]}\" DataType=\"text\" Length=\"999\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"text\" {$text_validation} {$phi} redcap:FieldNote=\"{$field_note}\"{$section_header}{$hide_field}>\n"
                 . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
                 . "\t</ItemDef>\n";
 

@@ -32,7 +32,7 @@ try {
     $rp_form_label = "Researcher-Provided Information";
     $odm->addForm($rp_form_name, $rp_form_label, false);
     // add field for REDCap Record ID
-    $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "format" => "text")));
+    $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "redcap_field_type" => "text")));
     // add fields for identifiers
     $odm->addFields($rp_form_name, null, null, "Identifiers", $config["rp_info"]["rp_identifiers"]);
     // add fields for dates
@@ -66,6 +66,12 @@ try {
       // if applicable, add repeat instance start/end with its own section header
       if ($repeat_window) {
           $repeat_fields_arr = [
+              array(
+                "redcap_field_name" => $collection_window["form_name"],
+                "label" => "Unique Instance Token",
+                "redcap_field_type" => "text",
+                "hidden" => true
+              ),
               $collection_window["timing"]["repeat_interval"]["start_instance"],
               $collection_window["timing"]["repeat_interval"]["end_instance"]
           ];
