@@ -245,13 +245,17 @@ onMounted(()=> {
 })
 
 const addNew = () => {
-  const newCw = JSON.parse(JSON.stringify(INIT_COLLECTION_WINDOW))
-  newCw.id = "cw" + new Date().getTime()
-  currentCollectionWindow.value = newCw
-  if (localCollectionWindows.value) {
-    localCollectionWindows.value.push(newCw)
+  currentCollectionWindow.value = JSON.parse(JSON.stringify(INIT_COLLECTION_WINDOW))
+  currentCollectionWindow.value.id = "cw" + new Date().getTime()
+
+  if (!localCollectionWindows.value) {
+    localCollectionWindows.value = []
   }
-  showTiming(currentCollectionWindow.value)
+  localCollectionWindows.value.push(currentCollectionWindow.value)
+
+  // 1st label is always blank with this change
+  //showTiming(localCollectionWindows.value[localCollectionWindows.value.length - 1])
+
 }
 
 
