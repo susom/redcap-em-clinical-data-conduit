@@ -132,7 +132,7 @@
   </Panel>
     <Toolbar>
       <template #start>
-        <Button label="Back" icon="pi pi-angle-left"  @click="show=false"/>
+        <Button label="Back" icon="pi pi-angle-left"  @click="visible=false"/>
       </template>
       <template #end>
       <Button label="Create Project" icon="pi pi-check" severity="success" @click="createProject"/>

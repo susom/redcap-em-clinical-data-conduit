@@ -558,7 +558,7 @@ const rules = computed(() =>({
     }
 })
 )
-const v$ = useVuelidate(rules, validationFields, { $registerAs: props.errorReference })
+const v$ = useVuelidate(rules, validationFields)
 watchEffect(() => {
   if (localClinicalData.value) {
     localClinicalData.value['valid'] = !v$.value.$error
