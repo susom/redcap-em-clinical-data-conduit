@@ -29,12 +29,6 @@ export const END_TIME_TYPE_OPTIONS:Array<MenuOption> = [
             ' specified number of calendar days after start.'}
 ]
 
-export const TIME_TYPE_OPTIONS:Array<TextValuePair> =  [
-    {text: 'Specific Date & Time', value: 'datetime'},
-    {text: "Specific Date", value: "date"},
-    {text: "Relative Date/Time", value: "interval"}
-]
-
 export interface TimingInterval {
     label?: string
     type: INTERVAL_TYPE

@@ -2,12 +2,13 @@
   <Dialog v-model:visible="visible"
           :modal="true"
           :style="{ width: '75vw' }"
-           header="Data Collection Timing"
+          header="Data Collection Timing"
           class="my-2"
   >
     <div class="field grid mt-2">
-      <label class="col-2" for="presets">Presets: <i class="ml-2 pi pi-info-circle" style="color:blue"
-                                                           v-tooltip="'Common preset configurations'"></i></label>
+      <label class="col-2" for="presets">Presets:
+        <i class="ml-2 pi pi-info-circle" style="color:blue"
+           v-tooltip="'Common preset configurations'"></i></label>
       <Dropdown
           class="col-6"
           :options="presets"
@@ -18,12 +19,12 @@
     <Divider/>
     <div class="card">
       <TimingEvent
-          v-model:timing-object="cw.timing.start"
+          v-model:timing-object="cwCopy.timing.start"
           event-type="start"
           :time-type-options="START_TIME_TYPE_OPTIONS"
           :event-options="eventOptions"
           :rp-dates="rpDates"
-          :other-timing-event="cw.timing.end"
+          :other-timing-event="cwCopy.timing.end"
           :instigator="eventInstigator"
           @instigate="(instigator) => eventInstigator = instigator"
           @clear-preset="clearPreset"
@@ -32,12 +33,12 @@
     <Divider/>
     <div class="card">
       <TimingEvent
-          v-model:timing-object="cw.timing.end"
+          v-model:timing-object="cwCopy.timing.end"
           event-type="end"
           :time-type-options="END_TIME_TYPE_OPTIONS"
           :event-options="eventOptions"
           :rp-dates="rpDates"
-          :other-timing-event="cw.timing.start"
+          :other-timing-event="cwCopy.timing.start"
           :instigator="eventInstigator"
           @clear-preset="clearPreset"
           @instigate="(instigator) => eventInstigator = instigator"
@@ -75,17 +76,17 @@
           <div class="formgroup-inline">
             <div class="field ">
 
-            <InputNumber
-                v-model="repeatIntervalLength"
-                id="repeatIntervalLength"
-                input-id="integeronly"
-                :min="1"
-                :class="{ 'p-invalid': v$.repeatIntervalLength.$error }"
-                :input-style="{'width': '3rem'}"
-                placeholder="# of"/>
-              <small v-if="v$.repeatIntervalLength.$error"
+              <InputNumber
+                  v-model="repeatIntervalLength"
+                  id="repeatIntervalLength"
+                  input-id="integeronly"
+                  :min="1"
+                  :class="{ 'p-invalid': v$.timingRepeatIntervalLength.$error }"
+                  :input-style="{'width': '3rem'}"
+                  placeholder="# of"/>
+              <small v-if="v$.timingRepeatIntervalLength.$error"
                      class="flex p-error mb-3">
-                {{ v$.repeatIntervalLength.$errors[0].$message }}
+                {{ v$.timingRepeatIntervalLength.$errors[0].$message }}
               </small>
             </div>
             <div class="field ">
@@ -97,9 +98,9 @@
                         :class="['ml-1 mr-2', { 'p-invalid': v$.repeatIntervalType.$error }]"
                         /-->
               <label class="mt-2">{{ repeatIntervalType }}(s) between Start and End Date/Datetimes</label>
-              <small v-if="v$.repeatIntervalType.$error"
+              <small v-if="v$.timingRepeatIntervalType.$error"
                      class="flex p-error mb-3">
-                {{ v$.repeatIntervalType.$errors[0].$message }}
+                {{ v$.timingRepeatIntervalType.$errors[0].$message }}
               </small>
             </div>
           </div>
@@ -108,7 +109,7 @@
     </div>
     <Toast />
     <template #footer>
-      <Button label="Save" class="p-button-primary" size="small" icon="pi pi-check" @click="saveTiming()"/>
+      <Button label="Save" class="p-button-primary" size="small" icon="pi pi-check" @click="saveTiming"/>
       <Button label="Cancel" class="p-button-secondary" size="small" icon="pi pi-times" @click="cancelTiming"/>
       <Button label="Reset" class="p-button p-button-secondary" size="small" @click="resetTiming"/>
     </template>
@@ -129,6 +130,7 @@ import { useToast } from "primevue/usetoast";
 import Toast from 'primevue/toast'
 import { useVuelidate } from '@vuelidate/core'
 import {requiredIf, helpers} from '@vuelidate/validators'
+import {INIT_COLLECTION_WINDOW} from "@/types/CollectionWindow";
 
 
 const props = defineProps({
@@ -155,8 +157,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(
-    ['update:showTimingDialog', 'update:collectionWindow', 'saveTimingUpdate',
-      'cancelTimingUpdate']
+    ['update:showTimingDialog', 'saveTimingUpdate',]
 )
 
 const visible = computed({
@@ -168,22 +169,21 @@ const visible = computed({
   }
 });
 
-const cw = computed({
-  get() {
-    return props.collectionWindow;
-  },
-  set(value) {
-    emit('update:collectionWindow', value)
+// make a copy of the collection window and actual collection window only on save
+const cwCopy = ref<CollectionWindow>(JSON.parse(JSON.stringify(INIT_COLLECTION_WINDOW)))
+watch(visible, (isVisible) => {
+  if (isVisible) {
+    cwCopy.value = JSON.parse(JSON.stringify(props.collectionWindow))
   }
-});
+})
 
 /*****  repeat interval *****/
 
 /* no longer needed?*/
 const filteredIntervalOptions = computed(() => {
-      if (cw.value.timing.start.type === 'datetime' || cw.value.timing.end.type === 'datetime') {
+      if (cwCopy.value.timing.start.type === 'datetime' || cwCopy.value.timing.end.type === 'datetime') {
         return INTERVAL_OPTIONS.filter(opt => opt.value === 'hour')
-      } else if (cw.value.timing.start.type  === 'date' || cw.value.timing.end.type === 'date') {
+      } else if (cwCopy.value.timing.start.type  === 'date' || cwCopy.value.timing.end.type === 'date') {
         return INTERVAL_OPTIONS.filter(opt => opt.value === 'day')
       }
       return INTERVAL_OPTIONS
@@ -192,67 +192,67 @@ const filteredIntervalOptions = computed(() => {
 
 const repeatIntervalType = computed({
   get() {
-    return cw.value.timing.repeat_interval?.type ?? undefined
+    return cwCopy.value.timing.repeat_interval?.type ?? undefined
   },
   set(value) {
-    if (!cw.value.timing.repeat_interval) {
-      cw.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
+    if (!cwCopy.value.timing.repeat_interval) {
+      cwCopy.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
     }
-    cw.value.timing.repeat_interval.type = value
+    cwCopy.value.timing.repeat_interval.type = value
   }
 })
 
 const repeatIntervalLength = computed({
   get() {
-    return cw.value.timing.repeat_interval?.length ?? undefined
+    return cwCopy.value.timing.repeat_interval?.length ?? undefined
   },
   set(value) {
-    if (!cw.value.timing.repeat_interval) {
-      cw.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
+    if (!cwCopy.value.timing.repeat_interval) {
+      cwCopy.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
     }
-    cw.value.timing.repeat_interval.length = value
+    cwCopy.value.timing.repeat_interval.length = value
   }
 })
 
 /* set the repeat interval label.*/
 watchEffect(() => {
-  if (cw.value.timing.repeat_interval &&
+  if (cwCopy.value.timing.repeat_interval &&
       repeatIntervalLength.value && repeatIntervalLength.value >= 0
       && repeatIntervalType.value)
-  cw.value.timing.repeat_interval.label = "Every " + repeatIntervalLength.value
-      + " " + repeatIntervalType.value + "(s) "
+    cwCopy.value.timing.repeat_interval.label = "Every " + repeatIntervalLength.value
+        + " " + repeatIntervalType.value + "(s) "
 })
 
 const hasRepeatIntervals = computed({
   get() {
-    return (cw.value.type === 'repeating')
+    return (cwCopy.value.type === 'repeating')
   },
   set(value) {
-    cw.value.type = (value) ? 'repeating':'nonrepeating'
+    cwCopy.value.type = (value) ? 'repeating':'nonrepeating'
   }
 })
 
 const repeatIntervalDisabled = computed(() => {
-  return !(cw.value.timing &&
-      cw.value.timing.start &&
-      cw.value.timing.end &&
-      cw.value.timing.start.type &&
-      cw.value.timing.end.type)
+  return !(cwCopy.value.timing &&
+      cwCopy.value.timing.start &&
+      cwCopy.value.timing.end &&
+      cwCopy.value.timing.start.type &&
+      cwCopy.value.timing.end.type)
 })
 
 /* set the repeat interval type based on start/end types*/
 watchEffect(() => {
   if (hasRepeatIntervals.value) {
-    if (!cw.value.timing.repeat_interval) {
-      cw.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
+    if (!cwCopy.value.timing.repeat_interval) {
+      cwCopy.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
     }
-    if (cw.value.timing.start.type === 'datetime' || cw.value.timing.end.type === 'datetime') {
-      cw.value.timing.repeat_interval.type = 'hour'
-    } else if (cw.value.timing.start.type  === 'date' || cw.value.timing.end.type === 'date') {
-      cw.value.timing.repeat_interval.type = 'day'
+    if (cwCopy.value.timing.start.type === 'datetime' || cwCopy.value.timing.end.type === 'datetime') {
+      cwCopy.value.timing.repeat_interval.type = 'hour'
+    } else if (cwCopy.value.timing.start.type  === 'date' || cwCopy.value.timing.end.type === 'date') {
+      cwCopy.value.timing.repeat_interval.type = 'day'
     }
   } else {
-    cw.value.timing.repeat_interval = undefined
+    cwCopy.value.timing.repeat_interval = undefined
     repeatIntervalLength.value = undefined
     repeatIntervalType.value = undefined
   }
@@ -263,15 +263,15 @@ const selectedPreset = ref<CollectionWindow>()
 // set start and end values based on presets
 watchEffect(() => {
   if (selectedPreset.value) {
-    cw.value.timing.start = JSON.parse(JSON.stringify(selectedPreset.value.timing.start))
-    cw.value.timing.end = JSON.parse(JSON.stringify(selectedPreset.value.timing.end))
-    cw.value.label = selectedPreset.value.label
+    cwCopy.value.timing.start = JSON.parse(JSON.stringify(selectedPreset.value.timing.start))
+    cwCopy.value.timing.end = JSON.parse(JSON.stringify(selectedPreset.value.timing.end))
+    cwCopy.value.label = selectedPreset.value.label
     // select first rp_date for presets by default unless it has already been set to something else
     // this is okay because presets all have duster metadata
-    if (!cw.value.timing.start.rp_date)
-      cw.value.timing.start.rp_date = props.rpDates[0].redcap_field_name
-    if (cw.value.timing.end && !cw.value.timing.end.rp_date)
-      cw.value.timing.end.rp_date = props.rpDates[0].redcap_field_name
+    if (!cwCopy.value.timing.start.rp_date)
+      cwCopy.value.timing.start.rp_date = props.rpDates[0].redcap_field_name
+    if (cwCopy.value.timing.end && !cwCopy.value.timing.end.rp_date)
+      cwCopy.value.timing.end.rp_date = props.rpDates[0].redcap_field_name
   }
 })
 
@@ -279,25 +279,25 @@ const eventInstigator = ref<string>()
 
 /*** validation **/
 
-const poistiveInteger = helpers.regex(/^[1-9][0-9]*$/)
+const positiveInteger = helpers.regex(/^[1-9][0-9]*$/)
 
 const validationValues = computed(()=> {
   return {
-    repeatIntervalLength: repeatIntervalLength.value,
-    repeatIntervalType: repeatIntervalType.value,
+    timingRepeatIntervalLength: repeatIntervalLength.value,
+    timingRepeatIntervalType: repeatIntervalType.value,
   }
 })
 const rules = computed(() => ({
-  repeatIntervalLength: {
+  timingRepeatIntervalLength: {
     requiredIf: helpers.withMessage('Repeat interval length required',
         requiredIf(hasRepeatIntervals.value)),
-    poistiveInteger: helpers.withMessage('Value must be a positive integer',
-        poistiveInteger)
+    positiveInteger: helpers.withMessage('Value must be a positive integer',
+        positiveInteger)
   },
-  repeatIntervalType: {
-      requiredIf: helpers.withMessage('Repeat interval type required',
-          requiredIf(hasRepeatIntervals.value))
-    }
+  timingRepeatIntervalType: {
+    requiredIf: helpers.withMessage('Repeat interval type required',
+        requiredIf(hasRepeatIntervals.value))
+  }
 }))
 
 const v$ = useVuelidate(rules, validationValues)
@@ -311,24 +311,21 @@ const saveTiming = () => {
   console.log(v$.value) ;
   clearPreset()
   if (!v$.value.$error) {
-    cw.value.timing_valid = true
+    //cw.value = JSON.parse(JSON.stringify(cwCopy.value))
     visible.value = false
-    emit('saveTimingUpdate')
+    emit('saveTimingUpdate', cwCopy.value)
     v$.value.$reset() ;
   } else {
-    cw.value.timing_valid = false
     v$.value.$errors.forEach(error =>
-    toast.add({ severity: 'error', summary: 'Unable To Save', detail: error.$message, life: 3000
-    })
+        toast.add({ severity: 'error', summary: 'Unable To Save', detail: error.$message, life: 3000
+        })
     )
   }
 }
 
 const cancelTiming = () => {
-  cw.value.timing_valid = !v$.value.$error
   clearPreset()
   visible.value = false
-  emit('cancelTimingUpdate')
   v$.value.$reset()
 }
 
@@ -338,13 +335,14 @@ const clearPreset = () => {
 
 const resetTiming = () => {
   clearPreset()
-  cw.value.label = ""
-  cw.value.type = "nonrepeating"
-  cw.value.timing.start = JSON.parse(JSON.stringify(INIT_TIMING_CONFIG))
-  cw.value.timing.end = JSON.parse(JSON.stringify(INIT_TIMING_CONFIG))
+  cwCopy.value.label = ""
+  cwCopy.value.type = "nonrepeating"
+  cwCopy.value.timing.start = JSON.parse(JSON.stringify(INIT_TIMING_CONFIG))
+  cwCopy.value.timing.end = JSON.parse(JSON.stringify(INIT_TIMING_CONFIG))
+  cwCopy.value.timing_valid = false
   repeatIntervalLength.value = undefined
   repeatIntervalType.value = undefined
-  cw.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
+  cwCopy.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
 }
 
 </script>

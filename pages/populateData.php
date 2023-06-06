@@ -5,13 +5,13 @@ namespace Stanford\Duster;
 
 $redcap_version = explode('_',APP_PATH_WEBROOT)[1];
 $record_base_url = APP_PATH_WEBROOT_FULL
-  . 'redcap_' . $redcap_version .'DataEntry/record_home.php?pid=' . PROJECT_ID;
+    . 'redcap_' . $redcap_version .'DataEntry/record_home.php?pid=' . PROJECT_ID;
 $designer_url = APP_PATH_WEBROOT_FULL
-  . 'redcap_' . $redcap_version .'Design/online_designer.php?pid=' . PROJECT_ID;
+    . 'redcap_' . $redcap_version .'Design/online_designer.php?pid=' . PROJECT_ID;
 $data_exports_url = APP_PATH_WEBROOT_FULL
-  . 'redcap_' . $redcap_version .'DataExport/index.php?pid=' . PROJECT_ID;
+    . 'redcap_' . $redcap_version .'DataExport/index.php?pid=' . PROJECT_ID;
 $project_setup_url = APP_PATH_WEBROOT_FULL
-  . 'redcap_' . $redcap_version . 'ProjectSetup/index.php?pid=' . PROJECT_ID;
+    . 'redcap_' . $redcap_version . 'ProjectSetup/index.php?pid=' . PROJECT_ID;
 $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
 $project_id = PROJECT_ID;
 
@@ -37,9 +37,9 @@ $project_id = PROJECT_ID;
       <v-alert type="error"><span v-html="errorMessage"></span></v-alert>
       <!-- display button to Project Setup if error is due to production status -->
       <v-btn
-        v-if="isProduction === false"
-        color="primary"
-        @click="goToUrl(project_setup_url)"
+          v-if="isProduction === false"
+          color="primary"
+          @click="goToUrl(project_setup_url)"
       >
         Go to Project Setup
       </v-btn>
@@ -87,9 +87,9 @@ $project_id = PROJECT_ID;
 
           <v-stepper-content step="1">
 
-              <missing-fields-table
-                  :table-data="dusterData.missing_fields">
-              </missing-fields-table>
+            <missing-fields-table
+                :table-data="dusterData.missing_fields">
+            </missing-fields-table>
 
             <!-- No continue button if there are missing fields
             leaving in for testing
@@ -129,8 +129,8 @@ $project_id = PROJECT_ID;
             <v-divider></v-divider>
 
             <v-btn v-if="dusterData.rp_data"
-                color="primary"
-                @click="step = 3"
+                   color="primary"
+                   @click="step = 3"
             >
               Continue
             </v-btn>
@@ -152,17 +152,12 @@ $project_id = PROJECT_ID;
               </request-data-table>
             </div>
             <v-divider></v-divider>
-            <v-btn
-                color="primary"
-                @click="showAsyncNotify = true"
-            >
-              Don't Wait
-            </v-btn>
+
             <v-btn
                 color="primary"
                 @click="syncCohort()"
             >
-              Wait
+              Submit
             </v-btn>
 
             <v-btn
@@ -174,23 +169,22 @@ $project_id = PROJECT_ID;
           </v-stepper-content>
 
           <v-stepper-content step="4">
-            <p><strong>
-                <span v-html="saveMessage"></span>
-              </strong>
-            </p>
-            <div class="text-center" v-if="!async && dusterData.rp_data">
-
+            <div class="text-center" v-if="dusterData.rp_data">
+              <p><strong>
+                  <span v-html="saveMessage"></span>
+                </strong>
+              </p>
               <v-row>
                 <v-col md="3"><b>Cohort:</b>
                   <span v-if="cohortMessage"><br>{{ cohortMessage }}</span>
                 </v-col>
                 <v-col md="8">
                   <v-progress-linear
-                    v-model="cohortProgress"
-                    height="25"
-                    stream
+                      v-model="cohortProgress"
+                      height="25"
+                      stream
                   >
-                  <strong>{{ cohortProgress }}%</strong>
+                    <strong>{{ cohortProgress }}%</strong>
                   </v-progress-linear>
                 </v-col>
               </v-row>
@@ -206,40 +200,6 @@ $project_id = PROJECT_ID;
 
             </div>
             <v-dialog
-                v-model="showAsyncNotify"
-                max-width="500px"
-            >
-              <v-card>
-                <v-card-title>
-                  Run in Background
-                </v-card-title>
-                <v-card-text>
-                    <p>
-                      Enter an email address to get notifications when data request is complete.
-                    </p>
-                  <v-text-field v-model="email">
-                  </v-text-field>
-
-                </v-card-text>
-                <v-card-actions>
-                  <v-btn
-                      color="info"
-                      outlined
-                      @click="asyncRequestData()"
-                  >
-                    Submit
-                  </v-btn>
-                  <v-btn
-                      color="secondary"
-                      outlined
-                      @click="showAsyncNotify = false"
-                  >
-                    Cancel
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-            <v-dialog
                 v-model="confirmCancel"
                 max-width="500px"
             >
@@ -249,11 +209,11 @@ $project_id = PROJECT_ID;
                 </v-card-title>
                 <v-card-text>
                   <v-alert type="warning">
-                      <p>
-                          Are you sure you want to cancel data retrieval?
-                          <br>
-                          Data that has already been saved to REDCap will not be deleted.
-                      </p>
+                    <p>
+                      Are you sure you want to cancel data retrieval?
+                      <br>
+                      Data that has already been saved to REDCap will not be deleted.
+                    </p>
                   </v-alert>
 
                 </v-card-text>
@@ -276,23 +236,17 @@ $project_id = PROJECT_ID;
             </v-dialog>
 
             <v-divider></v-divider>
-            <v-btn v-if="async"
-                   color="primary"
-                   @click="goToUrl(data_exports_url)"
-              >
-              Project Home
-            </v-btn>
-            <v-btn v-else-if="totalProgress < 100"
-                color="error"
-                outlined
-                @click="confirmCancel = true">
+            <v-btn v-if="totalProgress < 100"
+                   color="error"
+                   outlined
+                   @click="confirmCancel = true">
               Cancel
             </v-btn>
             <v-btn v-else
                    color="primary"
                    @click="goToUrl(data_exports_url)"
             >
-            Export Data
+              Export Data
             </v-btn>
           </v-stepper-content>
         </v-stepper-items>
@@ -336,10 +290,7 @@ $project_id = PROJECT_ID;
       cohortMessage:"Cohort sync in progress.",
       queries:null,
       //queryProgress: {},
-      num_queries:0,
-      async: false,
-      email:null,
-      showAsyncNotify: false
+      num_queries:0
     },
     beforeMount: function() {
       // bypass the production status check for now
@@ -422,16 +373,6 @@ $project_id = PROJECT_ID;
           this.errorMessage +=error.message + '<br>';
         });
       },
-      asyncRequestData() {
-        this.async = true
-        this.showAsyncNotify = false
-        this.step = 4;
-        this.totalProgress = 100
-        const email_param = (this.email) ? '&email=' + this.email : ''
-        axios.get("<?php echo $module->getUrl("services/getData.php?action=asyncData"); ?>"
-          + email_param);
-        this.saveMessage = "Data request submitted.  An email will be sent to " + this.email + " when it is completed.";
-      },
       async syncCohort() {
         this.step = 4;
         try {
@@ -466,9 +407,3 @@ $project_id = PROJECT_ID;
 </script>
 </body>
 </html>
-<script>
-  import VTextField from "./js/vue/new-project/dist/js/chunk-vendors.a4ac9813";
-  export default {
-    components: {VTextField}
-  }
-</script>

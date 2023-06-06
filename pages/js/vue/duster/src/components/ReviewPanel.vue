@@ -152,7 +152,7 @@
 </template>
 
 <script setup lang="ts">
-import {capitalize, computed, ref} from "vue";
+import {capitalize, computed, ref, watch} from "vue";
 import type {PropType} from "vue";
 import type CollectionWindow from "@/types/CollectionWindow";
 import {INIT_TIMING_CONFIG} from "@/types/TimingConfig";
@@ -197,7 +197,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:showSummary'])
 
-const show = computed<boolean>({
+const visible = computed<boolean>({
   get(){
   return props.showSummary
   },
@@ -206,10 +206,22 @@ const show = computed<boolean>({
   }
 })
 
+// operate on copies of the data so it's not always reacting when the data is being edited
+const cwsCopy = ref<CollectionWindow[]>([])
+const rpDatesCopy = ref<FieldConfig[]>([])
+const demographicsCopy = ref<FieldMetadata[]>([])
+watch(visible, (isVisible) => {
+  if (isVisible) {
+    rpDatesCopy.value = JSON.parse(JSON.stringify(props.rpDates))
+    demographicsCopy.value = JSON.parse(JSON.stringify(props.demographics))
+    cwsCopy.value = JSON.parse(JSON.stringify(props.collectionWindows))
+  }
+})
+
 const rpDataConfigs = computed<any> (()=>{
   const rpInfo:any = {rp_identifiers:{}, rp_dates:{}}
   rpInfo['rp_identifiers'] = JSON.parse(JSON.stringify(props.rpIdentifiers))
-  for (let rpdate of props.rpDates) {
+  for (let rpdate of rpDatesCopy.value) {
     if (rpdate.redcap_field_name) {
       rpInfo.rp_dates[rpdate.redcap_field_name] = {
         label: rpdate.label,
@@ -224,8 +236,8 @@ const rpDataConfigs = computed<any> (()=>{
 
 const demographicsConfigs = computed<FieldConfig[]>(()=>{
   const demographics: FieldConfig[] = []
-  if (props.demographics) {
-    props.demographics.forEach(demo => demographics.push({
+  if (demographicsCopy.value) {
+    demographicsCopy.value.forEach(demo => demographics.push({
       duster_field_name: demo.duster_field_name,
       redcap_field_name: demo.duster_field_name,
       redcap_field_type: demo.redcap_field_type,
@@ -239,8 +251,8 @@ const demographicsConfigs = computed<FieldConfig[]>(()=>{
 
 const cwConfigs = computed<CollectionWindow[]>(()=>{
   const configs: CollectionWindow[] = []
-  if (props.collectionWindows) {
-    props.collectionWindows.forEach((cw, index) => {
+  if (cwsCopy.value) {
+    cwsCopy.value.forEach((cw, index) => {
       let config: any = {
         type: cw.type,
         label: cw.label,
@@ -305,16 +317,6 @@ const getTimingCols = (timingObj:any, events:any) => {
 }
 
 const getRepeatCols=(timingObj:any)=> {
-  /*if (timingObj.repeat_interval) {
-    const prefix = timingObj.start.redcap_field_name.substring(0,
-        timingObj.start.redcap_field_name.indexOf("_"));
-    return [{
-      label: "Repeat Instance - " + timingObj.repeat_interval.label,
-      type: timingObj.repeat_interval.type,
-      length: timingObj.repeat_interval.length,
-      redcap_field_name: prefix + "_repeat_instance"
-    }]
-  }*/
   if (timingObj.repeat_interval) {
     return [{
       event: "Instance Start",
@@ -394,10 +396,10 @@ const getTimingConfig = (timing:TimingConfig, index: number, eventType:string) =
       tconfig.rp_date = timing.rp_date
     } else {
       // get the rp_date label
-      let rpIndex = props.rpDates.findIndex(rpDate => rpDate.redcap_field_name == timing.rp_date)
+      let rpIndex = rpDatesCopy.value.findIndex(rpDate => rpDate.redcap_field_name == timing.rp_date)
       if (rpIndex > -1) {
         tconfig.rp_date = timing.redcap_field_name
-        tconfig.label = props.rpDates[rpIndex].label
+        tconfig.label = rpDatesCopy.value[rpIndex].label
         tconfig.duster_field_name = null
       }
     }
@@ -485,9 +487,9 @@ const getAggregateLabel = (varLabel:string, aggregate: string, event?:TimingConf
     /*
 add the event label to closest to event label
 works but label is long and messy
-  let rpIndex = props.rpDates.findIndex(rpDate => rpDate.redcap_field_name ==
+  let rpIndex = rpDatesCopy.value.findIndex(rpDate => rpDate.redcap_field_name ==
       event.rp_date)
-  label += " " + props.rpDates[rpIndex].label
+  label += " " + rpDatesCopy.value[rpIndex].label
 */
   }
   if (aggregate == 'closest_time') {

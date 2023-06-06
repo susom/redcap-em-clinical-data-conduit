@@ -79,7 +79,8 @@
               :class="{ 'p-invalid': aggOptionErrorMessage }"
               @click="aggOptionErrorMessage=false"
           />
-          <label :for="option.value" class="ml-2">{{ option.text }}</label>        </div>
+          <label :for="option.value" class="ml-2">{{ option.text }}</label>
+        </div>
         <!-- closest time-->
         <div v-if="hasClosestTime" class="flex align-items-center">
           <Checkbox

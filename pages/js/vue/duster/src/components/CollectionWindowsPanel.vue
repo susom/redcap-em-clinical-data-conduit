@@ -29,6 +29,7 @@
     <Column  key="timing_config" header="Timing" style="width: 5%">
       <template #body="{ data }">
         <Button icon="pi pi-pencil" class="ml-2 p-1" size="small"
+                :severity="(!v$.$dirty || data.timing_valid) ? 'primary':'danger'"
             @click="showTiming(data)" v-tooltip.top="'Configure Timing'"/>
       </template>
     </Column>
@@ -37,7 +38,7 @@
              style="width: 20%">
       <template #body="{ data }">
         <div v-if="data['timing']['start']['label']"
-             :class="{'p-invalid': !data['timing']['timing_valid']}"
+             :class="{'p-invalid': !data['timing_valid']}"
         >
           <strong>From: </strong>{{ data['timing']['start']['label'] }}<br>
           <strong>To: </strong>{{ data['timing']['end']['label'] }}<br>
@@ -68,19 +69,25 @@
     </Column>
 
     <Column key="data" field="data" header="Clinical Data" style="width: 40%">
-      <template #body="{ data }">
-        <Button @click="showClinicalData('labs', data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
-            Labs<span class="p-badge p-component p-badge-no-gutter">{{ data.data.labs.length }}</span>
+      <template #body="slotProps">
+        <Button @click="showClinicalData('labs', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded
+        :severity="(!v$.$dirty || slotProps.data[slotProps.field].valid) ? 'primary':'danger'">
+            Labs<span class="p-badge p-component p-badge-no-gutter">{{ slotProps.data[slotProps.field].labs.length }}</span>
         </Button>
-        <Button @click="showClinicalData('vitals', data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
-            Vitals<span class="p-badge p-component p-badge-no-gutter">{{ data.data.vitals.length }}</span>
+        <Button @click="showClinicalData('vitals', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
+            Vitals<span class="p-badge p-component p-badge-no-gutter">{{ slotProps.data[slotProps.field].vitals.length }}</span>
         </Button>
-        <Button @click="showClinicalData('outcomes', data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
-            Outcomes<span class="p-badge p-component p-badge-no-gutter">{{ data.data.outcomes.length }}</span>
+        <Button @click="showClinicalData('outcomes', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
+            Outcomes<span class="p-badge p-component p-badge-no-gutter">{{ slotProps.data[slotProps.field].outcomes.length }}</span>
         </Button>
-        <Button @click="showClinicalData('scores', data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
-            Scores<span class="p-badge p-component p-badge-no-gutter">{{ data.data.scores.length }}</span>
+        <Button @click="showClinicalData('scores', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
+            Scores<span class="p-badge p-component p-badge-no-gutter">{{ slotProps.data[slotProps.field].scores.length }}</span>
         </Button>
+        <small v-if="(v$.$dirty && !slotProps.data[slotProps.field].valid)"
+               class="flex p-error mb-3">
+          {{ slotProps.data[slotProps.field].errors[0].$message }}
+
+        </small>
       </template>
     </Column>
         <Column  key="id" field="id" header="Actions" style="width: 10%">
@@ -111,13 +118,13 @@
 
   <TimingDialog
       v-model:show-timing-dialog = "showTimingDialog"
-      v-model:collection-window = "currentCollectionWindow"
+      :collection-window = "currentCollectionWindow"
       :event-options="eventDts"
       :rp-dates="rpDates"
       :presets="presets.cw_presets"
-      @update:visible="restoreInitialStates"
-      @save-timing-update="saveUpdate"
-      @cancel-timing-update="restoreInitialStates"
+      @save-timing-update="saveTiming"
+      @cancel-timing-update="showTimingDialog = false"
+      @update:visible="showTimingDialog = false"
   />
 
   <ClinicalDataDialog
@@ -247,7 +254,6 @@ onMounted(()=> {
 const addNew = () => {
   currentCollectionWindow.value = JSON.parse(JSON.stringify(INIT_COLLECTION_WINDOW))
   currentCollectionWindow.value.id = "cw" + new Date().getTime()
-
   if (!localCollectionWindows.value) {
     localCollectionWindows.value = []
   }
@@ -255,9 +261,7 @@ const addNew = () => {
 
   // 1st label is always blank with this change
   //showTiming(localCollectionWindows.value[localCollectionWindows.value.length - 1])
-
 }
-
 
 // to restore after cancel
 const saveInitialState = (cw: CollectionWindow) => {
@@ -268,7 +272,7 @@ const saveInitialState = (cw: CollectionWindow) => {
 }
 
 const showTiming = (cw:CollectionWindow) => {
-  saveInitialState(cw)
+  currentCollectionWindow.value = cw
   showTimingDialog.value = true
 }
 
@@ -366,7 +370,7 @@ const rules = {
             uniqueLabel: helpers.withMessage('Labels must be unique', uniqueLabel)
           },
           timing_valid: {
-            sameAs: helpers.withMessage("Timing Configuration is invalid.", sameAs(true))
+              sameAs: helpers.withMessage("Timing Configuration is invalid.", sameAs(true))
           }
         }
     )
@@ -375,6 +379,21 @@ const rules = {
 
 const v$ = useVuelidate(rules, validationState, {$lazy: true})
 /****/
+
+const saveTiming = (cwCopy:CollectionWindow) => {
+  v$.value.$reset()
+  if (cwCopy && cwCopy.id) {
+    let index = getRowIndex(cwCopy.id, localCollectionWindows.value)
+    if (localCollectionWindows.value && index > -1) {
+      localCollectionWindows.value[index].type = cwCopy.type
+      localCollectionWindows.value[index].timing_valid = true
+      localCollectionWindows.value[index].label = cwCopy.label
+      localCollectionWindows.value[index].timing.start = cwCopy.timing.start
+      localCollectionWindows.value[index].timing.end = cwCopy.timing.end
+      localCollectionWindows.value[index].timing.repeat_interval = cwCopy.timing.repeat_interval
+    }
+  }
+}
 
 const saveUpdate = () => {
   v$.value.$reset()
@@ -398,6 +417,7 @@ const restoreInitialStates = () => {
     let cwIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindows.value)
     if (savedCollectionWindow.value && cwIndex > -1) {
       localCollectionWindows.value[cwIndex] = savedCollectionWindow.value
+      currentCollectionWindow.value = localCollectionWindows.value[cwIndex]
     }
   }
   saveUpdate()
@@ -429,10 +449,6 @@ const getRowIndex = (id:string, haystack:any[]) => {
   return haystack.findIndex(
       (cw) => cw.id === id)
 }
-
-
-
-
 </script>
 
 

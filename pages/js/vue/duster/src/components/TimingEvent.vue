@@ -15,9 +15,9 @@
                 :inputId="type.value"
                 :id="type.value"
                 :value="type.value"
-                :class="{ 'p-invalid': v$.type.$error }"
+                :class="{ 'p-invalid': v$.timingEventType.$error }"
                 @click="$emit('instigate', eventType)"
-                @change="event.label = eventLabel; emit('clearPreset')"
+                @change="emit('clearPreset')"
             />
             <label :for="type.value" class="ml-2" v-tooltip="type.tooltip"
             >{{ type.text }}</label>
@@ -36,12 +36,12 @@
                         :options="filteredEventOptions"
                         optionLabel="label"
                         style="width:12rem"
-                        :class="{ 'p-invalid': v$.eventValue.$error }"
-                        @change="event.label = eventLabel; emit('clearPreset')"
+                        :class="{ 'p-invalid': v$.timingEventValue.$error }"
+                        @change="emit('clearPreset')"
               />
-              <small v-if="v$.eventValue.$error"
+              <small v-if="v$.timingEventValue.$error"
                      class="flex p-error mb-3">
-                {{ v$.eventValue.$errors[0].$message }}
+                {{ v$.timingEventValue.$errors[0].$message }}
               </small>
 
             </div>
@@ -52,11 +52,11 @@
                         optionLabel="label"
                         optionValue="redcap_field_name"
                         style="width:12rem"
-                        :class="{ 'p-invalid': v$.rp_date.$error }"
+                        :class="{ 'p-invalid': v$.timingEventRpDate.$error }"
               />
-              <small v-if="v$.rp_date.$error"
+              <small v-if="v$.timingEventRpDate.$error"
                      class="flex p-error mb-3">
-                {{ v$.rp_date.$errors[0].$message }}
+                {{ v$.timingEventRpDate.$errors[0].$message }}
               </small>
             </div>
           </div>
@@ -68,13 +68,13 @@
                 id="intervalLength"
                 input-id="integeronly"
                 :min="1"
-                :class="{ 'p-invalid': v$.interval['length'].$error }"
+                :class="{ 'p-invalid': v$.timingEventInterval['length'].$error }"
                 :input-style="{'width': '3rem'}"
                 placeholder="# of"
                 @value="emit('clearPreset')"/>
-              <small v-if="v$.interval['length'].$error"
+              <small v-if="v$.timingEventInterval['length'].$error"
                      class="flex p-error mb-3">
-                {{ v$.interval.length.$errors[0].$message }}
+                {{ v$.timingEventInterval.length.$errors[0].$message }}
               </small>
             </div>
 
@@ -85,11 +85,11 @@
                         optionValue="value"
                         style="width:10rem"
                         placeholder="Hours / Days"
-                        :class="{ 'p-invalid': v$.interval['type'].$error }"
+                        :class="{ 'p-invalid': v$.timingEventInterval['type'].$error }"
                         @change="emit('clearPreset')"/>
-              <small v-if="v$.interval['type'].$error"
+              <small v-if="v$.timingEventInterval['type'].$error"
                      class="flex p-error mb-3">
-                {{ v$.interval.type.$errors[0].$message }}
+                {{ v$.timingEventInterval.type.$errors[0].$message }}
               </small>
             </div>
             <div class="field">
@@ -102,9 +102,9 @@
             </div>
           </div>
         </div>
-        <small v-if="v$.type.$error"
+        <small v-if="v$.timingEventType.$error"
                class="flex p-error mb-3">
-          {{ v$.type.$errors[0].$message }}
+          {{ v$.timingEventType.$errors[0].$message }}
         </small>
 
         <!--small v-if="eventTypeMissing"
@@ -215,7 +215,7 @@ watchEffect(() =>{
   if (filteredTimingTypes.value.length === 1) {
     // @ts-nocheck
     event.value.type = filteredTimingTypes.value[0].value as TIMING_TYPE
-  } else if (props.eventType != props.instigator
+  } else if (props.instigator && props.eventType != props.instigator
       && props.otherTimingEvent.type
       && props.otherTimingEvent.type !== event.value.type
       && props.otherTimingEvent.type !== 'interval'
@@ -271,6 +271,7 @@ watchEffect(()=> {
     if (!event.value.interval) {
       event.value.interval = {...INIT_TIMING_INTERVAL}
     }
+    /* if no previous interval type was set, then set the interval type according to the other timing event */
     if (!intervalType.value) {
       if (props.otherTimingEvent.type === 'datetime') {
         intervalType.value = 'hour'
@@ -278,6 +279,7 @@ watchEffect(()=> {
         intervalType.value = 'day'
       }
     }
+    /* set the interval label in response to type of interval*/
     // note to self: event.value.interval.label was incorrect value when two statements were combine
     event.value.interval.label = intervalLength.value.toString() + " " + intervalType.value
     event.value.interval.label += (props.eventType == 'start') ? "(s) before End"
@@ -332,24 +334,6 @@ const eventTypeLabel = computed<string>(() => {
   }
 })
 
-const eventLabel = computed(() => {
-  if (event.value.type == 'interval') {
-    return intervalLength.value.toString() + " "
-    + intervalType.value
-    + (props.eventType == 'start') ?  "(s) before End"
-        : "(s) after Start"
-    //return event.value.interval?.label ?? ""
-  }
-  const label = getDateText(props.eventOptions, event.value.duster_field_name,
-          event.value.redcap_field_name) ?? ""
-  if (label.length && event.value.type == 'date') {
-    return (props.eventType == 'end')
-        ? "23:59:00 of " + label
-        : "00:00:00 of " + label
-  }
-  return label
-})
-
 const getDateText = (options: TimingConfig[],
                      dusterFieldName?: string ,
                      rpDate?: string) => {
@@ -363,6 +347,19 @@ const getDateText = (options: TimingConfig[],
   return ""
 }
 
+watchEffect(() => {
+  // interval label is taken care of in a different function
+  if (event.value.type != 'interval') {
+    event.value.label = getDateText(props.eventOptions, event.value.duster_field_name,
+        event.value.redcap_field_name) ?? ""
+    if (event.value.label.length && event.value.type == 'date') {
+      event.value.label = (props.eventType == 'end')
+          ? "23:59:00 of " + event.value.label
+          : "00:00:00 of " + event.value.label
+    }
+  }
+})
+
 /*** vuelidate*/
 
 /* Validation Rules */
@@ -372,20 +369,20 @@ const positiveInteger = helpers.regex(/^[1-9][0-9]*$/)
 
 const validationState = computed(() => {
   return {
-    type: event.value.type,
-    eventValue: (selectedEvent.value.duster_field_name) ? selectedEvent.value.duster_field_name : selectedEvent.value.redcap_field_name,
-    interval: event.value.interval,
-    rp_date: event.value.rp_date
+    timingEventType: event.value.type,
+    timingEventValue: (selectedEvent.value.duster_field_name) ? selectedEvent.value.duster_field_name : selectedEvent.value.redcap_field_name,
+    timingEventInterval: event.value.interval,
+    timingEventRpDate: event.value.rp_date
   }
 })
 
 const rules = computed(() => ( {
-  type: { required: helpers.withMessage('Required', required) },
-  eventValue: {
+  timingEventType: { required: helpers.withMessage('Required', required) },
+  timingEventValue: {
     requiredIf: helpers.withMessage('Required ' + capitalize(props.eventType) + " Event",
         requiredIf(event.value.type !== 'interval'))
   },
-  interval: {
+  timingEventInterval: {
     requiredIf: requiredIf(event.value.type == 'interval'),
     type: {
       requiredIf: helpers.withMessage('Required',
@@ -398,7 +395,7 @@ const rules = computed(() => ( {
           positiveInteger)
     }
   },
-  rp_date: {
+  timingEventRpDate: {
     requiredIf: helpers.withMessage('Required',
         requiredIf(!!event.value.duster_field_name))
   }
