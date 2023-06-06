@@ -312,16 +312,24 @@ const checkValidation = () => {
   } else {
     console.log(v$)
     v$.value.$errors.forEach(error => {
-          // @ts-ignore
-          error.$message.forEach(msgs =>
-              msgs.forEach( (msg:string) =>
-                  toast.add({
-                    severity: 'error',
-                    summary: 'Missing values', detail: msg,
-                    life: 3000
-              })
-              )
-          )
+          if (typeof error.$message === 'object') {
+            // @ts-ignore
+            error.$message.forEach(msgs =>
+                msgs.forEach((msg: string) =>
+                    toast.add({
+                      severity: 'error',
+                      summary: 'Error', detail: msg,
+                      life: 3000
+                    })
+                )
+            )
+          } else {
+            toast.add({
+              severity: 'error',
+              summary: 'Error', detail: error.$message,
+              life: 3000
+            })
+          }
         }
     )
   }

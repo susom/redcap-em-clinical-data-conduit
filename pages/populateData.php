@@ -152,12 +152,17 @@ $project_id = PROJECT_ID;
               </request-data-table>
             </div>
             <v-divider></v-divider>
-
+            <v-btn
+                color="primary"
+                @click="showAsyncNotify = true"
+            >
+              Don't Wait
+            </v-btn>
             <v-btn
                 color="primary"
                 @click="syncCohort()"
             >
-              Submit
+              Wait
             </v-btn>
 
             <v-btn
@@ -169,11 +174,12 @@ $project_id = PROJECT_ID;
           </v-stepper-content>
 
           <v-stepper-content step="4">
-            <div class="text-center" v-if="dusterData.rp_data">
-              <p><strong>
-                  <span v-html="saveMessage"></span>
-                </strong>
-              </p>
+            <p><strong>
+                <span v-html="saveMessage"></span>
+              </strong>
+            </p>
+            <div class="text-center" v-if="!async && dusterData.rp_data">
+
               <v-row>
                 <v-col md="3"><b>Cohort:</b>
                   <span v-if="cohortMessage"><br>{{ cohortMessage }}</span>
@@ -199,6 +205,40 @@ $project_id = PROJECT_ID;
               </rc-progress-bar>
 
             </div>
+            <v-dialog
+                v-model="showAsyncNotify"
+                max-width="500px"
+            >
+              <v-card>
+                <v-card-title>
+                  Run in Background
+                </v-card-title>
+                <v-card-text>
+                    <p>
+                      Enter an email address to get notifications when data request is complete.
+                    </p>
+                  <v-text-field v-model="email">
+                  </v-text-field>
+
+                </v-card-text>
+                <v-card-actions>
+                  <v-btn
+                      color="info"
+                      outlined
+                      @click="asyncRequestData()"
+                  >
+                    Submit
+                  </v-btn>
+                  <v-btn
+                      color="secondary"
+                      outlined
+                      @click="showAsyncNotify = false"
+                  >
+                    Cancel
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
             <v-dialog
                 v-model="confirmCancel"
                 max-width="500px"
@@ -236,7 +276,13 @@ $project_id = PROJECT_ID;
             </v-dialog>
 
             <v-divider></v-divider>
-            <v-btn v-if="totalProgress < 100"
+            <v-btn v-if="async"
+                   color="primary"
+                   @click="goToUrl(data_exports_url)"
+              >
+              Project Home
+            </v-btn>
+            <v-btn v-else-if="totalProgress < 100"
                 color="error"
                 outlined
                 @click="confirmCancel = true">
@@ -290,7 +336,10 @@ $project_id = PROJECT_ID;
       cohortMessage:"Cohort sync in progress.",
       queries:null,
       //queryProgress: {},
-      num_queries:0
+      num_queries:0,
+      async: false,
+      email:null,
+      showAsyncNotify: false
     },
     beforeMount: function() {
       // bypass the production status check for now
@@ -373,6 +422,16 @@ $project_id = PROJECT_ID;
           this.errorMessage +=error.message + '<br>';
         });
       },
+      asyncRequestData() {
+        this.async = true
+        this.showAsyncNotify = false
+        this.step = 4;
+        this.totalProgress = 100
+        const email_param = (this.email) ? '&email=' + this.email : ''
+        axios.get("<?php echo $module->getUrl("services/getData.php?action=asyncData"); ?>"
+          + email_param);
+        this.saveMessage = "Data request submitted.  An email will be sent to " + this.email + " when it is completed.";
+      },
       async syncCohort() {
         this.step = 4;
         try {
@@ -407,3 +466,9 @@ $project_id = PROJECT_ID;
 </script>
 </body>
 </html>
+<script>
+  import VTextField from "./js/vue/new-project/dist/js/chunk-vendors.a4ac9813";
+  export default {
+    components: {VTextField}
+  }
+</script>

@@ -53,4 +53,3 @@ namespace Stanford\Duster;
   window.location = "<?php echo $module->getUrl("pages/js/vue/duster/dist/index.html"); ?>";
 
 </Script>
-
