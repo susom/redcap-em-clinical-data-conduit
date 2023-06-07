@@ -25,6 +25,9 @@ import Tag from 'primevue/tag'
 import Chip from 'primevue/chip'
 import Toolbar from 'primevue/toolbar'
 import Tooltip from 'primevue/tooltip'
+import ConfirmPopup from 'primevue/confirmpopup'
+import ConfirmDialog from 'primevue/confirmdialog'
+import ConfirmationService from 'primevue/confirmationservice';
 
 import App from './App.vue'
 import 'primeflex/primeflex.css'
@@ -38,6 +41,7 @@ import 'primeicons/primeicons.css'
 const app = createApp(App)
     .use(PrimeVue)
     .use(ToastService)
+    .use(ConfirmationService)
     .component('Accordion', Accordion)
     .component('AccordionTab', AccordionTab)
     .component( 'Badge', Badge)
@@ -57,7 +61,8 @@ const app = createApp(App)
     .component( 'RadioButton', RadioButton)
     .component( 'Divider', Divider)
     .component( 'Chip', Chip)
-
+    .component( 'ConfirmPopup', ConfirmPopup)
+    .component( 'ConfirmDialog', ConfirmDialog)
     .component( 'Tag', Tag)
     .component( 'Toolbar', Toolbar)
     .directive('tooltip', Tooltip)
