@@ -58,6 +58,7 @@
           <InputText
             v-model="slotProps.data[slotProps.field]"
             :class="['p-inputtext-sm', 'w-11',{'p-invalid': labelInvalid(slotProps.index)}]"
+            @change="v$.value.$reset()"
             >
           </InputText>
           <small v-if="labelInvalid(slotProps.index)"
@@ -70,11 +71,12 @@
 
     <Column key="data" field="data" header="Clinical Data" style="width: 40%">
       <template #body="slotProps">
+
         <Button @click="showClinicalData('labs', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded
-        :severity="(!v$.$dirty || slotProps.data[slotProps.field].valid) ? 'primary':'danger'">
+        :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
             Labs<span class="p-badge p-component p-badge-no-gutter">{{ slotProps.data[slotProps.field].labs.length }}</span>
         </Button>
-        <Button @click="showClinicalData('vitals', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
+        <Button @click="showClinicalData('vitals', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
             Vitals<span class="p-badge p-component p-badge-no-gutter">{{ slotProps.data[slotProps.field].vitals.length }}</span>
         </Button>
         <Button @click="showClinicalData('outcomes', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
