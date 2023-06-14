@@ -1,11 +1,17 @@
 <template>
-  <Panel header="Researcher Provided Information">
-    <div>
-        The minimum required information for each record is an MRN and a study enrollment date.
-        This data must be loaded into REDcap after DUSTER creates the project.
-    </div>
-    <div class="col-12 mt-1">
-        <DataTable
+  <Panel>
+    <template #header>
+      <span class="p-panel-title">Researcher-Provided Info
+        <Button icon="pi pi-info-circle"
+                text rounded
+                aria-label="Info"
+                class="ml-2 pt-0 pb-0 mt-0 mb-0"
+                style="height:1.3em"
+                @click="showRPInfoHelp = true"/>
+      </span>
+    </template>
+    <div class="col-12">
+    <DataTable
             :value="localRpProvidedData"
             class="p-datatable-sm"
             data-key="id">
@@ -55,7 +61,7 @@
           <Column
               key="redcap_field_name"
               field="redcap_field_name"
-              header="Field Name"
+              header="REDCap Field Name"
               >
             <template
                 #body="slotProps">
@@ -128,7 +134,24 @@
           @click="deleteRpDate" />
     </template>
   </Dialog>
+  <Dialog v-model:visible="showRPInfoHelp" modal header="Data Collection Windows" :style="{ width: '50vw' }">
+    <div class="my-2">
+      There are identifiers and dates/datetimes for your study cohort that you will provide for your REDCap project.
+      <br>
+      <br>
+      The minimum required information for each record is an MRN and a study enrollment date, which DUSTER will use to query STARR.
+      <br>
+      Optionally, you may also add other dates/datetimes of interest.
+      <br>
+      <br>
+      After DUSTER creates the project, you may perform a bulk upload of the Researcher-Provided Info you define here using the Data Import Tool.
+    </div>
+    <template #footer>
+      <Button @click="showRPInfoHelp=false">Close</Button>
+    </template>
+  </Dialog>
 </template>
+
 
 <script setup lang="ts">
 import {computed, ref} from 'vue'
@@ -205,6 +228,8 @@ const otherFieldNames = (id:string) => {
       .map(data => data.redcap_field_name)
       .concat(props.reservedFieldNames)
 }
+
+const showRPInfoHelp = ref(false);
 
 /**** vuelidate ***/
 /* this is needed b/c we have set initialization to lazy **/

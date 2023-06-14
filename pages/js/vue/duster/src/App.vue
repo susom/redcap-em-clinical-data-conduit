@@ -17,11 +17,11 @@
             </div>
             <div class="grid text-white text-lg" style="background-color: #53565A;">
               <div class="col-offset-9 col-2">
-                <a href="https://med.stanford.edu/duster" class="text-white" target="_blank">Duster Website</a>
+                <a href="https://med.stanford.edu/duster" class="text-white" target="_blank">DUSTER Website</a>
               </div>
             </div>
           </nav>
-  
+
           <div v-show="!showSummary">
               <!--<p>Define your project.</p>-->
               <div class="grid">
@@ -40,7 +40,7 @@
               @delete-rp-date="deleteRpDate"
             /-->
               <div class="col-6">
-  
+
               <DemographicsPanel
                   class="flex-1"
                   :demographics-options="demographicsOptions"
@@ -66,18 +66,18 @@
                   <Toast />
                   <Toolbar class="col">
                       <template #start>
-                        <Button label="Exit from DUSTER" icon="pi pi-cross" severity="secondary" class="ml-2" @click="exitFromDuster($event)"/>
+                        <Button label="Back to REDCap New Project Page" icon="pi pi-cross" severity="secondary" class="ml-2" @click="exitFromDuster($event)"/>
                       </template>
                       <template #end>
                         <Button type="submit" label="Review & Create Project" icon="pi pi-check"
                                 class="ml-2"
-                          @click="checkValidation"/>                                                
-                      </template>                    
+                          @click="checkValidation"/>
+                      </template>
                   </Toolbar>
               </div>
           </div>
           </div>
-  
+
           <div :style="(showSummary) ?  '': 'display: none !important'">
             <ReviewPanel
                 v-model:show-summary="showSummary"
@@ -109,7 +109,7 @@
         <Button label="Cancel" icon="pi pi-times" class="p-button-secondary" @click="irbCheckCancel" size="small" />
       </template>
     </Dialog>
-      <SystemErrorDialog v-if="systemError"/>  
+      <SystemErrorDialog v-if="systemError"/>
       <ConfirmDialog>
           <template #message="slotProps">
               <div class="flex p-4">
@@ -119,36 +119,36 @@
           </template>
       </ConfirmDialog>
   </template>
-  
+
   <script setup lang="ts">
   import {computed, ref, onMounted, watchEffect} from 'vue'
   import SystemErrorDialog from '@/components/SystemErrorDialog.vue'
   import { useConfirm } from "primevue/useconfirm";
-  
+
   import axios from 'axios'
   import type FieldMetadata from "@/types/FieldMetadata";
   import type {BasicConfig} from "@/types/FieldConfig";
   import type CollectionWindow from "@/types/CollectionWindow";
-  
+
   import ResearcherProvidedPanel from "@/components/ResearcherProvidedPanel.vue";
   import DemographicsPanel from './components/DemographicsPanel.vue'
   import CollectionWindowsPanel from './components/CollectionWindowsPanel.vue'
   import ReviewPanel from './components/ReviewPanel.vue'
-  
+
   // for testing
   import resp from './dusterTestMetadata.json';
   import {useToast} from "primevue/usetoast";
   import Toast from 'primevue/toast'
   import {useVuelidate} from "@vuelidate/core";
-  
+
   const projectConfig = JSON.parse(localStorage.getItem('postObj') || '{}');
   console.log("postObj" + localStorage.getItem('postObj'))
   localStorage.removeItem('postObj');
   const dev = ref<boolean>(false)
   const systemError = ref<boolean>(false)
-  
+
   const showSummary = ref<boolean>(false)
-  
+
   const rpProvidedData = ref<BasicConfig[]>([
       {
         redcap_field_name: "mrn",
@@ -169,7 +169,7 @@
         id: "enroll_date",
         duster_field_name: undefined
       }])
-  
+
   // separating out identifiers and dates for review step
   const rpIdentifiers = computed(() => {
     return rpProvidedData.value.filter((rpi:BasicConfig) => rpi.value_type?.toLowerCase() === 'identifier')
@@ -177,34 +177,34 @@
   const rpDates = computed(() => {
     return rpProvidedData.value.filter((rpi:BasicConfig) => rpi.value_type?.toLowerCase() !== 'identifier')
   })
-  
+
   const demographicsOptions = ref<FieldMetadata[]>([])
   const labOptions = ref<FieldMetadata[]>([])
   const vitalOptions = ref<FieldMetadata[]>([])
   const outcomeOptions = ref<FieldMetadata[]>([])
   const scoreOptions = ref<FieldMetadata[]>([])
   const clinicalDateOptions = ref<FieldMetadata[]>([])
-  
+
   const demographicsSelects = ref<FieldMetadata[]>([])
   const collectionWindows = ref<CollectionWindow[]>([])
-  
+
   const projectIrb = ref<string>(projectConfig.project_irb_number)
   const irbValid = ref<boolean>(false)
   const irbCheckStatus = ref<string>("checking")
   const irbCheckMessage = ref<string>("Checking IRB #" + projectIrb.value + " ...")
   const irbCheckVisible = ref<boolean>(false)
-  
+
   onMounted(() => {
     // check irb
     checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number)
   })
-  
+
   watchEffect(() => {
     if (irbValid.value) {
       getDusterMetadata(projectConfig.metadata_url)
     }
   })
-  
+
   const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber: string) => {
     if (dev.value) {
       irbValid.value = true
@@ -219,14 +219,14 @@
             irbCheckStatus.value = 'checked'
             if (response.data === 1) {
               irbValid.value = true
-              irbCheckMessage.value = "IRB " + projectIrbNumber + " check success.  Fetching Duster metadata."
+              irbCheckMessage.value = "IRB " + projectIrbNumber + " check success.  Fetching DUSTER metadata."
               projectConfig.project_irb_number = projectIrbNumber
             } else {
               irbValid.value = false
               irbCheckMessage.value = "IRB " + projectIrbNumber
                   + " is invalid. Please enter a different IRB number."
             }
-  
+
           })
           .catch(function (error) {
             irbValid.value = false
@@ -236,13 +236,13 @@
           });
     }
   }
-  
+
   const irbRetry = () => {
     irbCheckStatus.value = "retry"
     irbCheckMessage.value = "Checking IRB #" + projectIrb.value + " ..."
     checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectIrb.value)
   }
-  
+
   const irbCheckCancel = () => {
     irbCheckVisible.value = false
     // return to project create page for invalid IRBs
@@ -250,7 +250,7 @@
       window.location.href = projectConfig.redcap_new_project_url
     }
   }
-  
+
   const getDusterMetadata = (metadataUrl:string) => {
     if (dev.value) {
     demographicsOptions.value = resp.data.demographics;
@@ -260,7 +260,7 @@
     scoreOptions.value = resp.data.scores;
     clinicalDateOptions.value = resp.data.clinical_dates
     } else {
-  
+
       axios.get(metadataUrl)
           .then(response => {
             demographicsOptions.value = response.data.demographics;
@@ -271,13 +271,13 @@
             clinicalDateOptions.value = response.data.clinical_dates
             irbCheckVisible.value = false
           }).catch(function (error) {
-        irbCheckMessage.value = "Unable to load Duster metadata"
+        irbCheckMessage.value = "Unable to load DUSTER metadata"
         systemError.value = true ;
         console.log(error)
       });
     }
   }
-  
+
   const updateRpDate = (rpDate:BasicConfig) => {
     let updated = false;
     for(let index=0; index< rpProvidedData.value.length; index++) {
@@ -291,12 +291,12 @@
       rpDates.value.push(rpDate);
     }
   }
-  
+
   const deleteRpDate = (rpDate:BasicConfig) => {
     rpProvidedData.value = rpProvidedData.value.filter(item => item.id !== rpDate.id)
   }
   const toast = useToast();
-  
+
   // tracks all redcap field names to ensure uniqueness
   const reservedFieldNames = computed(() => {
     // reserve the demographics names?
@@ -305,26 +305,26 @@
     }
     return []
   })
-  
+
   const confirm = useConfirm();
-  
+
   const exitFromDuster = (event: any) => {
       console.log('exit from duster invoked') ;
-      confirm.require({                
+      confirm.require({
           target: event.currentTarget,
-          header: 'Exit from DUSTER',
-          message: 'You will loose all the changes made to DUSTER project. Are you sure to exit?',        
+          header: 'Back to REDCap New Project Page',
+          message: 'You will exit DUSTER\'s New Project Designer and will lose any changes made here. Are you sure you want to exit?',
           accept: () => {
-              window.history.go(-1) ;     
+              window.history.go(-1) ;
           }
-      });    
+      });
   }
-  
+
   const v$ = useVuelidate()
-  
+
   const checkValidation = () => {
     v$.value.$touch()
-  
+
     toast.removeAllGroups()
     if (!v$.value.$error) {
       showSummary.value = true
@@ -350,14 +350,14 @@
             })
           }
         }
-      ) 
+      )
     }
     return false
   }
-  
+
   </script>
-  
-  
+
+
   <style scoped lang="scss">
     nav {
       padding: 10px;
@@ -382,4 +382,3 @@
         border-right-color: #000;
     }
   </style>
-  

@@ -1,7 +1,7 @@
 <template>
   <Panel>
     <template #header>
-      <span class="p-panel-title">Data Collection Configuration
+      <span class="p-panel-title">Data Collection Windows
         <Button icon="pi pi-info-circle"
                 text rounded
                 aria-label="Info"
@@ -95,14 +95,14 @@
         <Column  key="id" field="id" header="Actions" style="width: 10%">
           <template #body="{ data, field }">
             <Button icon="pi pi-copy" outlined rounded severity="success" class="ml-2 p-1 small-icon" size="small"
-                    @click="duplicateCw(data[field])" v-tooltip.top="'Duplicate Collection Window'"/>
+                    @click="duplicateCw(data[field])" v-tooltip.top="'Duplicate Data Collection Window'"/>
             <Button icon="pi pi-trash" outlined rounded severity="danger" class="ml-2 p-1 small-icon" size="small"
-            @click="deleteCw(data[field])" v-tooltip.top="'Delete Collection Window'"/>
+            @click="deleteCw(data[field])" v-tooltip.top="'Delete Data Collection Window'"/>
           </template>
         </Column>
         <template #footer>
           <div class="text-right">
-            <Button label="Add Data Collection"
+            <Button label="Add Data Collection Window"
                     icon="pi pi-plus"
                     severity="success"
                     class="mr-2"
@@ -111,7 +111,7 @@
         </template>
         <template #empty>
             <p class="w-full" style="text-align: center;">
-                No data collection windows/time periods have been defined yet.
+                No Data Collection Windows have been added.
             </p>
         </template>
     </DataTable>
@@ -152,18 +152,19 @@
   <Dialog v-model:visible="showDataCollectionInfo" modal header="Data Collection Windows" :style="{ width: '50vw' }">
     <p>
       Clinical data is partly defined by relative windows of time.
-      </p>
-      <p>
-      DUSTER uses Data Collection Windows to apply this concept of creating windows of time in which you'd like to
-        gather clinical data.
+    </p>
+    <p>
+      DUSTER uses Data Collection Windows to apply this concept of creating windows of time in which you'd like to gather clinical data.
+      <br>
       Each Data Collection Window will appear in the form of REDCap Instruments in your project.
+      <br>
       Within each window, you may add your desired clinical data.
-      </p>
-      <p>
+    </p>
+    <p>
       You may create Data Collection Windows below with the options to choose among preset configurations or to configure from scratch.
-      </p>
+    </p>
     <template #footer>
-      <button @click="showDataCollectionInfo=false">Close</button>
+      <Button @click="showDataCollectionInfo=false">Close</Button>
     </template>
   </Dialog>
   <!--div>Current: {{ currentCollectionWindow }}</div>
@@ -383,7 +384,6 @@ const v$ = useVuelidate(rules, validationState, {$lazy: true})
 /****/
 
 const saveTiming = (cwCopy:CollectionWindow) => {
-  v$.value.$reset()
   if (cwCopy && cwCopy.id) {
     let index = getRowIndex(cwCopy.id, localCollectionWindows.value)
     if (localCollectionWindows.value && index > -1) {
@@ -395,6 +395,7 @@ const saveTiming = (cwCopy:CollectionWindow) => {
       localCollectionWindows.value[index].timing.repeat_interval = cwCopy.timing.repeat_interval
     }
   }
+  v$.value.$reset()
 }
 
 const saveUpdate = () => {

@@ -59,7 +59,15 @@
       <hr/>
       <!-- default aggregates-->
       <Panel header="Default Aggregates" toggleable>
-          <div>Clinical data is fetched for the given time period and aggregated using the following methods:</div>
+          <div>
+            <p>
+              Clinical variables that are added and require aggregation (i.e., any clinical variables under the category of "Labs" or "Vitals") will default to the settings here for convenience.
+              <br>
+              Such variables may have their settings individually changed after being added.
+              <br>
+              NOTE: The "Closest to Event" and "Closest to Time" aggregations are only available when applicable according to the Data Collection Window's timing.
+            </p>
+          </div>
           <div class="card flex flex-wrap gap-4 mt-3">
               <div v-for="(option) in filteredAggregates" :key="option.value" class="flex align-items-center">
                   <Checkbox
