@@ -30,7 +30,7 @@ try {
   if (array_key_exists("rp_info", $config)) {
     $rp_form_name = "researcher_provided_information";
     $rp_form_label = "Researcher-Provided Information";
-    $odm->addForm($rp_form_name, $rp_form_label);
+    $odm->addForm($rp_form_name, $rp_form_label, false);
     // add field for REDCap Record ID
     $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "format" => "text")));
     // add fields for identifiers
@@ -50,15 +50,16 @@ try {
   if (array_key_exists("demographics", $config)) {
     $demo_form_name = "demographics";
     $demo_form_label = "Demographics";
-    $odm->addForm($demo_form_name, $demo_form_label);
+    $odm->addForm($demo_form_name, $demo_form_label, false);
     $odm->addFields($demo_form_name, null, null, "", $config["demographics"]);
   }
 
   // Clinical Windows
   if(array_key_exists("collection_windows", $config)) {
     foreach($config["collection_windows"] as $collection_window) {
+      $repeat_window = $collection_window["type"] === "finite_repeating" || $collection_window["type"] === "calculated_repeating";
       // add form
-      $odm->addForm($collection_window["form_name"], $collection_window["label"]);
+      $odm->addForm($collection_window["form_name"], $collection_window["label"], $repeat_window);
       // add timing fields with its own section header
       $timing_fields_arr = [$collection_window["timing"]["start"], $collection_window["timing"]["end"]];
       $odm->addFields($collection_window["form_name"], null, null, "Timing", $timing_fields_arr);
@@ -127,7 +128,7 @@ if(!$super_token) {
     $delete_token = true;
     // Remember to delete the temporary token
     // register_shutdown_function(array($this, "deleteTempSuperToken"));
-    } else {
+  } else {
     $msg = $module->handleError('DUSTER Error: Project Create', "Failed to create a REDCap SUPER API Token for user " . USERID);
     print "Error: Failed to create project. " . $msg;
     exit();
