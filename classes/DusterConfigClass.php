@@ -280,6 +280,4 @@ class DusterConfigClass
         }
         return $rcFields;
     }
-
-
 }

@@ -32,7 +32,7 @@ try {
     $rp_form_label = "Researcher-Provided Information";
     $odm->addForm($rp_form_name, $rp_form_label, false);
     // add field for REDCap Record ID
-    $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "format" => "text")));
+    $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "redcap_field_type" => "text")));
     // add fields for identifiers
     $odm->addFields($rp_form_name, null, null, "Identifiers", $config["rp_info"]["rp_identifiers"]);
     // add fields for dates
@@ -57,12 +57,26 @@ try {
   // Clinical Windows
   if(array_key_exists("collection_windows", $config)) {
     foreach($config["collection_windows"] as $collection_window) {
-      $repeat_window = $collection_window["type"] === "finite_repeating" || $collection_window["type"] === "calculated_repeating";
+      $repeat_window = $collection_window["type"] === "repeating";
       // add form
       $odm->addForm($collection_window["form_name"], $collection_window["label"], $repeat_window);
       // add timing fields with its own section header
       $timing_fields_arr = [$collection_window["timing"]["start"], $collection_window["timing"]["end"]];
       $odm->addFields($collection_window["form_name"], null, null, "Timing", $timing_fields_arr);
+      // if applicable, add repeat instance start/end with its own section header
+      if ($repeat_window) {
+          $repeat_fields_arr = [
+              array(
+                "redcap_field_name" => $collection_window["form_name"],
+                "label" => "Unique Instance Token",
+                "redcap_field_type" => "text",
+                "hidden" => true
+              ),
+              $collection_window["timing"]["repeat_interval"]["start_instance"],
+              $collection_window["timing"]["repeat_interval"]["end_instance"]
+          ];
+          $odm->addFields($collection_window["form_name"], null, null, "Repeat Instance", $repeat_fields_arr);
+      }
       // if applicable, add closest to event with its own section header
       if(count($collection_window["event"]) > 0 && !empty((array)$collection_window["event"][0])) {
         $odm->addFields($collection_window["form_name"], null, null, "Closest Event Aggregation", $collection_window["event"]);
