@@ -204,6 +204,7 @@ class OdmXmlString
               $options = explode("|", $field["redcap_options"]);
               for ($option_index = 1; $option_index <= count($options); $option_index++) {
                 $item_def .= "\t<ItemDef OID=\"{$field["redcap_field_name"]}___{$option_index}\" Name=\"{$field["redcap_field_name"]}___{$option_index}\" DataType=\"boolean\" Length=\"1\" redcap:Variable=\"{$field["redcap_field_name"]}\" redcap:FieldType=\"checkbox\" redcap:FieldNote=\"{$field_note}\"{$section_header}{$hide_field}>\n"
+
                   . "\t\t<Question><TranslatedText>{$field["label"]}</TranslatedText></Question>\n"
                   . "\t\t<CodeListRef CodeListOID=\"{$field["redcap_field_name"]}___{$option_index}.choices\"/>\n"
                   . "\t</ItemDef>\n";
