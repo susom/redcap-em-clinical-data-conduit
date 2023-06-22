@@ -321,19 +321,31 @@ const closestEvent = computed({
     return props.closestToEvent;
   },
   set(value) {
+    // only used when reset?
     emit('update:closestToEvent', value)
   }
 })
 
 /* closestEvent is an array with only one element
 so this makes accessing it more convenient*/
-const localClosestEvent = ref<TimingConfig>(JSON.parse(JSON.stringify(INIT_TIMING_CONFIG)))
-watchEffect(() => {
-  if (!closestEvent.value) {
-    closestEvent.value = []
-  }
-  closestEvent.value[0] = localClosestEvent.value ?? JSON.parse(JSON.stringify(INIT_TIMING_CONFIG))
-})
+const localClosestEvent = computed<TimingConfig>({
+      get() {
+        if (props.closestToEvent && props.closestToEvent[0] && props.closestToEvent[0].label) {
+          //Find the matching event in the event options to make sure it displays in the dropdown
+          //@ts-ignore
+          return (datetimeEventOptions.value.find(opt => opt.label === props.closestToEvent[0].label) ??
+              JSON.parse(JSON.stringify(INIT_TIMING_CONFIG)))
+          //return props.closestToEvent[0]
+        } else {
+          return JSON.parse(JSON.stringify(INIT_TIMING_CONFIG))
+        }
+      },
+      set(value) {
+        // if localClosestEvent is reset to INIT_TIMING_CONFIG, don't update
+        if (value.label !== "")
+          emit('update:closestToEvent', [value])
+      }
+    })
 
 /** separate out closest event checkbox option to be displayed separately **/
 const closestEventOption = computed(() => {
@@ -413,15 +425,6 @@ const removeCustomAggregates=(aggregate: string, clinicalOptions: any) => {
   })
   return mapped
 }
-
-
-
-/*watchEffect(() => {
-  if (!showClosestEvent.value) {
-    closestEvent.value = []
-    localClosestEvent.value = JSON.parse(JSON.stringify(INIT_TIMING_CONFIG))
-  }
-})*/
 
 /** closest event selector should only show datetime options **/
 const datetimeEventOptions = computed(() => {
