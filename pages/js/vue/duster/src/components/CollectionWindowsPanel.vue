@@ -399,7 +399,6 @@ const saveTiming = (cwCopy:CollectionWindow) => {
 }
 
 const saveUpdate = () => {
-  v$.value.$reset()
   // remove from editing?
   if (currentCollectionWindow.value && currentCollectionWindow.value.id) {
     let editIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindowsEditing.value)
@@ -407,11 +406,11 @@ const saveUpdate = () => {
       localCollectionWindowsEditing.value.splice(editIndex, 1)
     }
   }
+  v$.value.$reset()
 
 }
 
 const restoreInitialStates = () => {
-  v$.value.$reset()
   if (localCollectionWindows.value && currentCollectionWindow.value && currentCollectionWindow.value.id) {
     let editIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindowsEditing.value)
     if (savedCollectionWindow.value && editIndex > -1) {
