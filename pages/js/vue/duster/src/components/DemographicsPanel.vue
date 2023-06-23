@@ -13,7 +13,7 @@
                class="my-2 col-6">
             <div>
               <Checkbox v-model="selected"
-                        :id="field.duster_field_name"
+                        :input-id="field.duster_field_name"
                         :value="field"
               />
               <label :for="field.duster_field_name" class="ml-2">{{ field.label }}</label></div>
@@ -39,7 +39,7 @@
 
 
 <script setup lang="ts">
-import {ref, computed, watch} from "vue"
+import {computed} from "vue"
 import type {PropType} from 'vue'
 import type FieldMetadata from "@/types/FieldMetadata"
 

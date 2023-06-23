@@ -142,7 +142,7 @@
   import {useVuelidate} from "@vuelidate/core";
 
   const projectConfig = JSON.parse(localStorage.getItem('postObj') || '{}');
-  console.log("postObj" + localStorage.getItem('postObj'))
+  //console.log("postObj" + localStorage.getItem('postObj'))
   localStorage.removeItem('postObj');
   const dev = ref<boolean>(false)
   const systemError = ref<boolean>(false)

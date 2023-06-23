@@ -50,7 +50,7 @@
         <div class="col-offset-2 col-12 md:col-10">
 
           <Checkbox
-              id="hasRepeatIntervals"
+              input-id="hasRepeatIntervals"
               v-model="hasRepeatIntervals"
               :binary="true"
               :disabled="repeatIntervalDisabled"
@@ -122,7 +122,6 @@ import type {PropType} from "vue";
 import type CollectionWindow from "@/types/CollectionWindow";
 import type FieldConfig from "@/types/FieldConfig";
 import type TimingConfig from "@/types/TimingConfig";
-import type {INTERVAL_TYPE} from "@/types/TimingConfig";
 import {START_TIME_TYPE_OPTIONS, END_TIME_TYPE_OPTIONS, INTERVAL_OPTIONS, INIT_TIMING_INTERVAL, INIT_TIMING_CONFIG} from
       "@/types/TimingConfig";
 import TimingEvent from "./TimingEvent.vue"
