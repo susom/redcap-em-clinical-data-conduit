@@ -12,7 +12,7 @@
         <div>
           <Checkbox v-model="selected"
                     :name="category"
-                    :id="field.duster_field_name"
+                    :input-id="field.duster_field_name"
                     :value="field"
           />
           <label :for="field.duster_field_name" class="ml-2">{{ field.label }}</label>
@@ -45,8 +45,7 @@
     <div class="flex flex-wrap gap-3 my-3">
       <div class="flex align-items-center">
         <RadioButton v-model="currentField.aggregate_type"
-                     inputId="defaultAggregates"
-                     id="defaultAggregates"
+                     input-id="defaultAggregates"
                      name="defaultCustom"
                      value="default"
                      autofocus
@@ -57,8 +56,7 @@
       </div>
       <div class="flex align-items-center">
         <RadioButton v-model="currentField.aggregate_type"
-                     inputId="customAggregates"
-                     id="customAggregates"
+                     input-id="customAggregates"
                      name="defaultCustom"
                      value="custom"
                      @change="customAggregatesVisible=true"
@@ -74,24 +72,24 @@
           <Checkbox
               name="aggregateOptions"
               v-model="currentField.aggregates"
-              :id="option.value"
+              :input-id="option.value + '_custom'"
               :value="option"
               :class="{ 'p-invalid': aggOptionErrorMessage }"
               @click="aggOptionErrorMessage=false"
           />
-          <label :for="option.value" class="ml-2">{{ option.text }}</label>
+          <label :for="option.value + '_custom'" class="ml-2">{{ option.text }}</label>
         </div>
         <!-- closest time-->
         <div v-if="hasClosestTime" class="flex align-items-center">
           <Checkbox
               v-model="currentField.aggregates"
               name="aggregateOptions"
-              :id="closestTimeOption.value"
+              :input-id="closestTimeOption.value + '_custom'"
               :value="closestTimeOption"
               :class="{ 'p-invalid': aggOptionErrorMessage }"
           />
           <label
-              :for="closestTimeOption.value"
+              :for="closestTimeOption.value + '_custom'"
               class="ml-2 mr-2">
             Closest to Time {{ closestTime ?? "Undefined" }}
           </label>
@@ -111,11 +109,11 @@
           <Checkbox
               v-model="currentField.aggregates"
               name="aggregateOptions"
-              :id="closestEventOption.value"
+              :input-id="closestEventOption.value + '_custom'"
               :value="closestEventOption"
               :class="{ 'p-invalid': aggOptionErrorMessage }"
           />
-          <label :for="closestEventOption.value" class="ml-2 mr-2">
+          <label :for="closestEventOption.value + '_custom'" class="ml-2 mr-2">
             Closest to {{ ((closestEvent ?? "").length) ? closestEvent : "Event - Undefined" }}
           </label>
           <!--Dropdown v-model="localClosestEvent"
@@ -131,23 +129,6 @@
           </small-->
         </div>
       </div>
-
-      <!--div-- class="flex flex-wrap gap-3">
-      <div v-for="aggOption in AGGREGATE_OPTIONS" :key="aggOption.value"
-           class="flex align-items-center">
-        <div v-if="aggOption.value!='closest_time' || (aggOption.value=='closest_time' && hasClosestTime)"
-          class="mb-3 mt-2">
-          <Checkbox v-model="currentField.aggregates"
-                    name="aggregateOptions"
-                    :id="aggOption.value"
-                    :value="aggOption"
-                    :class="{ 'p-invalid': aggOptionErrorMessage }"
-                    @click="aggOptionErrorMessage=false"
-          />
-          <label :for="aggOption.value" class="ml-2">{{ aggOption.text }}</label>
-        </div>
-        </div>
-      </div-->
       <small
           v-if="aggOptionErrorMessage"
           id="aggOption-help"

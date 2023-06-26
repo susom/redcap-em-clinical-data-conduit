@@ -47,8 +47,7 @@
             <div v-for="(value, index) in selectOptions" :key="index" class="flex align-items-center">
               <RadioButton v-model="selectFilter"
                            name="filterSelected"
-                           :inputId="value"
-                           :id="value"
+                           :input-id="value"
                            :value="value"
               />
               <label :for="value" class="flex align-items-center ml-2">{{ value }}</label>
@@ -75,7 +74,6 @@
                       v-model="localAggregateDefaults"
                       :value="option"
                       :input-id="option.value"
-                      :id="option.value"
                       :class="['mr-2', { 'p-invalid': v$.aggregateDefaults.$error }]"
                   />
                   <label :for="option.value">{{ option.text }}</label>
@@ -84,7 +82,7 @@
               <div v-if="hasClosestTime" class="flex align-items-center">
                   <Checkbox v-model="localAggregateDefaults"
                               name="defaultAggregate"
-                              :id="closestTimeOption.value"
+                              :input-id="closestTimeOption.value"
                               :value="closestTimeOption"
                               :class="{ 'p-invalid': v$.aggregateDefaults.$error }"
                   />
@@ -108,7 +106,7 @@
               <div v-if="hasClosestEvent" class="flex align-items-center">
                   <Checkbox v-model="localAggregateDefaults"
                       name="defaultAggregate"
-                      :id="closestEventOption.value"
+                      :input-id="closestEventOption.value"
                       :value="closestEventOption"
                       :class="{ 'p-invalid': v$.aggregateDefaults.$error }"
                   />

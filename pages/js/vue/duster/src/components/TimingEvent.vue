@@ -12,8 +12,7 @@
             <RadioButton
                 v-model="event.type"
                 :name="eventType + 'TimeType'"
-                :inputId="type.value"
-                :id="type.value"
+                :input-id="type.value"
                 :value="type.value"
                 :class="{ 'p-invalid': v$.timingEventType.$error }"
                 @click="$emit('instigate', eventType)"
@@ -117,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import {capitalize, computed, ref, watch, watchEffect} from "vue";
+import {capitalize, computed, watchEffect} from "vue";
 import type {PropType} from "vue";
 import type {MenuOption} from "@/types/TextValuePair";
 import type TimingConfig from "@/types/TimingConfig";
