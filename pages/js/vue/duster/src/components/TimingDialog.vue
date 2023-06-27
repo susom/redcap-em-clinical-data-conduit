@@ -271,6 +271,8 @@ watchEffect(() => {
       cwCopy.value.timing.start.rp_date = props.rpDates[0].redcap_field_name
     if (cwCopy.value.timing.end && !cwCopy.value.timing.end.rp_date)
       cwCopy.value.timing.end.rp_date = props.rpDates[0].redcap_field_name
+    cwCopy.value.type = selectedPreset.value.type
+    cwCopy.value.timing.repeat_interval = JSON.parse(JSON.stringify(selectedPreset.value.timing.repeat_interval))
   }
 })
 
