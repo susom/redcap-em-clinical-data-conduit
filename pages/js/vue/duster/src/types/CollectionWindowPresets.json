@@ -194,6 +194,153 @@
         "scores": []
       },
       "id": ""
+    },
+    {
+      "label": "First ICU Admission to First ICU Discharge",
+      "form_name": "first_icu_admission_to_first_icu_discharge",
+      "timing_preset": "first_icu_admission_to_first_icu_discharge",
+      "type": "nonrepeating",
+      "timing": {
+        "start": {
+          "type": "datetime",
+          "duster_field_name": "first_icu_admission_datetime",
+          "redcap_field_name": "",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "First ICU Admission Datetime",
+          "rp-date": "enroll_date",
+          "interval": {
+            "type": null,
+            "length": null
+          },
+          "phi": "t"
+        },
+        "end": {
+          "type": "datetime",
+          "duster_field_name": "first_icu_discharge_datetime",
+          "redcap_field_name": "",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "First ICU Discharge Datetime",
+          "rp-date": "enroll_date",
+          "interval": {
+            "type": null,
+            "length": null
+          },
+          "phi": "t"
+        },
+        "repeat_interval" : {
+          "type": null,
+          "length" : null
+        }
+      },
+      "aggregate_defaults": [],
+      "event": [],
+      "data": {
+        "labs": [],
+        "vitals": [],
+        "outcomes": [],
+        "scores": []
+      },
+      "id": ""
+    },
+    {
+      "label": "Every Calendar Day of First ICU Admission to First ICU Discharge",
+      "form_name": "every_calendar_day_of_first_icu_admission_to_first_icu_discharge",
+      "timing_preset": "every_calendar_day_of_first_icu_admission_to_first_icu_discharge",
+      "type": "repeating",
+      "timing": {
+        "start": {
+          "type": "date",
+          "duster_field_name": "first_icu_admission_datetime",
+          "redcap_field_name": "",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "00:00:00 of First ICU Admission Datetime",
+          "rp-date": "enroll_date",
+          "interval": {
+            "type": null,
+            "length": null
+          },
+          "phi": "t"
+        },
+        "end": {
+          "type": "date",
+          "duster_field_name": "first_icu_discharge_datetime",
+          "redcap_field_name": "",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "23:59:00 of First ICU Discharge Datetime",
+          "rp-date": "enroll_date",
+          "interval": {
+            "type": null,
+            "length": null
+          },
+          "phi": "t"
+        },
+        "repeat_interval" : {
+          "type": "day",
+          "length" : 1
+        }
+      },
+      "aggregate_defaults": [],
+      "event": [],
+      "data": {
+        "labs": [],
+        "vitals": [],
+        "outcomes": [],
+        "scores": []
+      },
+      "id": ""
+    },
+    {
+      "label": "Every Calendar Day of Hospital Admission to Hospital Discharge",
+      "form_name": "every_calendar_day_of_hospital_admission_to_hospital_discharge",
+      "timing_preset": "every_calendar_day_of_hospital_admission_to_hospital_discharge",
+      "type": "repeating",
+      "timing": {
+        "start": {
+          "type": "date",
+          "duster_field_name": "hospital_admit_datetime",
+          "redcap_field_name": "",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "00:00:00 of Hospital Admission Datetime",
+          "rp-date": "enroll_date",
+          "interval": {
+            "type": null,
+            "length": null
+          },
+          "phi": "t"
+        },
+        "end": {
+          "type": "date",
+          "duster_field_name": "hospital_discharge_datetime",
+          "redcap_field_name": "",
+          "redcap_field_type": "text",
+          "value_type": "datetime",
+          "label": "23:59:00 of Hospital Discharge Datetime",
+          "rp-date": "enroll_date",
+          "interval": {
+            "type": null,
+            "length": null
+          },
+          "phi": "t"
+        },
+        "repeat_interval" : {
+          "type": "day",
+          "length" : 1
+        }
+      },
+      "aggregate_defaults": [],
+      "event": [],
+      "data": {
+        "labs": [],
+        "vitals": [],
+        "outcomes": [],
+        "scores": []
+      },
+      "id": ""
     }
   ]
 }
