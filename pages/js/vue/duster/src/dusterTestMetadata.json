@@ -1,0 +1,1265 @@
+{
+  "data": {
+    "demographics": [
+      {
+        "duster_field_name": "sex",
+        "label": "Sex",
+        "category": "demographics",
+        "value_type": "text",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "assigned at birth",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "race",
+        "label": "Race",
+        "category": "demographics",
+        "value_type": "text",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "ethnicity",
+        "label": "Ethnicity",
+        "category": "demographics",
+        "value_type": "text",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "first_name",
+        "label": "First Name",
+        "category": "demographics",
+        "value_type": "text",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": "t"
+      },
+      {
+        "duster_field_name": "last_name",
+        "label": "Last Name",
+        "category": "demographics",
+        "value_type": "text",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": "t"
+      },
+      {
+        "duster_field_name": "birth_date",
+        "label": "Birth Date",
+        "category": "demographics",
+        "value_type": "text",
+        "redcap_field_type": "date",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": "t"
+      },
+      {
+        "duster_field_name": "death_date",
+        "label": "Death Date",
+        "category": "demographics",
+        "value_type": "text",
+        "redcap_field_type": "date",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": "t"
+      }
+    ],
+    "labs": [
+      {
+        "duster_field_name": "na",
+        "label": "Sodium (Na)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mmol/L",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "k",
+        "label": "Potassium (K)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mmol/L",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "hct",
+        "label": "Hematocrit (Hct)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "%",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "wbc",
+        "label": "White Blood Count (WBC)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "(1x10^3 cells)/(mm^3)",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "pha",
+        "label": "pH (Arterial)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "albumin",
+        "label": "Albumin (serum/plasma)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "g/L",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "alt",
+        "label": "ALT",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "U/L",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "ast",
+        "label": "AST",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "U/L",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "tbil",
+        "label": "Bilirubin Total",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mg/dL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "bun",
+        "label": "Blood Urea Nitrogen (BUN)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mg/dL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "ca",
+        "label": "Calcium (serum/plasma)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mg/dL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "cl",
+        "label": "Chloride (Cl) (serum/plasma)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mEq/L",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "co2",
+        "label": "Bicarbonate / Carbon Dioxide (HCO3 / CO2)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mEq/L or mmol/L",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "crp",
+        "label": "C-Reactive Protein (CRP)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mg/dL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "cr",
+        "label": "Creatinine (serum/plasma)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mg/dL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "ddimer",
+        "label": "D-Dimer",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "ng/mL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "ferritin",
+        "label": "Ferritin",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "ng/mL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "glucose",
+        "label": "Glucose",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mg/dL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "hgb",
+        "label": "Hgb",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "gm/dL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "hba1c",
+        "label": "Hemoglobin A1c (HbA1c)",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "%",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "il6",
+        "label": "IL6",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "pg/ml",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "inr",
+        "label": "INR",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "lactate",
+        "label": "Lactate",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mg/dL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "ldh",
+        "label": "LDH",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "IU/L",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "lymphocyte",
+        "label": "Lymphocytes",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "per mcL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "ntprobnp",
+        "label": "NT-proBNP",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "pg/ml",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "paco2",
+        "label": "PaCO2",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mmHg",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "pao2",
+        "label": "PaO2",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mmHg",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "plt",
+        "label": "Platelets",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "per mcL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "proctl",
+        "label": "Proctl",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "ng/mL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "pt",
+        "label": "PT",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "sec",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "ptt",
+        "label": "PTT",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "sec",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "rbc",
+        "label": "Red Blood Cells",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "per mcL",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "troponin_i",
+        "label": "Troponin I",
+        "category": "labs",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "ng/mL",
+        "phi": ""
+      }
+    ],
+    "vitals": [
+      {
+        "duster_field_name": "temp_c",
+        "label": "Temperature (Celsius)",
+        "category": "vitals",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "Celsius",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "map",
+        "label": "Mean Arterial Pressure (MAP)",
+        "category": "vitals",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mmHg",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "hr",
+        "label": "Heart Rate",
+        "category": "vitals",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "beats/min",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "rr",
+        "label": "Respiratory Rate",
+        "category": "vitals",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "breaths/min",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "gcs_total",
+        "label": "Glasgow Coma Scale (Total)",
+        "category": "vitals",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "fio2",
+        "label": "FiO2",
+        "category": "vitals",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "%",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "height_cm",
+        "label": "Height (cm)",
+        "category": "vitals",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "cm",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "weight_kg",
+        "label": "Weight (kg)",
+        "category": "vitals",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "kg",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "bmi",
+        "label": "BMI (kg/m2)",
+        "category": "vitals",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "kg/m2",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "pf_ratio",
+        "label": "P/F Ratio",
+        "category": "vitals",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "aa_gradient",
+        "label": "AA Gradient",
+        "category": "vitals",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": ""
+      }
+    ],
+    "outcomes": [
+      {
+        "duster_field_name": "o2_modes",
+        "label": "O2 Delivery Modes",
+        "category": "outcomes",
+        "value_type": "checkbox",
+        "redcap_field_type": "checkbox",
+        "redcap_options": "1, Room Air | 2, Nasal Cannula | 3, High Flow Nasal Cannula | 4, CPAP | 5, BiPAP | 6, ETT",
+        "redcap_field_note": "",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "cw_death",
+        "label": "Death within Collection Window",
+        "category": "outcomes",
+        "value_type": "boolean",
+        "redcap_field_type": "yesno",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "iv_pressors",
+        "label": "IV Pressors Used",
+        "category": "outcomes",
+        "value_type": "boolean",
+        "redcap_field_type": "yesno",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "age",
+        "label": "Age @ CW start",
+        "category": "outcomes",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "epi_inf_rate",
+        "label": "Epinephrine Infusion Rate",
+        "category": "outcomes",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mcg/kg/min",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "dopamine_inf_rate",
+        "label": "Dopamine Infusion Rate",
+        "category": "outcomes",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mcg/kg/min",
+        "phi": ""
+      },
+      {
+        "duster_field_name": "norepi_inf_rate",
+        "label": "Norepinephrine Infusion Rate",
+        "category": "outcomes",
+        "value_type": "numeric",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "mcg/kg/min",
+        "phi": ""
+      }
+    ],
+    "clinical_dates": [
+      {
+        "duster_field_name": "hospital_admit_datetime",
+        "label": "Hospital Admission Datetime",
+        "category": "clinical_dates",
+        "value_type": "datetime",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": "t"
+      },
+      {
+        "duster_field_name": "hospital_discharge_datetime",
+        "label": "Hospital Discharge Datetime",
+        "category": "clinical_dates",
+        "value_type": "datetime",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": "t"
+      },
+      {
+        "duster_field_name": "ed_admission_datetime",
+        "label": "ED Admission Datetime",
+        "category": "clinical_dates",
+        "value_type": "datetime",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": "t"
+      },
+      {
+        "duster_field_name": "ed_discharge_datetime",
+        "label": "ED Discharge Datetime",
+        "category": "clinical_dates",
+        "value_type": "datetime",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": "t"
+      },
+      {
+        "duster_field_name": "first_icu_admission_datetime",
+        "label": "First ICU Admission Datetime",
+        "category": "clinical_dates",
+        "value_type": "datetime",
+        "redcap_field_type": "text",
+        "redcap_options": "",
+        "redcap_field_note": "",
+        "phi": "t"
+      }
+    ],
+    "scores": [
+      {
+        "duster_field_name": "sofa_score",
+        "label": "SOFA Score",
+        "category": "scores",
+        "value_type": "text",
+        "redcap_field_type": "calc",
+        "redcap_options": "[sofa_tbil_subscore] + [sofa_cardio_subscore] +\n   [sofa_plt_subscore] + [sofa_renal_subscore] + [sofa_resp_subscore] + [sofa_gcs_total_subscore]",
+        "redcap_field_note": "[sofa_tbil_subscore] + [sofa_cardio_subscore] +\n   [sofa_plt_subscore] + [sofa_renal_subscore] + [sofa_resp_subscore] + [sofa_gcs_total_subscore]",
+        "phi": "",
+        "subscores": [
+          {
+            "duster_field_name": "sofa_tbil_subscore",
+            "score_duster_field_name": "sofa_score",
+            "label": "Liver Subscore (Total Bilirubin)",
+            "redcap_field_note": "(+0) < 1.2<br>(+1) 1.2 - 1.9<br>(+2) 2.0 - 5.9<br>(+3) 6.0 - 11.9<br>(+4) >= 12.0",
+            "redcap_options": "if([tbil_max] != \"\", if([tbil_max] >= 12, 4, if([tbil_max] >= 6,3, if([tbil_max] >= 2, 2, if([tbil_max] >= 1.2, 1, 0)))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "tbil",
+                "aggregates": [
+                  "max_agg"
+                ],
+                "redcap_field_note": "mg/dL",
+                "label": "Bilirubin Total",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "sofa_plt_subscore",
+            "score_duster_field_name": "sofa_score",
+            "label": "Coagulation Subscore (Platelets)",
+            "redcap_field_note": "(+0) >= 150<br>(+1) 100 - 149<br>(+2) 50 - 99<br>(+3) 20 - 49<br>(+4) < 20",
+            "redcap_options": "if([plt_min] != \"\", if([plt_min] < 20, 4, if([plt_min] < 50, 3, if([plt_min] < 100, 2, if([plt_min] < 150, 1, 0)))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "plt",
+                "aggregates": [
+                  "min_agg"
+                ],
+                "redcap_field_note": "per mcL",
+                "label": "Platelets",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "sofa_renal_subscore",
+            "score_duster_field_name": "sofa_score",
+            "label": "Renal Subscore",
+            "redcap_field_note": "(+0) Cr < 1.2<br>(+1) Cr 1.2 - 1.9<br>(+2) Cr 2.0 - 3.4<br>(+3) Cr 3.5 - 4.9 or UOP < 500 mL/day<br>(+4) Cr >= 5 or UOP < 200 mL/day",
+            "redcap_options": "if([cr_max] != \"\", if([cr_max] >= 5 or [urine_24h_min] < 200, 4, if([cr_max] >= 3.5 or [urine_24h_min] < 500, 3, if([cr_max] >= 2, 2, if([cr_max] >= 1.2, 1, 0)))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "cr",
+                "aggregates": [
+                  "max_agg"
+                ],
+                "redcap_field_note": "mg/dL",
+                "label": "Creatinine (serum/plasma)",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              },
+              {
+                "duster_field_name": "urine_24h",
+                "aggregates": [
+                  "min_agg"
+                ],
+                "redcap_field_note": "mL",
+                "label": "24 Hr Urine Output",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "sofa_gcs_total_subscore",
+            "score_duster_field_name": "sofa_score",
+            "label": "Glasgow Coma Score (Total) Subscore",
+            "redcap_field_note": "(+0) 15<br>(+1) 13 - 14<br>(+2) 10 - 12<br>(+3) 6 - 9<br>(+4) < 6",
+            "redcap_options": "if([gcs_total_min] != \"\", if([gcs_total_min] < 6, 4, if([gcs_total_min] <= 9, 3, if([gcs_total_min] <= 12, 2, if([gcs_total_min] <= 14, 1, 0)))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "gcs_total",
+                "aggregates": [
+                  "min_agg"
+                ],
+                "redcap_field_note": "",
+                "label": "Glasgow Coma Scale (Total)",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "sofa_resp_subscore",
+            "score_duster_field_name": "sofa_score",
+            "label": "Respiratory Subscore",
+            "redcap_field_note": "(+0) PF Ratio >= 400<br>(+1) PF Ratio 300 - 399<br>(+2) PF Ratio 200 - 299<br>(+2) PF Ratio 100 - 199 and NOT mechanically ventilated<br>(+3) PF Ratio 100 - 199 and mechanically ventilated<br>(+4) PF Ratio < 100 and mechanically ventilated",
+            "redcap_options": "if([pf_ratio_min] != \"\" and [o2_mode_vent] != \"\", if([pf_ratio_min] < 100 and [o2_mode_vent] = true, 4, if([pf_ratio_min] < 200 and [o2_mode_vent] = true, 3, if([pf_ratio_min] < 200 or ([pf_ratio_min] < 300 and [o2_mode_vent] = false), 2, if([pf_ratio_min] < 400, 1, 0)))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "pf_ratio",
+                "aggregates": [
+                  "min_agg"
+                ],
+                "redcap_field_note": "",
+                "label": "P/F Ratio",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              },
+              {
+                "duster_field_name": "o2_mode_vent",
+                "redcap_field_note": "",
+                "label": "Mechanically Ventilated (includes CPAP)",
+                "value_type": "boolean",
+                "redcap_field_type": "yesno",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "sofa_cardio_subscore",
+            "score_duster_field_name": "sofa_score",
+            "label": "Cardiovascular Subscore",
+            "redcap_field_note": "(+0) No hypotension<br>(+1) MAP < 70 mmHg<br>(+2) DOPamine <= 5 or DOBUTamine (any dose)<br>(+3) DOPamine > 5, EPINEPHrine <= 0.1, or norEPINEPHrine <= 0.1<br>(+4) DOPamine > 15, EPINEPHrine > 0.1, or norEPINEPHrine > 0.1",
+            "redcap_options": "if([dopamine_inf_rate_max] > 15 or [epi_inf_rate_max] > 0.1 or [norepi_inf_rate_max] > 0.1 , 4, if([dopamine_inf_rate_max] > 5 or [epi_inf_rate_max] > 0 or [norepi_inf_rate_max] > 0, 3, if([dopamine_inf_rate_max] > 0 or [dobutamine_inf_rate_max] > 0, 2, if([map_min] = \"\", \"\", if([map_min] < 70, 1, 0)))))",
+            "dependencies": [
+              {
+                "duster_field_name": "dopamine_inf_rate",
+                "aggregates": [
+                  "max_agg"
+                ],
+                "redcap_field_note": "mcg/kg/min",
+                "label": "Dopamine Infusion Rate",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              },
+              {
+                "duster_field_name": "dobutamine_inf_rate",
+                "aggregates": [
+                  "max_agg"
+                ],
+                "redcap_field_note": "mcg/kg/min",
+                "label": "Dobutamine Infusion Rates",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              },
+              {
+                "duster_field_name": "epi_inf_rate",
+                "aggregates": [
+                  "max_agg"
+                ],
+                "redcap_field_note": "mcg/kg/min",
+                "label": "Epinephrine Infusion Rate",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              },
+              {
+                "duster_field_name": "norepi_inf_rate",
+                "aggregates": [
+                  "max_agg"
+                ],
+                "redcap_field_note": "mcg/kg/min",
+                "label": "Norepinephrine Infusion Rate",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              },
+              {
+                "duster_field_name": "map",
+                "aggregates": [
+                  "min_agg"
+                ],
+                "redcap_field_note": "mmHg",
+                "label": "Mean Arterial Pressure (MAP)",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          }
+        ]
+      },
+      {
+        "duster_field_name": "apache2_score",
+        "label": "Apache II Score",
+        "category": "scores",
+        "value_type": "text",
+        "redcap_field_type": "calc",
+        "redcap_options": "[apache2_age_subscore] + [apache2_temp_c_subscore] + [apache2_map_subscore] +\n   [apache2_hr_subscore] + [apache2_rr_subscore] + [apache2_oxy_subscore] + [apache2_pha_subscore] +\n   [apache2_na_subscore] + [apache2_k_subscore] + [apache2_cr_subscore] + [apache2_hct_subscore] +\n   [apache2_wbc_subscore] + [apache2_gcs_total_subscore] + [apache2_chronic_health_subscore]",
+        "redcap_field_note": "[apache2_age_subscore] + [apache2_temp_c_subscore] + [apache2_map_subscore] +\n   [apache2_hr_subscore] + [apache2_rr_subscore] + [apache2_oxy_subscore] + [apache2_pha_subscore] +\n   [apache2_na_subscore] + [apache2_k_subscore] + [apache2_cr_subscore] + [apache2_hct_subscore] +\n   [apache2_wbc_subscore] + [apache2_gcs_total_subscore] + [apache2_chronic_health_subscore]",
+        "phi": "",
+        "subscores": [
+          {
+            "duster_field_name": "apache2_age_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Age Subscore",
+            "redcap_field_note": "(+0) <= 44<br>(+2)  45 - 54 <br>(+3) 55 - 64 <br>(+5) 65 - 74<br>(+6) > 74",
+            "redcap_options": "if([age] != \"\", if([age] > 74, 6, if([age] >= 65, 5, if([age] >= 55, 3, if([age] >= 45, 2, 0)))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "age",
+                "redcap_field_note": "",
+                "label": "Age @ CW start",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_map_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Mean Arterial Pressure (MAP) Subscore",
+            "redcap_field_note": "(+4) > 159<br>(+3) > 129 to 159<br>(+2) > 109 to 129<br>(+0) > 69 to 109<br>(+2) > 49 to 69<br>(+4) <= 49",
+            "redcap_options": "if([map_min] != \"\" and [map_max] != \"\", if([map_min] <= 49 or [map_max] > 159, 4, if([map_max] > 129, 3, if([map_min] <= 69 or [map_max] > 109, 2, 0))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "map",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "mmHg",
+                "label": "Mean Arterial Pressure (MAP)",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_pha_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Arterial pH Subscore",
+            "redcap_field_note": "(+4) >= 7.70<br>(+3) 7.60 to < 7.70<br>(+1) 7.50 to < 7.60<br>(+0) 7.33 to < 7.50<br>(+2) 7.25 to < 7.33<br> (+3) 7.15 to < 7.25<br>(+4) < 7.15",
+            "redcap_options": "if([pha_min] != \"\" and [pha_max] != \"\", if([pha_min] < 7.15 or [pha_max] >= 7.70, 4, if([pha_min] < 7.25 or [pha_max] >= 7.60, 3, if([pha_min] < 7.33, 2, if([pha_max] >= 7.50, 1, 0)))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "pha",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "",
+                "label": "pH (Arterial)",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_hr_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Heart Rate Subscore",
+            "redcap_field_note": "(+4) >= 180<br>(+3) 140 to < 180 <br> (+2) 110 to < 140<br> (+0) 70 to < 110<br>(+2) 55 to < 70<br>(+3) 40 to < 55<br>(+4) < 40",
+            "redcap_options": "if([hr_min] != \"\" and [hr_max] != \"\", if([hr_min] < 40 or [hr_max] >= 180, 4, if([hr_min] < 55 or [hr_max] >= 140, 3, if([hr_min] < 70 or [hr_max] >= 110, 2, 0))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "hr",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "beats/min",
+                "label": "Heart Rate",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_gcs_total_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Glasgow Coma Score (Total) Subscore",
+            "redcap_field_note": "15 - [Minimum Glasgow Coma Scale (GCS) Score]",
+            "redcap_options": "if([gcs_total_min] = \"\", \"\", 15 - [gcs_total_min])",
+            "dependencies": [
+              {
+                "duster_field_name": "gcs_total",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "",
+                "label": "Glasgow Coma Scale (Total)",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_chronic_health_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Chronic Health Subscore",
+            "redcap_field_note": "(+5) History of severe organ insufficiency or immunocompromised, and nonoperative or emergency postoperative patient<br>(+2) History of severe organ insufficiency or immunocompromised, and elective postoperative patient<br>(+0) No history of severe organ insufficiency or immunocompromised",
+            "redcap_options": "if([apache2_comorbidities] != \"\" and [patient_op_status] != \"\", if([apache2_comorbidities] = 1 and ([patient_op_status] = 0 or [patient_op_status] = 2), 5, if([apache2_comorbidities] = 1 and [patient_op_status] = 1, 2, 0)), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "apache2_comorbidities",
+                "redcap_field_note": "",
+                "label": "History of severe organ insufficiency/immunocompromised",
+                "value_type": "boolean",
+                "redcap_field_type": "yesno",
+                "redcap_options": ""
+              },
+              {
+                "duster_field_name": "patient_op_status",
+                "redcap_field_note": "",
+                "label": "Patient Operative Status",
+                "value_type": "coded_value",
+                "redcap_field_type": "select",
+                "redcap_options": "0,None| 1, Elective Postop | 2,Emergent Postop | 3, Inoperable"
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_rr_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Respiratory Rate Subscore",
+            "redcap_field_note": "(+4) >= 50<br>(+3) 35 to < 50<br>(+1) 25 to < 35<br>(+0) 12 to < 25<br>(+1) 10 to < 12<br>(+2) 6 to < 10<br>(+4) < 6",
+            "redcap_options": "if([rr_min] != \"\" and [rr_max] != \"\", if([rr_min] < 6 or [rr_max] >= 50, 4, if([rr_max] >= 35, 3, if([rr_min] < 10, 2, if([rr_min] < 12 or [rr_max] >= 25, 1, 0)))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "rr",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "breaths/min",
+                "label": "Respiratory Rate",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_wbc_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "White Blood Count Subscore",
+            "redcap_field_note": "(+4) >= 40<br>(+2) 20 to < 40<br>(+1) 15 to < 20<br>(+0) 3 to < 15<br>(+2) 1 to < 3<br>(+4) < 1",
+            "redcap_options": "if([wbc_min] != \"\" and [wbc_max] != \"\", if([wbc_min] < 1 or [wbc_max] >= 40, 4, if([wbc_min] < 3 or [wbc_max] >= 20, 2, if([wbc_max] >= 15, 1, 0))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "wbc",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "(1x10^3 cells)/(mm^3)",
+                "label": "White Blood Count (WBC)",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_temp_c_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Temperature Subscore",
+            "redcap_field_note": "(+4) >= 41<br>(+3) 39 to < 41<br>(+1) 38.5 to < 39<br> (+0) 36 to < 38.5<br>(+1) 34 to < 36<br>(+2) 32 to < 34<br>(+3) 30 to < 32<br>(+4) < 30",
+            "redcap_options": "if([temp_c_min] != \"\" and [temp_c_max] != \"\", if([temp_c_min] < 30 or [temp_c_max] >= 41, 4, if([temp_c_min] < 32 or [temp_c_max] >= 39, 3, if([temp_c_min] < 34, 2, if([temp_c_min] < 36 or [temp_c_max] >= 38.5, 1, 0)))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "temp_c",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "Celsius",
+                "label": "Temperature (Celsius)",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_cr_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Creatinine Subscore",
+            "redcap_field_note": "(+8) >= 3.5 and Acute Renal Failure<br>(+6) 2.0 to < 3.5 and Acute Renal Failure<br>(+4) >= 3.5 and Chronic Renal Failure<br>(+4) 1.5 to < 2.0 and Acute Renal Failure<br>(+3) 2.0 to < 3.5 and Chronic Renal Failure<br>(+2) 1.5 to < 2.0 and Chronic Renal Failure<br>(+0) 0.6 to < 1.5<br>(+2) < 0.6",
+            "redcap_options": "if([cr_max] != \"\" and [acute_renfail_diag] != \"\" and [chronic_renfail_diag] != \"\", if([cr_max] >= 3.5 and [acute_renfail_diag] = 1, 8, if([cr_max] >= 2.0 and [acute_renfail_diag] = 1, 6, if([cr_max] >= 1.5 and [acute_renfail_diag] = 1, 4, if([cr_max] >= 3.5 and [chronic_renfail_diag] = 1, 4, if([cr_max] >= 2.0 and [chronic_renfail_diag] = 1, 3, if([cr_max] >= 1.5 and [chronic_renfail_diag] = 1, 2, if([cr_min] < 0.6, 2, 0))))))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "cr",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "mg/dL",
+                "label": "Creatinine (serum/plasma)",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              },
+              {
+                "duster_field_name": "acute_renfail_diag",
+                "redcap_field_note": "",
+                "label": "Acute Renal Failure",
+                "value_type": "boolean",
+                "redcap_field_type": "yesno",
+                "redcap_options": ""
+              },
+              {
+                "duster_field_name": "chronic_renfail_diag",
+                "redcap_field_note": "",
+                "label": "Chronic Renal Failure",
+                "value_type": "boolean",
+                "redcap_field_type": "yesno",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_hct_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Hematocrit Subscore",
+            "redcap_field_note": "(+4) >= 60<br>(+2) 50 to < 60<br>(+1) 46 to < 50<br>(+0) 30 to < 46<br>(+2) 20 to < 30<br>(+4) < 20",
+            "redcap_options": "if([hct_min] != \"\" and [hct_max] != \"\", if([hct_min] < 20 or [hct_max] >= 60, 4, if([hct_min] < 30 or [hct_max] >= 50, 2, if([hct_max] >= 46, 1, 0))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "hct",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "%",
+                "label": "Hematocrit (Hct)",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_na_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Sodium Subscore",
+            "redcap_field_note": "(+4) >= 180<br>(+3) 160 to < 180<br>(+2) 155 to < 160<br>(+1) 150 to < 155<br>(+0) 130 to < 150<br>(+2) 120 to < 130<br>(+3) 111 to < 120<br>(+4) < 111",
+            "redcap_options": "if([na_min] != \"\" and [na_max] != \"\", if([na_min] < 111 or [na_max] >= 180, 4, if([na_min] < 120 or [na_max] >= 160, 3, if([na_min] < 130 or [na_max] >= 155, 2, if([na_max] >= 150, 1, 0)))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "na",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "mmol/L",
+                "label": "Sodium (Na)",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_k_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Potassium Subscore",
+            "redcap_field_note": "(+4) >= 7.0<br>(+3) 6.0 to < 7.0<br>(+1) 5.5 to < 6.0<br>(+0) 3.5 to < 5.5<br>(+1) 3.0 to < 3.5<br>(+2) 2.5 to < 3.0<br>(+4) < 2.5",
+            "redcap_options": "if([k_max] != \"\" and [k_max] != \"\", if([k_max] < 2.5 or [k_max] >= 7.0, 4, if([k_max] >= 6.0, 3, if([k_max] < 3.0, 2, if([k_max] < 3.5 or [k_max] >= 5.5, 1, 0)))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "k",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "mmol/L",
+                "label": "Potassium (K)",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          },
+          {
+            "duster_field_name": "apache2_oxy_subscore",
+            "score_duster_field_name": "apache2_score",
+            "label": "Oxygenation Subscore",
+            "redcap_field_note": "(+4) A-a gradient > 499<br>(+3) A-a gradient 350 - 499<br>(+2) A-a gradient 200 - 349<br>(+0) A-a gradient < 200 (if FiO2 over 0.49) or PaO2 > 70 (if FiO2 < 0.50)<br>(+1) PaO2 = 61 - 70<br>(+3) PaO2 = 55 - 60<br>(+4) PaO2 < 55",
+            "redcap_options": "if([fio2_max] != \"\", if([fio2_max] < 0.50, if([pao2_min] = \"\", \"\", if([pao2_min] < 55, 4, if([pao2_min] <= 60, 3, if([pao2_min] <= 70, 1, 0)))), if([aa_gradient_min] = \"\" or [aa_gradient_max] = \"\", \"\", if([aa_gradient_max] > 499, 4, if([aa_gradient_max] >= 350, 3, if([aa_gradient_max] >= 200, 2, 0))))), \"\")",
+            "dependencies": [
+              {
+                "duster_field_name": "aa_gradient",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "",
+                "label": "AA Gradient",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              },
+              {
+                "duster_field_name": "fio2",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "%",
+                "label": "FiO2",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              },
+              {
+                "duster_field_name": "pao2",
+                "aggregates": [
+                  "max_agg",
+                  "min_agg"
+                ],
+                "redcap_field_note": "mmHg",
+                "label": "PaO2",
+                "value_type": "numeric",
+                "redcap_field_type": "text",
+                "redcap_options": ""
+              }
+            ],
+            "redcap_field_type": "calc"
+          }
+        ]
+      }
+    ]
+  },
+  "status": 200,
+  "statusText": "OK",
+  "headers": {
+    "access-control-allow-origin": "*",
+    "cache-control": "no-store, no-cache, must-revalidate",
+    "connection": "Keep-Alive",
+    "content-encoding": "gzip",
+    "content-length": "4307",
+    "content-type": "text/html; charset=UTF-8",
+    "date": "Tue, 28 Mar 2023 21:40:40 GMT",
+    "expires": "Thu, 19 Nov 1981 08:52:00 GMT",
+    "keep-alive": "timeout=5, max=97",
+    "pragma": "no-cache",
+    "redcap-random-text": "FaGrGUMSpmxVUIrEQTs2aPV89y",
+    "server": "Apache/2.4.38 (Debian)",
+    "vary": "Accept-Encoding",
+    "x-content-type-options": "nosniff",
+    "x-xss-protection": "1; mode=block"
+  },
+  "config": {
+    "transitional": {
+      "silentJSONParsing": true,
+      "forcedJSONParsing": true,
+      "clarifyTimeoutError": false
+    },
+    "adapter": [
+      "xhr",
+      "http"
+    ],
+    "transformRequest": [
+      null
+    ],
+    "transformResponse": [
+      null
+    ],
+    "timeout": 0,
+    "xsrfCookieName": "XSRF-TOKEN",
+    "xsrfHeaderName": "X-XSRF-TOKEN",
+    "maxContentLength": -1,
+    "maxBodyLength": -1,
+    "env": {},
+    "headers": {
+      "Accept": "application/json, text/plain, */*"
+    },
+    "method": "get",
+    "url": "http://localhost/redcap_v12.2.4/ExternalModules/?prefix=duster&page=services/callMetadata"
+  },
+  "request": {}
+}

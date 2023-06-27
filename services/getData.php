@@ -63,4 +63,3 @@ if ($action === 'projectStatus') {
     $return_obj['message'] = "Unrecognized action: $action";
 }
 echo json_encode($return_obj);
-

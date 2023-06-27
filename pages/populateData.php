@@ -5,13 +5,13 @@ namespace Stanford\Duster;
 
 $redcap_version = explode('_',APP_PATH_WEBROOT)[1];
 $record_base_url = APP_PATH_WEBROOT_FULL
-  . 'redcap_' . $redcap_version .'DataEntry/record_home.php?pid=' . PROJECT_ID;
+    . 'redcap_' . $redcap_version .'DataEntry/record_home.php?pid=' . PROJECT_ID;
 $designer_url = APP_PATH_WEBROOT_FULL
-  . 'redcap_' . $redcap_version .'Design/online_designer.php?pid=' . PROJECT_ID;
+    . 'redcap_' . $redcap_version .'Design/online_designer.php?pid=' . PROJECT_ID;
 $data_exports_url = APP_PATH_WEBROOT_FULL
-  . 'redcap_' . $redcap_version .'DataExport/index.php?pid=' . PROJECT_ID;
+    . 'redcap_' . $redcap_version .'DataExport/index.php?pid=' . PROJECT_ID;
 $project_setup_url = APP_PATH_WEBROOT_FULL
-  . 'redcap_' . $redcap_version . 'ProjectSetup/index.php?pid=' . PROJECT_ID;
+    . 'redcap_' . $redcap_version . 'ProjectSetup/index.php?pid=' . PROJECT_ID;
 $components_url = $module->getUrl('pages/js/PopulateDataComponents.js');
 $project_id = PROJECT_ID;
 
@@ -37,9 +37,9 @@ $project_id = PROJECT_ID;
       <v-alert type="error"><span v-html="errorMessage"></span></v-alert>
       <!-- display button to Project Setup if error is due to production status -->
       <v-btn
-        v-if="isProduction === false"
-        color="primary"
-        @click="goToUrl(project_setup_url)"
+          v-if="isProduction === false"
+          color="primary"
+          @click="goToUrl(project_setup_url)"
       >
         Go to Project Setup
       </v-btn>
@@ -87,9 +87,9 @@ $project_id = PROJECT_ID;
 
           <v-stepper-content step="1">
 
-              <missing-fields-table
-                  :table-data="dusterData.missing_fields">
-              </missing-fields-table>
+            <missing-fields-table
+                :table-data="dusterData.missing_fields">
+            </missing-fields-table>
 
             <!-- No continue button if there are missing fields
             leaving in for testing
@@ -129,8 +129,8 @@ $project_id = PROJECT_ID;
             <v-divider></v-divider>
 
             <v-btn v-if="dusterData.rp_data"
-                color="primary"
-                @click="step = 3"
+                   color="primary"
+                   @click="step = 3"
             >
               Continue
             </v-btn>
@@ -180,11 +180,11 @@ $project_id = PROJECT_ID;
                 </v-col>
                 <v-col md="8">
                   <v-progress-linear
-                    v-model="cohortProgress"
-                    height="25"
-                    stream
+                      v-model="cohortProgress"
+                      height="25"
+                      stream
                   >
-                  <strong>{{ cohortProgress }}%</strong>
+                    <strong>{{ cohortProgress }}%</strong>
                   </v-progress-linear>
                 </v-col>
               </v-row>
@@ -209,11 +209,11 @@ $project_id = PROJECT_ID;
                 </v-card-title>
                 <v-card-text>
                   <v-alert type="warning">
-                      <p>
-                          Are you sure you want to cancel data retrieval?
-                          <br>
-                          Data that has already been saved to REDCap will not be deleted.
-                      </p>
+                    <p>
+                      Are you sure you want to cancel data retrieval?
+                      <br>
+                      Data that has already been saved to REDCap will not be deleted.
+                    </p>
                   </v-alert>
 
                 </v-card-text>
@@ -237,16 +237,16 @@ $project_id = PROJECT_ID;
 
             <v-divider></v-divider>
             <v-btn v-if="totalProgress < 100"
-                color="error"
-                outlined
-                @click="confirmCancel = true">
+                   color="error"
+                   outlined
+                   @click="confirmCancel = true">
               Cancel
             </v-btn>
             <v-btn v-else
                    color="primary"
                    @click="goToUrl(data_exports_url)"
             >
-            Export Data
+              Export Data
             </v-btn>
           </v-stepper-content>
         </v-stepper-items>
