@@ -371,7 +371,7 @@ const getRepeatInstanceTimingConfig = (timing:any, eventType:string) => {
   }
 }
 
-const getTimingConfig = (timing:TimingConfig, index: number, eventType:string) =>{
+const getTimingConfig = (timing:TimingConfig, index: number, eventType:string) => {
   let tconfig: any = {
     type: timing.type,
     label: timing.label,
