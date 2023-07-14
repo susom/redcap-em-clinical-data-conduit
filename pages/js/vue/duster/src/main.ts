@@ -3,7 +3,6 @@ import PrimeVue from 'primevue/config';
 import Accordion from "primevue/accordion";
 import AccordionTab from "primevue/accordiontab";
 import Badge from 'primevue/badge'
-
 import Button from 'primevue/button'
 import Calendar from 'primevue/calendar'
 import Card from 'primevue/card'

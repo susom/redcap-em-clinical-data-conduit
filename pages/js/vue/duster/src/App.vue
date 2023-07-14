@@ -29,16 +29,8 @@
               <ResearcherProvidedPanel
                   v-model:rp-provided-data="rpProvidedData"
                   :reserved-field-names="reservedFieldNames"
-                  @update-rp-date="updateRpDate"
-                  @delete-rp-date="deleteRpDate"
               />
               </div>
-            <!--RpInfoPanel
-              v-model:rp-identifiers="rpIdentifiers"
-              v-model:rp-dates="rpDates"
-              @update-rp-date="updateRpDate"
-              @delete-rp-date="deleteRpDate"
-            /-->
               <div class="col-6">
 
               <DemographicsPanel
@@ -121,7 +113,7 @@
   </template>
 
   <script setup lang="ts">
-  import {computed, ref, onMounted, watchEffect} from 'vue'
+  import {computed, ref, onMounted, watch} from 'vue'
   import SystemErrorDialog from '@/components/SystemErrorDialog.vue'
   import { useConfirm } from "primevue/useconfirm";
 
@@ -199,8 +191,8 @@
     checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number)
   })
 
-  watchEffect(() => {
-    if (irbValid.value) {
+  watch(irbValid, (irbValidUpdate) => {
+    if (irbValidUpdate) {
       getDusterMetadata(projectConfig.metadata_url)
     }
   })
@@ -278,23 +270,34 @@
     }
   }
 
-  const updateRpDate = (rpDate:BasicConfig) => {
-    let updated = false;
-    for(let index=0; index< rpProvidedData.value.length; index++) {
-      if (rpProvidedData.value[index].id === rpDate.id) {
-        rpProvidedData.value[index].redcap_field_name = rpDate.redcap_field_name
-        rpProvidedData.value[index].label = rpDate.label
-        updated = true
+  const checkForRpDateChanges = () => {
+    collectionWindows.value.forEach(cw => {
+      // for start and end configurations, check that rp_date is still configured
+      if (cw.timing.start.type !== 'interval') {
+        cw.timing_valid = (rpDates.value.findIndex(rpDate => rpDate.redcap_field_name ===
+            cw.timing.start.rp_date) !== -1)
       }
-    }
-    if (!updated) {
-      rpDates.value.push(rpDate);
-    }
+      if (cw.timing_valid && cw.timing.end.type !== 'interval') {
+        cw.timing_valid = (rpDates.value.findIndex(rpDate => rpDate.redcap_field_name ===
+            cw.timing.end.rp_date) !== -1)
+      }
+      // for events, check that rp_date is still configured and also a datetime
+      if (cw.event && cw.event[0] && cw.event[0].redcap_field_name) {
+        const index = rpDates.value.findIndex(rpDate =>
+            // @ts-ignore
+            rpDate.redcap_field_name == cw.event[0].redcap_field_name )
+        if (index != -1) {
+          cw.data.valid = (rpDates.value[index].value_type == 'datetime')
+        } else {
+          cw.data.valid = false
+        }
+      }
+    })
   }
 
-  const deleteRpDate = (rpDate:BasicConfig) => {
+  /*const deleteRpDate = (rpDate:BasicConfig) => {
     rpProvidedData.value = rpProvidedData.value.filter(item => item.id !== rpDate.id)
-  }
+  }*/
   const toast = useToast();
 
   // tracks all redcap field names to ensure uniqueness
@@ -323,6 +326,7 @@
   const v$ = useVuelidate()
 
   const checkValidation = () => {
+    checkForRpDateChanges()
     v$.value.$touch()
 
     toast.removeAllGroups()

@@ -260,19 +260,23 @@ watchEffect(() => {
 const selectedPreset = ref<CollectionWindow>()
 
 // set start and end values based on presets
-watchEffect(() => {
-  if (selectedPreset.value) {
-    cwCopy.value.timing.start = JSON.parse(JSON.stringify(selectedPreset.value.timing.start))
-    cwCopy.value.timing.end = JSON.parse(JSON.stringify(selectedPreset.value.timing.end))
-    cwCopy.value.label = selectedPreset.value.label
+watch(selectedPreset, (newPreset) => {
+  if (newPreset) {
+    const priorStartRpDate = cwCopy.value.timing.start.rp_date
+    const priorEndRpDate = cwCopy.value.timing.end.rp_date
+    cwCopy.value.timing.start = JSON.parse(JSON.stringify(newPreset.timing.start))
+    cwCopy.value.timing.end = JSON.parse(JSON.stringify(newPreset.timing.end))
+    cwCopy.value.label = newPreset.label
     // select first rp_date for presets by default unless it has already been set to something else
     // this is okay because presets all have duster metadata
-    if (!cwCopy.value.timing.start.rp_date)
-      cwCopy.value.timing.start.rp_date = props.rpDates[0].redcap_field_name
-    if (cwCopy.value.timing.end && !cwCopy.value.timing.end.rp_date)
-      cwCopy.value.timing.end.rp_date = props.rpDates[0].redcap_field_name
-    cwCopy.value.type = selectedPreset.value.type
-    cwCopy.value.timing.repeat_interval = JSON.parse(JSON.stringify(selectedPreset.value.timing.repeat_interval))
+    cwCopy.value.timing.start.rp_date =
+        (priorStartRpDate && newPreset.timing.start.type !== 'interval') ?
+        priorStartRpDate : props.rpDates[0].redcap_field_name
+    cwCopy.value.timing.end.rp_date =
+        (priorEndRpDate && newPreset.timing.end.type !== 'interval') ?
+            priorEndRpDate : props.rpDates[0].redcap_field_name
+    cwCopy.value.type = newPreset.type
+    cwCopy.value.timing.repeat_interval = JSON.parse(JSON.stringify(newPreset.timing.repeat_interval))
   }
 })
 

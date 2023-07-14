@@ -74,16 +74,16 @@
 
         <Button @click="showClinicalData('labs', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded
         :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
-            Labs<span class="p-badge p-component p-badge-no-gutter">{{ slotProps.data[slotProps.field].labs.length }}</span>
+            Labs<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].labs.length }}</Badge>
         </Button>
         <Button @click="showClinicalData('vitals', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
-            Vitals<span class="p-badge p-component p-badge-no-gutter">{{ slotProps.data[slotProps.field].vitals.length }}</span>
+            Vitals<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].vitals.length }}</Badge>
         </Button>
         <Button @click="showClinicalData('outcomes', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
-            Outcomes<span class="p-badge p-component p-badge-no-gutter">{{ slotProps.data[slotProps.field].outcomes.length }}</span>
+            Outcomes<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].outcomes.length }}</Badge>
         </Button>
         <Button @click="showClinicalData('scores', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
-            Scores<span class="p-badge p-component p-badge-no-gutter">{{ slotProps.data[slotProps.field].scores.length }}</span>
+            Scores<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].scores.length }}</Badge>
         </Button>
         <small v-if="(v$.$dirty && !slotProps.data[slotProps.field].valid)"
                class="flex p-error mb-3">
