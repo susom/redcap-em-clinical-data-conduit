@@ -319,7 +319,7 @@ const selectedEvent = computed<TimingConfig>({
         event.value.redcap_field_name = value.redcap_field_name
         //event.value.rp_date = value.redcap_field_name ??
         event.value.duster_field_name = undefined
-        event.value.rp_date = undefined
+        event.value.rp_date = value.redcap_field_name
       }
     }
   }
