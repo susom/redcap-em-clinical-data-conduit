@@ -173,7 +173,7 @@ const props = defineProps({
     }
 })
 const emit = defineEmits(
-    ['updateRpDate','update:rpProvidedData','deleteRpDate']
+    ['update:rpProvidedData']
 )
 
 const dateTypes = ref([
