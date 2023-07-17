@@ -333,7 +333,7 @@ const eventDts = computed<TimingConfig[]>(
             label: opt.label,
             redcap_field_name: opt.redcap_field_name,
             interval: undefined,
-            rp_date: undefined,
+            rp_date: opt.redcap_field_name,
             redcap_field_type: opt.redcap_field_type,
             duster_field_name: undefined,
             value_type: opt.value_type,
