@@ -144,7 +144,7 @@
   const rpProvidedData = ref<BasicConfig[]>([
       {
         redcap_field_name: "mrn",
-        label:"MRN",
+        label:"Medical Record Number (MRN)",
         redcap_field_type:"text",
         value_type:"Identifier", // this needs to be replace by "text" in review step
         redcap_field_note:"8-digit number (including leading zeros, e.g., '01234567')",
