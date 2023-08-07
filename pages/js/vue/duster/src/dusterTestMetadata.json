@@ -600,8 +600,8 @@
     ],
     "clinical_dates": [
       {
-        "duster_field_name": "hospital_admit_datetime",
-        "label": "Hospital Admission Datetime",
+        "duster_field_name": "hospital_presentation_datetime",
+        "label": "Hospital Presentation Datetime",
         "category": "clinical_dates",
         "value_type": "datetime",
         "redcap_field_type": "text",
