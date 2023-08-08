@@ -25,7 +25,7 @@
               <Dropdown
                   v-model="slotProps.data[slotProps.field]"
                     :options="dateTypes"
-                    :class="['w-full md:w-6rem',{'p-invalid':rpFieldInvalid('value_type', slotProps.index)}]"
+                    :class="['w-full md:w-8rem',{'p-invalid':rpFieldInvalid('value_type', slotProps.index)}]"
                     optionLabel="text"
                     optionValue="dtValue"
                     placeholder="Select a type">
@@ -81,7 +81,8 @@
           </Column>
           <Column
               :exportable="false"
-              header="Actions">
+              header="Actions"
+              :class="['w-6rem']">
             <template
                 #body="slotProps">
               <Button

@@ -57,11 +57,11 @@
       "timing": {
         "start": {
           "type": "datetime",
-          "duster_field_name": "hospital_admit_datetime",
+          "duster_field_name": "hospital_presentation_datetime",
           "redcap_field_name": "",
           "redcap_field_type": "text",
           "value_type": "datetime",
-          "label": "Hospital Admission Datetime",
+          "label": "Hospital Presentation Datetime",
           "rp_date": "",
           "interval": {
             "type": null,
@@ -99,18 +99,18 @@
       "id": ""
     },
     {
-      "label": "First 24 Hours of Hospital Admission",
-      "form_name": "first_24_hrs_of_hospital_admission",
-      "timing_preset": "first_24_hrs_of_hospital_admission",
+      "label": "First 24 Hours of Hospital Presentation",
+      "form_name": "first_24_hrs_of_hospital_presentation",
+      "timing_preset": "first_24_hrs_of_hospital_presentation",
       "type": "nonrepeating",
       "timing": {
         "start": {
           "type": "datetime",
-          "duster_field_name": "hospital_admit_datetime",
+          "duster_field_name": "hospital_presentation_datetime",
           "redcap_field_name": "",
           "redcap_field_type": "text",
           "value_type": "datetime",
-          "label": "Hospital Admission Datetime",
+          "label": "Hospital Presentation Datetime",
           "rp-date": "enroll_date",
           "interval": {
             "type": null,
@@ -124,7 +124,7 @@
           "redcap_field_name": "",
           "redcap_field_type": "text",
           "value_type": "datetime",
-          "label": "24 Hours after Hospital Admission Datetime",
+          "label": "24 Hours after Hospital Presentation Datetime",
           "rp-date": "",
           "interval": {
             "type": "hour",
@@ -294,18 +294,18 @@
       "id": ""
     },
     {
-      "label": "Every Calendar Day of Hospital Admission to Hospital Discharge",
-      "form_name": "every_calendar_day_of_hospital_admission_to_hospital_discharge",
-      "timing_preset": "every_calendar_day_of_hospital_admission_to_hospital_discharge",
+      "label": "Every Calendar Day of Hospital Presentation to Hospital Discharge",
+      "form_name": "every_calendar_day_of_hospital_Presentation_to_hospital_discharge",
+      "timing_preset": "every_calendar_day_of_hospital_presentation_to_hospital_discharge",
       "type": "repeating",
       "timing": {
         "start": {
           "type": "date",
-          "duster_field_name": "hospital_admit_datetime",
+          "duster_field_name": "hospital_presentation_datetime",
           "redcap_field_name": "",
           "redcap_field_type": "text",
           "value_type": "datetime",
-          "label": "00:00:00 of Hospital Admission Datetime",
+          "label": "00:00:00 of Hospital Presentation Datetime",
           "rp-date": "enroll_date",
           "interval": {
             "type": null,
