@@ -50,6 +50,6 @@ namespace Stanford\Duster;
   localStorage.setItem('postObj', JSON.stringify(postObj));
 
   // redirect to 'new-project' Vue app for creating a new project
-  window.location = "<?php echo $module->getUrl("pages/js/vue/duster/dist/index.html"); ?>";
+  window.location = "<?php echo $module->getUrl("pages/js/duster/new-project/dist/index.html"); ?>";
 
 </Script>

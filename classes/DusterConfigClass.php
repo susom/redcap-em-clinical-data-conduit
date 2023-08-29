@@ -26,7 +26,8 @@ class DusterConfigClass
         $config_url = $this->module->getSystemSetting("starrapi-config-url");
         // add a '/' at the end of the url if it's not there
         $config_url = $config_url .
-            ((substr($config_url,-1) ==='/') ? "" : "/") . SERVER_NAME .'/'. $this->project_id;
+            ((substr($config_url,-1) ==='/') ? "" : "/") . SERVER_NAME .'/'. $this->project_id
+            . '?redcap_user=' . $this->module->getUser()->getUserName();
         $this->module->emDebug("config url = $config_url");
         $this->duster_config = $this->module->starrApiGetRequest($config_url,'ddp');
         $this->module->emDebug('duster_config = ' . print_r($this->duster_config, true));

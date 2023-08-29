@@ -173,6 +173,17 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     return $metadata;
   }
 
+    public function refreshMetadata() {
+        // build and send GET request to config webservice
+        // add a '/' at the end of the url if it's not there
+        $url = $this->getSystemSetting("starrapi-metadata-url");
+        $url = $url .
+            ((substr($url,-1) ==='/') ? "" : "/") . 'refresh';
+        $this->emDebug("refresh url = $url");
+        $response = $this->starrApiGetRequest($url,'ddp');
+        $this->emDebug('refresh response = ' . print_r($response, true));
+    }
+
   /*public function getDusterConfig() {
       // build and send GET request to config webservice
       $config_url = $this->getSystemSetting("starrapi-config-url") . $this->getProjectId();
