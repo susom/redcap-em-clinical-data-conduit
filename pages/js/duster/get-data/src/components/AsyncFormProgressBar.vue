@@ -44,7 +44,7 @@ const message = computed(() => {
   if (props.formQueries.complete) {
     return "Complete"
   }
-  return props.formQueries.last_message
+  return queryLabel(props.formQueries.last_message) + " in progress.";
 })
 
 const toTitleCase = (str:string) => {

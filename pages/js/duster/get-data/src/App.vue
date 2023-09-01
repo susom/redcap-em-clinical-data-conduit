@@ -157,31 +157,24 @@
                     modal
                     header="Cancel"
                 >
-
-                  <Card>
-                    <template #content>
-
-                      <Message severity="warn" :closable="false">
-                        Are you sure you want to cancel data retrieval?
-                        <br>
-                        Data that has already been saved to REDCap will not be deleted.
-                      </Message>
-                    </template>
-                    <template #footer>
-                      <Button
-                          class="p-button-primary" size="small" icon="pi pi-check"
+                  <Message severity="warn" :closable="false">
+                    Are you sure you want to exit data retrieval?
+                    <br>
+                    Data that has already been saved to REDCap will not be deleted.
+                  </Message>
+                  <template #footer>
+                    <Button
+                        class="p-button-primary" size="small" icon="pi pi-check"
                           label="No, Continue"
                           @click="confirmCancel = false"
-                      />
-                      <Button
+                    />
+                    <Button
                           class="ml-2 p-button-danger" size="small" icon="pi pi-times"
                           label="Yes, Cancel"
                           outlined
                           @click="cancel()"
                       />
-
                     </template>
-                  </Card>
                 </Dialog>
 
                 <Divider></Divider>
@@ -192,7 +185,7 @@
                 />
                 <Button v-if="totalProgress < 100"
                         class="p-button-secondary" size="small" icon="pi pi-times"
-                        label="Cancel"
+                        label="Cancel Data Request"
                         @click="confirmCancel = true"/>
                 <Button v-else
                         label="Export Data Page"
@@ -206,7 +199,6 @@
                   header="Run in Background"
               >
                 <Card>
-
                   <template #content>
                     <p>
                       Enter an email address to get
@@ -284,6 +276,7 @@ const dusterData = ref<any>()
 const cwQueries = ref<Object>()
 const isAsyncRequest = ref<boolean>(false)
 const asyncPollInterval = ref<number>(20)
+const asyncPollLimit = ref<number>(100)
 const showAsyncNotify = ref<boolean>(false)
 const email = ref<string>(projectConfig.user_email)
 
@@ -326,21 +319,24 @@ watch (isProduction, async(prodStatus) => {
       console.log(response)
       if (response?.data.dataRequestStatus === 'sync') {
         isLoading.value = false;
-        errorMessage.value = 'User ' + response?.data.redcapUserName + ' Data Request Already in progress.'
+        errorMessage.value = '<p>Real time Data Request initiated by ' + response?.data.redcapUserName +
+            ' already in progress.  Please wait for this request to complete before submitting a new data request.'
       } else if (response?.data.dataRequestStatus === 'async') {
         console.log("dataRequestStatus async")
         isLoading.value = false;
         isLoaded.value = true
         isAsyncRequest.value = true
         step.value = 4
-        saveMessage.value = 'User ' + response?.data.redcapUserName +
-            ' Data Request Already in progress. This view will update status every '+ asyncPollInterval.value
-            +' seconds.'
+        saveMessage.value = '<p>Background Data Request initiated by ' + response?.data.redcapUserName +
+                ' already in progress.</p><p>This view will update status every '+
+            asyncPollInterval.value +' seconds.</p>'
         asyncPollStatus()
       } else {
         if (response?.data.dataRequestStatus && response?.data.dataRequestStatus !== 'no status') {
+          let date = new Date( Date.parse('2012-01-26T13:51:50.417-07:00') );
+
           previousRequestStatus.value = 'Previous request status: ' + response?.data.dataRequestStatus + ' at ' +
-              response?.data.dataRequestTimestamp
+              date.toLocaleString('en-us')
         }
         startLoad.value = true
       }
@@ -451,19 +447,20 @@ const updateProgress = (dataSync:any) => {
   }
 }
 
-const asyncRequestData = () => {
+const asyncRequestData = async() => {
   isAsyncRequest.value = true
   showAsyncNotify.value = false
   step.value = 4;
   const emailParam = (email.value) ? '&email=' + email.value : ''
   axios.get(get_data_url.value + "&action=asyncDataRequest" + emailParam);
-  // TODO: get request status
-  saveMessage.value = "Data request submitted.  An email will be sent to " + email.value +
-      " when it is completed.  This view will update status every "+ asyncPollInterval.value +" seconds.";
+  saveMessage.value = "<p>Background Data request submitted.  An email will be sent to " + email.value +
+      " when it is completed.</p><p>This view will update status every "+ asyncPollInterval.value +" seconds.</p>";
+  await sleep(asyncPollInterval.value * 1000)
   asyncPollStatus()
 }
 
 const sleep = async (milliseconds:number) => {
+  console.log('start sleep')
   await new Promise(resolve => {
     return setTimeout(resolve, milliseconds)
   });
@@ -483,7 +480,8 @@ const asyncPollStatus = async() => {
         })
     if (response?.data) {
       dataRequestLog.value = response.data.data_request_log
-      console.log(dataRequestLog.value)
+      console.log("count " + count)
+      console.log(response)
 
       if (dataRequestLog.value) {
         let formComplete = true
@@ -492,13 +490,17 @@ const asyncPollStatus = async() => {
             formComplete = false
           }
         }
-        complete = (complete) ? complete : formComplete;
-        //TODO calculate totalProgress
+        complete = (response.data.num_queries > 0 && response.data.num_queries == response.data.num_complete)
+        totalProgress.value = 100 * response.data.num_complete / response.data.num_queries
       }
-      if (count > 5) complete = true
+      if (count > asyncPollLimit.value) {
+        console.log("Hit async poll limit.");
+        complete = true
+      }
       if (!complete) {
         console.log('not complete. sleep ' + asyncPollInterval.value + ' seconds')
         await sleep(asyncPollInterval.value * 1000)
+        console.log('stop sleep')
       }
     }
   }

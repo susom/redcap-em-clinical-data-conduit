@@ -31,23 +31,8 @@
 				"icon": "fas fa-receipt",
 				"url": "pages/populateData.php",
 				"show-header-and-footer": true
-			},
-			{
-				"name": "DUSTER: Async",
-				"key": "asyncrequest",
-				"icon": "fas fa-receipt",
-				"url": "services/getData.php?action=asyncDataRequest",
-				"show-header-and-footer": true
-			},
-			{
-				"name": "DUSTER: Async Log",
-				"key": "asynclog",
-				"icon": "fas fa-receipt",
-				"url": "services/getData.php?action=logStatus&status=complete",
-				"show-header-and-footer": true
 			}
 		],
-
 		"control-center": [
 			{
 				"name": "DUSTER: Refresh Server side metadata",
@@ -60,7 +45,8 @@
 	},
 
 	"no-auth-pages": [
-
+		"services/getData",
+		"services/refreshMetadata"
 	],
 
 	"project-settings": [

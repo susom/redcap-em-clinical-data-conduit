@@ -140,7 +140,34 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    * @param $post_fields
    * @return array|mixed
    */
-  public function starrApiPostRequest($url, $service, $post_fields) {
+    public function starrApiPostRequest($url, $service, $post_fields) {
+        $token = $this->getValidToken($service);
+        $resp_arr=[];
+        $message= json_encode($post_fields);
+        $content_type = 'application/json';
+        if ($token !== false) {
+            $headers = array(
+                "Content-Type: ". $content_type,
+                "Authorization: Bearer " . $token,
+                "Content-Length: ".  length($message)
+            );
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl,CURLOPT_POST, true);
+            curl_setopt($curl,CURLOPT_POSTFIELDS, $message);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            $response = curl_exec($curl);
+            curl_close($curl);
+            //$response = http_post($url, $message, null, $content_type, null, $headers);
+            $this->emDebug("Returned from starrApiPostRequest $url");
+            $this->emDebug("$url response: " . $response);
+            $resp_arr = json_decode($response, true);
+        }
+        return $resp_arr;
+    }
+
+  public function starrApiPostRequestBk($url, $service, $post_fields) {
     $token = $this->getValidToken($service);
     $resp_arr=[];
     $message= json_encode($post_fields);
@@ -151,13 +178,13 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         "Authorization: Bearer " . $token,
         "Content-Length: ".  length($message)
       );
-      $this->emDebug("headers: " . print_r($headers, true));
+      //$this->emDebug("headers: " . print_r($headers, true));
 
       $response = http_post($url, $message, null, $content_type, null, $headers);
       $resp_arr = json_decode($response, true);
-      $this->emDebug("Returned from getData api ");
+      $this->emDebug("Returned from starrApiPostRequest api ");
       if (!$resp_arr) {
-        $this->emDebug("$url response: " . print_r($resp_arr, true));
+          $this->emDebug("$url response: " . print_r($resp_arr, true));
       }
     }
     return $resp_arr;
