@@ -14,5 +14,13 @@ export default defineConfig({
       '@assets': fileURLToPath(new URL('../shared/src/assets', import.meta.url))
 
     }
+  },
+  build: {
+    rollupOptions: {
+      output: [
+        {
+          entryFileNames: "[name].js"
+        } ]
+    }
   }
 })
