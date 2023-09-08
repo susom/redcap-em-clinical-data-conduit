@@ -8,6 +8,7 @@ import DataTable from 'primevue/datatable'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import Message from 'primevue/message';
+import InlineMessage from "primevue/inlinemessage";
 import Panel from "primevue/panel";
 import ProgressBar from "primevue/progressbar";
 import ProgressSpinner from "primevue/progressspinner";
@@ -27,6 +28,7 @@ const app = createApp(App)
     .component( 'Dialog', Dialog)
     .component( 'InputText', InputText)
     .component( 'Message', Message)
+    .component('InlineMessage', InlineMessage)
     .component( 'Panel', Panel)
     .component( 'ProgressBar', ProgressBar)
     .component( 'ProgressSpinner', ProgressSpinner)

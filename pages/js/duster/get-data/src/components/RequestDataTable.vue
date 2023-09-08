@@ -1,23 +1,23 @@
 <template>
-  <div>
-    <DataTable :value="tableRows" paginator :rows="10" :rowsPerPageOptions="[10, 20, 50]"
-               tableStyle="min-width: 50rem">
-      <template #header>
-        <div class="flex">
-          <span class="text-xl text-900 font-bold">{{ title }}</span>
-        </div>
-        <Message :severity="alertType"> {{ alertContent }}</Message>
-      </template>
-      <Column
-          v-for="col of tableHeaders"
-          :key="col.value"
-          :field="col.value"
-          :header="col.text">
-        <template #body="{ data, field }">
-          <span v-html="data[field]"></span>
-        </template>
-      </Column>
-    </DataTable>
+  <div class="grid">
+    <div class="col-10">
+
+      <div :class="'text-lg p-2 mb-1 font-italic mr-5 ' + alertTextStyle">{{alertText}}</div>
+      <!--<Message :severity="alertType" v-if="alertType != 'info'"> {{ alertContent }}</Message>-->
+
+      <DataTable :value="tableRows" paginator :rows="10" :rowsPerPageOptions="[10, 20, 50]"
+                 tableStyle="min-width: 50rem" class="p-datatable-sm">
+        <Column
+            v-for="col of tableHeaders"
+            :key="col.value"
+            :field="col.value"
+            :header="col.text">
+          <template #body="{ data, field }">
+            <span v-html="data[field]"></span>
+          </template>
+        </Column>
+      </DataTable>
+    </div>
   </div>
 </template>
 
@@ -46,6 +46,24 @@ const props = defineProps({
     type: Array as PropType<Array<any>>,
     required: true
   }
+})
+
+const alertTextStyle = computed( () => {
+  if (props.alertType == 'error')
+    return 'text-red-500'
+  else if (props.alertType == 'warn')
+    return 'text-orange-500' ;
+  else
+    return 'text-primary' ;
+})
+
+const alertText = computed( () => {
+  if (props.alertType == 'error')
+    return 'ERROR: ' + props.alertContent ;
+  else if (props.alertType == 'warn')
+    return 'WARNING: ' + props.alertContent ;
+  else
+    return props.alertContent ;
 })
 
 const tableHeaders:any = computed(()=>{

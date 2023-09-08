@@ -39,6 +39,13 @@ $user_email = $module->getUser()->getEmail();
   localStorage.setItem('getDataObj', JSON.stringify(getDataObj));
 
   // redirect to 'new-project' Vue app for creating a new project
-  window.location = "<?php echo $module->getUrl("pages/js/duster/get-data/dist/index.html"); ?>";
+  // window.location = "<?php echo $module->getUrl("pages/js/duster/get-data/dist/index.html"); ?>";
 
 </Script>
+
+<script type="module" crossorigin src="<?php echo $module->getUrl("pages/js/duster/get-data/dist/index.js"); ?>"></script>
+<link rel="stylesheet" href="<?php echo $module->getUrl("pages/js/duster/get-data/dist/assets/index-c660f257.css"); ?>">
+
+<div id="app">
+
+</div>

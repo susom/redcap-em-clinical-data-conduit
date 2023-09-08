@@ -1,84 +1,84 @@
 <template>
-  <div class="container">
+  <div class="container ml-0 mr-0 pr-0 pl-0">
     <div class="grid">
-      <div class="col-offset-1 col-10">
-        <DusterHeader></DusterHeader>
-        <Panel header="DUSTER: Get Data">
+      <div class="col-10">
+        <div class="projhdr"> DUSTER: Get data</div>
+        <div>DUSTER will perform sanity check on the existing redcap records before it submits and asks for the data.</div>
+        <div>You have two options on how you can get the data.
+          <ul>
+            <li>Run in real time -> This will launch the process is current browser and so you have to keep the browser tab open. Closing will stop the data fetching process.</li>
+            <li>Run in background -> This submits the job and runs in the background. Browser can be safely closed. Notification will be sent in the email when completed.</li>
+          </ul>
+        </div>
+        <div v-if="errorMessage">
+          <Message severity="error"><span v-html="errorMessage"></span></Message>
+          <!-- display button to Project Setup if error is due to production status -->
+          <Button
+              v-if="!isProduction"
+              class="p-button-primary" size="small" icon="pi pi-cog"
+              label="Project Setup"
+              @click="goToUrl(project_setup_url)"
+          />
+        </div>
 
-          <div v-if="errorMessage">
-            <Message severity="error"><span v-html="errorMessage"></span></Message>
-            <!-- display button to Project Setup if error is due to production status -->
-            <Button
-                v-if="!isProduction"
-                class="p-button-primary" size="small" icon="pi pi-cog"
-                label="Project Setup"
-                @click="goToUrl(project_setup_url)"
-            />
-          </div>
+        <div>
 
-          <div>
-
-            <p class="text-center" v-if="isLoading && !isLoaded">
-              Loading <i class="pi pi-spin pi-spinner" style="font-size: 2rem;color: dodgerblue"></i>
-            </p>
-
+          <p class="text-center mt-5" v-if="isLoading && !isLoaded">
+            <i class="pi pi-spin pi-spinner mr-3" style="font-size: 2rem;color: dodgerblue"></i> Loading...
+          </p>
             <div v-if="isLoaded">
               <div v-if="step ==1 && dusterData.missing_fields">
-                <Card>
-                  <template #content>
-                    <MissingFieldsTable
-                        :table-data="dusterData.missing_fields">
-                    </MissingFieldsTable>
-                  </template>
-
-                  <template #footer>
-                    <Button
-                        class="p-button-primary" size="small" icon="pi pi-cog"
-                        label="Project Setup"
-                        @click="goToUrl(designer_url)"/>
-                  </template>
-                </Card>
+                <div>
+                  <MissingFieldsTable
+                      :table-data="dusterData.missing_fields">
+                  </MissingFieldsTable>
+                </div>
+                <div>
+                  <Button
+                      class="p-button-primary" size="small" icon="pi pi-cog"
+                      label="Project Setup"
+                      @click="goToUrl(designer_url)"/>
+                </div>
               </div>
               <div v-if="step==2">
-                <Card>
-                  <template #content>
-                    <div v-if="!dusterData.missing_data && !dusterData.rp_data">
-                      <Message severity="danger">
-                        Your REDCap project contains no records. Add at least one record to your project in order to proceed.
-                      </Message>
+                <div>
+                  <div v-if="!dusterData.missing_data && !dusterData.rp_data">
+                    <div class="text-xl p-2 mb-1 font-italic mr-5 text-red-500">
+                      ERROR: Your REDCap project contains no records. Add at least one record to your project in order to proceed.
                     </div>
-                    <div v-else-if="dusterData.missing_data">
-                      <RequestDataTable
-                          title='Missing Researcher-Provided Information'
-                          alert-type="warn"
-                          alert-content="The following records are missing required researcher provided data.  You may still continue, but DUSTER may not be able to retrieve all possible data for these records."
-                          :record-base-url="record_base_url"
-                          :table-data="dusterData.missing_data"
-                      >
-                      </RequestDataTable>
-                    </div>
-                  </template>
-                  <template #footer>
+                  </div>
+                  <div v-else-if="dusterData.missing_data">
+                    <RequestDataTable
+                        title='Missing Researcher-Provided Information'
+                        alert-type="warn"
+                        alert-content="The following records are missing required researcher provided data.  You may still continue, but DUSTER may not be able to retrieve all possible data for these records."
+                        :record-base-url="record_base_url"
+                        :table-data="dusterData.missing_data"
+                    >
+                    </RequestDataTable>
+                  </div>
+                  <div>
                     <Button v-if="dusterData.rp_data"
                             label="Continue"
                             class="p-button-primary" size="small" icon="pi pi-caret-right"
                             @click="step = 3"
                     />
-
+                    <!--
                     <Button text outlined @click="goToUrl(record_base_url)"
                             class="p-button-secondary" size="small" icon="pi pi-times"
                             label="Cancel"
                     />
-                  </template>
-                </Card>
+                    -->
+                  </div>
+                </div>
               </div>
 
               <div v-if="step == 3">
                 <Message severity="info" v-if="previousRequestStatus">
                   {{ previousRequestStatus }}
                 </Message>
-                <Card v-if="dusterData.rp_data">
-                  <template #content>
+                <div v-if="dusterData.rp_data">
+                  <div>
                     <RequestDataTable
                         title='Data Records'
                         alert-type="info"
@@ -87,26 +87,27 @@
                         :table-data="dusterData.rp_data"
                     >
                     </RequestDataTable>
-                  </template>
-                  <template #footer>
+                  </div>
+                  <div>
                     <Button
                         class="p-button-primary" size="small" icon="pi pi-caret-right"
                         label="Run in real time"
-                        @click="syncCohort()"
+                        @click="showSync = true"
                     />
                     <Button
                         class="mx-2 p-button-primary" size="small" icon="pi pi-forward"
                         label="Run in background"
                         @click="showAsyncNotify = true"
                     />
+                    <!--
                     <Button
                         class="p-button-secondary" size="small" icon="pi pi-times"
                         label="Cancel"
                         @click="goToUrl(project_setup_url)"
                     />
-                  </template>
-                </Card>
-
+                    -->
+                  </div>
+                </div>
               </div>
 
               <div v-if="step == 4">
@@ -193,6 +194,49 @@
                         @click="goToUrl(data_exports_url)"
                 />
               </div>
+
+              <Dialog
+                  v-model:visible="showSync"
+                  max-width="500px"
+                  modal
+                  :style="{ width: '40vw' }"
+                  header="Run in real time"
+              >
+                <Card>
+                  <template #content>
+                    <Message severity="warn" :closable="false">
+                      This will launch the DUSTER process to get the data and populate the REDCap project in real time.
+                      Please keep the current browser tab open till the processing completes.
+                      If you close the current browser tab, it will stop processing and project will be left in inconsistent state.
+                      <br>
+                      Are you sure to launch the process in real time?
+                    </Message>
+                    <!--
+                    <p>
+                      This will launch the DUSTER process to get the data and populate the REDCap project in real time.
+                      Please keep the current browser tab open till the processing completes.
+                      If you close the current browser tab, it will stop processing and project will be left in inconsistent state.
+                    </p>
+                    <p class="mt-2">
+                      Are you sure to launch the process in real time?
+                    </p>
+                    -->
+                  </template>
+                  <template #footer>
+                    <Button
+                        class="p-button-primary" size="small" icon="pi pi-check"
+                        label="Yes, Launch"
+                        @click="syncCohort()"
+                    />
+                    <Button
+                        class="ml-2 p-button-secondary" size="small" icon="pi pi-times"
+                        label="No, Cancel"
+                        @click="showSync = false"
+                    />
+                  </template>
+                </Card>
+              </Dialog>
+
               <Dialog
                   v-model:visible="showAsyncNotify"
                   max-width="500px"
@@ -225,7 +269,6 @@
               </Dialog>
             </div>
           </div>
-        </Panel>
       </div>
     </div>
   </div>
@@ -278,6 +321,7 @@ const isAsyncRequest = ref<boolean>(false)
 const asyncPollInterval = ref<number>(20)
 const asyncPollLimit = ref<number>(100)
 const showAsyncNotify = ref<boolean>(false)
+const showSync = ref<boolean>(false)
 const email = ref<string>(projectConfig.user_email)
 
 onMounted(async () => {
@@ -417,6 +461,7 @@ const cancel = () => {
 
 const syncCohort = async() => {
   step.value = 4;
+  showSync.value = false ;
   try {
     const cohortSync = await axios.get(get_data_url.value + "&action=syncCohort");
     cohortProgress.value = 100;
