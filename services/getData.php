@@ -105,26 +105,27 @@ function initRequestLog($forms) {
     $request_log['researcher_provided_information']['num_queries'] = 1;
     $request_log['researcher_provided_information']['num_complete'] = 0;
     $request_log['researcher_provided_information']['complete'] = false;
-    $request_log['researcher_provided_information']['queries']['cohort sync']['query_name'] = 'cohort sync';
-    $request_log['researcher_provided_information']['queries']['cohort sync']['message'] = 'not started';
-    $request_log['researcher_provided_information']['queries']['cohort sync']['order'] = 0;
+    //$request_log['researcher_provided_information']['queries']['cohort sync']['query_name'] = 'cohort sync';
+    //$request_log['researcher_provided_information']['queries']['cohort sync']['message'] = 'not started';
+    //$request_log['researcher_provided_information']['queries']['cohort sync']['order'] = 0;
 
     foreach($forms as $form_name => $form_queries) {
         $request_log[$form_name]['form_name'] = $form_name;
         $request_log[$form_name]['num_queries'] = count($form_queries);
         $request_log[$form_name]['num_complete'] = 0;
         $request_log[$form_name]['complete'] = false;
-        for ($i = 0; $i < sizeof($form_queries); $i++) {
+        /*for ($i = 0; $i < sizeof($form_queries); $i++) {
             $key = $form_queries[$i]['query_name'];
             $request_log[$form_name]['queries'][$key] = $form_queries[$i];
             $request_log[$form_name]['queries'][$key]['message'] = 'not started';
             $request_log[$form_name]['queries'][$key]['order'] = $i;
-        }
+        }*/
     }
     return $request_log;
 }
 
 function getData($rtoslink_config, $query) {
+    global $module;
     REDCap::logEvent("DUSTER: Get Data for " . $query);
     $return_obj = array();
     if ($query != null) {
@@ -137,11 +138,12 @@ function getData($rtoslink_config, $query) {
             $return_obj['message'] = "Update for $query_label is complete.";
         } else {
             $return_obj['status'] = 400;
-            $return_obj['message'] = "Error: Unable to update $query_label";
+            $return_obj['message'] = $module->handleError('Duster getData: Unable to retrieve data', "Error: Unable to update $query_label");
         }
     } else {
         $return_obj['status'] = 400;
-        $return_obj['message'] = "Missing query parameter.";
+        $return_obj['message'] = $module->handleError('Duster getData: Unable to retrieve data',
+            "Missing query parameter.");;
     }
     return $return_obj;
 }
@@ -161,21 +163,31 @@ if ($action === 'productionStatus') {
         $return_obj['production_status'] = json_decode($result->fetch_assoc()['status'], true);
     } else {
         $return_obj['status'] = 400;
-        $return_obj['message'] = 'Unable to verify project status';
+        $return_obj['message'] = $module->handleError('Duster getData: Unable to verify project status', 'Unable to verify production status.');
     }
 } else if ($action === 'cohort') {
     // populate the cohort for get-data
     REDCap::logEvent("DUSTER: Get Data Start");
     $duster_config = new DusterConfigClass($pid, $module);
     $return_obj = $duster_config->getDusterRequestObject();
-    $return_obj["queries"]= $rtoslink_config->getQueries();
-    $module->emDebug('rtos queries: ' . print_r($return_obj["queries"], true));
-    $num_queries = 0;
-    foreach( $return_obj["queries"] as $query) {
-        $num_queries += count($query);
+    if (isset($return_obj['status']) && $return_obj['status'] != 200) {
+        $msg = $module->handleError('Duster getData: Unable to get cohort', $return_obj['message']);
+        $return_obj['message'] = $msg;
+    } else {
+        $return_obj["queries"] = $rtoslink_config->getQueries();
+        $module->emDebug('rtos queries: ' . print_r($return_obj["queries"], true));
+        $num_queries = 0;
+        foreach ($return_obj["queries"] as $query) {
+            $num_queries += count($query);
+        }
+        if ($num_queries) {
+            $return_obj['num_queries'] = $num_queries;
+            $return_obj['status'] = 200;
+        } else {
+            $return_obj['status'] = 400;
+            $return_obj['message'] = handleError('Duster getData: No configured queries', 'This project does not have any configured queries.');
+        }
     }
-    $return_obj['num_queries'] = $num_queries;
-    $return_obj['status'] = 200;
 } else if ($action === 'syncCohort') {
     // real time rtos link cohort sync
     $in_progress = getRequestStatus($pid);
@@ -195,7 +207,7 @@ if ($action === 'productionStatus') {
         $return_obj = getData($rtoslink_config, $query);
     } else {
         $return_obj['status'] = 400;
-        $return_obj['message'] = "Missing query parameter.";
+        $return_obj['message'] = $module->handleError('Duster getData: Unable to verify retrieve data', "Missing query parameter.");
     }
 } else if ($action === 'dataRequestStatus') {
     // check if there's an ongoing data request
@@ -234,30 +246,27 @@ if ($action === 'productionStatus') {
     $module->emDebug("log request id = $request_id");
     $forms = $rtoslink_config->getQueries();
 
-    // build the response object. add researcher_provided_information first
     $request_log = initRequestLog($forms);
 
     // now actually get the request status from the server
     $log_url = $module->getSystemSetting("starrapi-data-url")
         . "log/" . SERVER_NAME . "/$pid/$request_id?user="
         . $module->getUser()->getUserName();
-    $module->emDebug("request log url pre = $request_log");
     $return_logs = $module->starrApiGetRequest($log_url, 'ddp');
+    $module->emDebug("asyncDataLog " . print_r($return_logs, true));
 
     // map the response messages into queries
     $num_queries = 0;
     $num_complete = 0;
     foreach($return_logs as $form_name => $form_status) {
+        $request_log[$form_name]['last_message'] = $form_status['queries'][0]['message'];
+        $request_log[$form_name]['last_logdttm'] = $form_status['queries'][0]['log_dttm'];
+        $num_queries += $request_log[$form_name]['num_queries'];
+
         for ($i = 0; $i < sizeof($form_status['queries']); $i++) {
-            $query_name = $form_status['queries'][$i]['query_name'];
-            if ($query_name == 'complete') {
+            if ($form_status['queries'][$i]['query_name'] == 'complete') {
                 $request_log[$form_name]['complete'] = true;
             } else {
-                $request_log[$form_name]['queries'][$query_name]['message'] = $form_status['queries'][$i]['message'];
-                $request_log[$form_name]['queries'][$query_name]['log_dttm'] = $form_status['queries'][$i]['log_dttm'];
-                $request_log[$form_name]['last_message'] = $form_status['queries'][$i]['message'];
-                $request_log[$form_name]['last_logdttm'] = $form_status['queries'][$i]['log_dttm'];
-
                 if (strpos($form_status['queries'][$i]['message'], ' ended') > -1) {
                     $request_log[$form_name]['num_complete'] = $request_log[$form_name]['num_complete'] + 1;
                     // form is complete if num_queries = num_complete
@@ -266,7 +275,6 @@ if ($action === 'productionStatus') {
                 }
             }
         }
-        $num_queries += $request_log[$form_name]['num_queries'];
         $num_complete += $request_log[$form_name]['num_complete'];
     }
     //$module->emDebug("log response = ". print_r($return_logs, true));
@@ -283,7 +291,8 @@ if ($action === 'productionStatus') {
     $request_id = getRequestId($pid);
     $return_obj = logToServer($pid, "status::" . $request_id, $status);
 } else if ($action === 'emailComplete') {
-
+    // This is a NOAUTH request from the duster server, so it can not access any part of the EM that
+    // requires authentication (i.e. status)
     $email = isset($_GET['email']) && !empty($_GET['email']) ? $_GET['email'] : null;
     if (isset($email)) {
         $module->emDebug('email status');
@@ -301,6 +310,10 @@ if ($action === 'productionStatus') {
             $return_obj = REDCap::email($email, 'no-reply@stanford.edu', 'DUSTER data request complete', $message);
             if (!$return_obj) {
                 $module->emError("Email Notification to $email Failed.");
+                $return_obj['status'] = 400;
+                $return_obj['message'] = $module->handleError('Duster getData: Unable to send async request completion email', "Email Notification to $email Failed.");
+            } else {
+                $return_obj['status'] = 200;
             }
         }
     }
@@ -310,8 +323,7 @@ if ($action === 'productionStatus') {
     $return_obj['status'] = 200;
 } else {
     $module->emDebug("Unrecognized action: $action");
-
     $return_obj['status'] = 400;
-    $return_obj['message'] = "Unrecognized action: $action";
+    $return_obj['message'] = $module->handleError('Duster getData: Unrecognized action', "Unrecognized action: $action");
 }
 echo json_encode($return_obj);

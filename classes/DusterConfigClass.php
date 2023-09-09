@@ -7,13 +7,14 @@ namespace Stanford\Duster;
  * Class: DusterDataClass
  * This class handles the API to retrieve the duster config and validate it against the redcap data dictionary.
  */
+
 use REDCap;
 
 class DusterConfigClass
 {
     private $project_id, $duster_config, $module;
-    private $rp_info_form = array('form_name'=>'rp_info','form_label'=>'Researcher-Provided Information');
-    private $demographics_form = array('form_name'=>'demographics','form_label'=>'Demographics');
+    private $rp_info_form = array('form_name' => 'rp_info', 'form_label' => 'Researcher-Provided Information');
+    private $demographics_form = array('form_name' => 'demographics', 'form_label' => 'Demographics');
 
     public function __construct($pid, $module)
     {
@@ -21,26 +22,34 @@ class DusterConfigClass
         $this->module = $module;
     }
 
-    public function loadConfig() {
+    public function loadConfig()
+    {
         // build and send GET request to config webservice
         $config_url = $this->module->getSystemSetting("starrapi-config-url");
         // add a '/' at the end of the url if it's not there
         $config_url = $config_url .
-            ((substr($config_url,-1) ==='/') ? "" : "/") . SERVER_NAME .'/'. $this->project_id
+            ((substr($config_url, -1) === '/') ? "" : "/") . SERVER_NAME . '/' . $this->project_id
             . '?redcap_user=' . $this->module->getUser()->getUserName();
         $this->module->emDebug("config url = $config_url");
-        $this->duster_config = $this->module->starrApiGetRequest($config_url,'ddp');
+        $this->duster_config = $this->module->starrApiGetRequest($config_url, 'ddp');
         $this->module->emDebug('duster_config = ' . print_r($this->duster_config, true));
+        if (empty($this->duster_config)) {
+            $this->module->handleError('DUSTER Error: Unable to load Duster config', "No Duster configuration was retrieved from the server.");
+            return false;
+        }
+        return true;
     }
 
-    public function getDusterConfig() {
+    public function getDusterConfig()
+    {
         if ($this->duster_config == null) {
-            $this->loadConfig();
+            $success = $this->loadConfig();
         }
         return $this->duster_config;
     }
 
-    public function setDusterConfig($config) {
+    public function setDusterConfig($config)
+    {
         $this->duster_config = $config;
     }
 
@@ -53,60 +62,69 @@ class DusterConfigClass
      * }
      * @return Json encoded string
      */
-    public function getDusterRequestObject() {
+    public function getDusterRequestObject()
+    {
         if (empty($this->duster_config)) {
-            $this->loadConfig();
+            $loaded = $this->loadConfig();
         }
-        $rp_data['redcap_project_id'] = intval($this->project_id);
-        $rp_data['missing_fields'] = $this->getMissingRedcapFields();
+        if ($loaded) {
+            $rp_data['redcap_project_id'] = intval($this->project_id);
+            $rp_data['missing_fields'] = $this->getMissingRedcapFields();
 
-        if (empty($rp_data['missing_fields'])) {
-            // add rp_identifiers to request fields
-            foreach ($this->duster_config['rp_info']['rp_identifiers'] as $identifier) {
-                $rp_fields[] = $identifier['redcap_field_name'];
-            }
-            // add rp_dates to request fields
-            foreach ($this->duster_config['rp_info']['rp_dates'] as $rp_dates) {
-                $rp_fields[] = $rp_dates['redcap_field_name'];
-            }
-            $this->module->emDebug('$request_fields: ' . print_r($rp_fields, true));
-            $records = REDCap::getData('array', null, $rp_fields);
-
-            // populate $rp_data with data in $records
-            foreach ($records as $record_id => $record) {
-                $has_missing = false;
-                $request_record = [];
-                $request_record['redcap_record_id'] = strval($record_id);
-                $record = $record[$this->module->getEventId()];
-                // add rp_identifiers
+            if (empty($rp_data['missing_fields'])) {
+                // add rp_identifiers to request fields
                 foreach ($this->duster_config['rp_info']['rp_identifiers'] as $identifier) {
-                    $request_record[$identifier['redcap_field_name']] = $record[$identifier['redcap_field_name']];
-                    $has_missing = $has_missing || empty($request_record[$identifier['redcap_field_name']]);
+                    $rp_fields[] = $identifier['redcap_field_name'];
                 }
-                //$request_record['dates'] = [];
-                // add rp_dates
-                $date_obj = [];
+                // add rp_dates to request fields
                 foreach ($this->duster_config['rp_info']['rp_dates'] as $rp_dates) {
-                    $date_obj['redcap_field_name'] = $rp_dates['redcap_field_name'];
-                    $date_obj['value'] = $record[$rp_dates['redcap_field_name']];
-                    $date_obj['type'] = $rp_dates['format'];
-                    $request_record['dates'][] = $date_obj;
-                    $has_missing = $has_missing || empty($date_obj['value']);
+                    $rp_fields[] = $rp_dates['redcap_field_name'];
                 }
-                if ($has_missing) {
-                    $rp_data['missing_data'][] = $request_record;
+                $this->module->emDebug('$request_fields: ' . print_r($rp_fields, true));
+                $records = REDCap::getData('array', null, $rp_fields);
+
+                // populate $rp_data with data in $records
+                foreach ($records as $record_id => $record) {
+                    $has_missing = false;
+                    $request_record = [];
+                    $request_record['redcap_record_id'] = strval($record_id);
+                    $record = $record[$this->module->getEventId()];
+                    // add rp_identifiers
+                    foreach ($this->duster_config['rp_info']['rp_identifiers'] as $identifier) {
+                        $request_record[$identifier['redcap_field_name']] = $record[$identifier['redcap_field_name']];
+                        $has_missing = $has_missing || empty($request_record[$identifier['redcap_field_name']]);
+                    }
+                    //$request_record['dates'] = [];
+                    // add rp_dates
+                    $date_obj = [];
+                    foreach ($this->duster_config['rp_info']['rp_dates'] as $rp_dates) {
+                        $date_obj['redcap_field_name'] = $rp_dates['redcap_field_name'];
+                        $date_obj['value'] = $record[$rp_dates['redcap_field_name']];
+                        $date_obj['type'] = $rp_dates['format'];
+                        $request_record['dates'][] = $date_obj;
+                        $has_missing = $has_missing || empty($date_obj['value']);
+                    }
+                    if ($has_missing) {
+                        $rp_data['missing_data'][] = $request_record;
+                    }
+                    // add everything to rp_data including missing
+                    $rp_data['rp_data'][] = $request_record;
                 }
-                // add everything to rp_data including missing
-                $rp_data['rp_data'][] = $request_record;
             }
+            return $rp_data;
+        } else {
+            $return_obj['status'] = 400;
+            $return_obj['message'] = 'Unable to retrieve Duster config.';
+            return $return_obj;
         }
-        return $rp_data;
+
     }
 
     /*returns list of fields that are in duster config but not in redcap config
      @return array($field_name=>array("label"=>,"redcap_field_name"=>,"form_name"=>,"form_label"=>,"format"=>))
      */
-    public function getMissingRedcapFields() {
+    public function getMissingRedcapFields()
+    {
         // rp_info
         $duster_fields = $this->getDusterFields(
             $this->duster_config['rp_info'], $this->rp_info_form);
@@ -115,7 +133,7 @@ class DusterConfigClass
             $this->duster_config['demographics'], $this->demographics_form));
         // collection windows
         $forms = $this->getDusterForms($this->duster_config['collection_windows']);
-        foreach($this->duster_config['collection_windows'] as $index=>$collection_window) {
+        foreach ($this->duster_config['collection_windows'] as $index => $collection_window) {
             $duster_fields = array_merge($duster_fields, $this->getDusterFields($collection_window,
                 $forms[$index]));
         }
@@ -125,7 +143,7 @@ class DusterConfigClass
         $missing_names = array_diff(array_keys($duster_fields), REDCap::getFieldNames());
         $this->module->emDebug("MISSING NAMES: " . print_r($missing_names, true));
 
-        foreach($missing_names as $field_name) {
+        foreach ($missing_names as $field_name) {
             $missing_fields[] = $duster_fields[$field_name];
         }
         $this->module->emDebug("MISSING FIELDS: " . print_r($missing_fields, true));
@@ -138,16 +156,17 @@ class DusterConfigClass
     @param $json_input
     @return array(array("form_name"=>, "form_label"=>))
     */
-    private function getDusterForms($json_input) {
+    private function getDusterForms($json_input)
+    {
         $forms = [];
-        $matches=[];
+        $matches = [];
         preg_match_all('/"label":"([^"]+)","form_name":"([\w\d_]+)"/', json_encode($json_input), $matches);
         //$this->module->emDebug("FORMS: " . print_r($matches, true));
 
         $labels = $matches[1];
         $form_names = $matches[2];
 
-        foreach($form_names as $index=>$form_name) {
+        foreach ($form_names as $index => $form_name) {
             $forms[] = $this->toForm($form_name, $labels[$index]);
         }
         //$this->module->emDebug("FORMS: " . print_r($forms, true));
@@ -157,7 +176,8 @@ class DusterConfigClass
     /* returns all the forms in the duster config
     @return array(array("form_name"=>, "form_label"=>))
     */
-    public function getForms() {
+    public function getForms()
+    {
         $forms[] = $this->rp_info_form;
         $forms[] = $this->demographics_form;
         $forms = array_merge($forms, $this->getDusterForms($this->duster_config));
@@ -171,11 +191,12 @@ class DusterConfigClass
     @param jsonObject $json_input
     @return array($field_name=>array("label"=>,"redcap_field_name"=>,"form_name"=>,"form_label"=>,"format"=>))
     */
-    private function getDusterFields($json_input, $form) {
+    private function getDusterFields($json_input, $form)
+    {
         //$this->module->emDebug("INPUT: " . json_encode($json_input));
 
         $fields = [];
-        $matches=[];
+        $matches = [];
         preg_match_all('/"label":"([^"]+)"/', json_encode($json_input), $matches);
         //$this->module->emDebug("LABELS: " . print_r($matches, true));
 
@@ -188,38 +209,40 @@ class DusterConfigClass
         //$this->module->emDebug("FORMATS: " . print_r($matches, true));
 
         $format = $matches[1];
-        foreach($field_names as $index=>$fn) {
+        foreach ($field_names as $index => $fn) {
             $fn = strtolower($fn);
             $fields[$fn] = array(
-                "label"=>$labels[$index],
-                "redcap_field_name"=>$fn,
-                "form_name"=>$form['form_name'],
-                "form_label"=>$form['form_label'],
-                "format"=>$format[$index]);
+                "label" => $labels[$index],
+                "redcap_field_name" => $fn,
+                "form_name" => $form['form_name'],
+                "form_label" => $form['form_label'],
+                "format" => $format[$index]);
         }
         return $fields;
     }
 
     /* convenience function to return a form
     @return array("form_name, "form_label")*/
-    private function toForm($form_name, $form_label) {
-        return array('form_name'=> $form_name, 'form_label'=>$form_label);
+    private function toForm($form_name, $form_label)
+    {
+        return array('form_name' => $form_name, 'form_label' => $form_label);
     }
 
     /*used by importMetadata to retrieve duster config in redcap import format
     @return array(redcap_field) redcap metadata*/
-    public function getRedcapMetadata() {
+    public function getRedcapMetadata()
+    {
         //add the redcap_record_id first
         $field = array(
-            "redcap_field_name"=>"redcap_record_id",
-            "label"=>"REDCap Record ID",
-            "format"=>"text",
-            "form_name"=>"rp_info",
-            "form_label"=>"");
-        $redcap_meta=
-            $this->getRedcapFields(array($field),"");
+            "redcap_field_name" => "redcap_record_id",
+            "label" => "REDCap Record ID",
+            "format" => "text",
+            "form_name" => "rp_info",
+            "form_label" => "");
+        $redcap_meta =
+            $this->getRedcapFields(array($field), "");
         // Researcher-Provided Information
-        if(array_key_exists("rp_info", $this->duster_config)) {
+        if (array_key_exists("rp_info", $this->duster_config)) {
             $redcap_meta = array_merge($redcap_meta,
                 $this->getRedcapFields($this->getDusterFields(
                     $this->duster_config['rp_info']['rp_identifiers'], $this->rp_info_form), "Identifiers"),
@@ -229,7 +252,7 @@ class DusterConfigClass
         }
 
         // Demographics
-        if(array_key_exists("demographics", $this->duster_config)) {
+        if (array_key_exists("demographics", $this->duster_config)) {
 
             $redcap_meta = array_merge($redcap_meta,
                 $this->getRedcapFields($this->getDusterFields(
@@ -238,7 +261,7 @@ class DusterConfigClass
         }
 
         // Clinical Windows
-        if(array_key_exists("collection_windows", $this->duster_config)) {
+        if (array_key_exists("collection_windows", $this->duster_config)) {
             $forms = $this->getDusterForms($this->duster_config['collection_windows']);
 
             foreach ($this->duster_config['collection_windows'] as $index => $collection_window) {
@@ -256,13 +279,14 @@ class DusterConfigClass
 
     /*convenience function, returns redcap metadata from duster fields
     @return array(array("form_name","section_header","field_type","field_label" ...))*/
-    private function getRedcapFields($duster_fields, $section_name) {
+    private function getRedcapFields($duster_fields, $section_name)
+    {
         $rcFields = [];
 
-        foreach($duster_fields as $index=>$field) {
+        foreach ($duster_fields as $index => $field) {
             $rcFields[] = array("field_name" => $field['redcap_field_name'],
                 "form_name" => $field['form_name'],
-                "section_header" => ($index ==array_key_first($duster_fields)) ? $section_name:"",
+                "section_header" => ($index == array_key_first($duster_fields)) ? $section_name : "",
                 "field_type" => "text",
                 "field_label" => $field['label'],
                 "select_choices_or_calculations" => "",

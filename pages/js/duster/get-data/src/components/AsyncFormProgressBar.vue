@@ -15,9 +15,10 @@
 </template>
 
 <script setup lang="ts">
-import {computed, capitalize} from "vue";
+import {computed} from "vue";
 import type {PropType} from "vue";
 import type {FormQueries} from "@/types/Query";
+import { formLabel, queryMessage } from "@/utils/helpers.js"
 
 const props = defineProps({
   formQueries: {
@@ -37,33 +38,15 @@ const progress =  computed(()=> {
 })
 
 const label = computed(() => {
-  return toTitleCase(props.formQueries.form_name);
+  return formLabel(props.formQueries.form_name);
 })
 
 const message = computed(() => {
   if (props.formQueries.complete) {
     return "Complete"
   }
-  return queryLabel(props.formQueries.last_message) + " in progress.";
+  return queryMessage(props.formQueries.last_message);
 })
-
-const toTitleCase = (str:string) => {
-  const label = str.replace(/_/g, ' ')
-  return label.replace(
-      /\w\S*/g,
-      function(txt) {
-        return txt.charAt(0).toUpperCase() +
-            txt.substr(1).toLowerCase();
-      }
-  );
-}
-
-// remove the form name from the query label
-const queryLabel = (str:string) => {
-  const index = str.indexOf(":");
-  const label = str.substr(index + 1);
-  return toTitleCase(label.trim());
-}
 
 </script>
 

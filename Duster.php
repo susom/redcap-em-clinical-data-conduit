@@ -211,15 +211,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         $this->emDebug('refresh response = ' . print_r($response, true));
     }
 
-  /*public function getDusterConfig() {
-      // build and send GET request to config webservice
-      $config_url = $this->getSystemSetting("starrapi-config-url") . $this->getProjectId();
-      $this->emDebug("config url = $config_url");
-      $duster_config = $this->getFromDdp($config_url);
-      //$this->emDebug('duster_config = ' . print_r($duster_config, true));
-      return $duster_config;
-  }*/
-
   /**
    * Fetch user information from corresponding REDCap API token
    * @param String $token
@@ -249,18 +240,20 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         $message .= "<br>Message: ".$throwable->getMessage()."<br>Trace: " .$throwable->getTraceAsString();
     }
     $this->emError("DUSTER Project Error Subject: $subject; Message: $message");
-    $duster_email = $this->getSystemSetting("duster-email");
+      REDCap::logEvent("DUSTER: ERROR $message");
+      $duster_email = $this->getSystemSetting("duster-email");
     if (!empty($duster_email)) {
         $emailStatus = REDCap::email($duster_email,'no-reply@stanford.edu', $subject, $message);
         if (!$emailStatus) {
+            REDCap::logEvent("DUSTER: Email notification to $duster_email failed");
             $this->emError("Email Notification to $duster_email Failed. Subject: $subject");
-            return "Unable to send an error notification email to $duster_email. Please notify your REDCap administrator.";
+            return "Unable to send an error notification email to $duster_email. Please notify your REDCap administrator with the following error message: " . $message;
         } else {
-            return "An email regarding this issue has been sent to $duster_email.";
+            return "$message  An email regarding this issue has been sent to $duster_email.";
         }
     } else {
         $this->emLog("No DUSTER email configured as a system-level setting.");
-        return "Unable to send an error notification email to DUSTER's development team. Please notify your REDCap administrator.";
+        return "Unable to send an error notification email to DUSTER's development team. Please notify your REDCap administrator of the following error: " . $message;
     }
   }
 

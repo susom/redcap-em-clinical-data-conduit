@@ -21436,6 +21436,31 @@ const _sfc_main$4 = /* @__PURE__ */ defineComponent({
     };
   }
 });
+function toTitleCase(str) {
+  str = str.replace(/_/g, " ");
+  return str.replace(
+    /\w\S*/g,
+    function(txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    }
+  );
+}
+function queryLabel(str) {
+  if (str) {
+    const label = str.replace(/[\w_]*:? */i, "");
+    return toTitleCase(label);
+  }
+}
+function queryMessage(str) {
+  if (str) {
+    const label = str.replace(/duster_pid\d+_cw\d+_/i, "");
+    return toTitleCase(label);
+  }
+}
+function formLabel(str) {
+  const label = str.replace(/cw\d+_/i, "");
+  return toTitleCase(label);
+}
 const _hoisted_1$3 = { class: "grid mt-3" };
 const _hoisted_2$2 = { class: "col-3" };
 const _hoisted_3$2 = { key: 0 };
@@ -21497,28 +21522,14 @@ const _sfc_main$3 = /* @__PURE__ */ defineComponent({
       }
       return pctComplete;
     });
-    computed(() => {
-      return toTitleCase(props.name);
+    const label = computed(() => {
+      return formLabel(props.name);
     });
-    const toTitleCase = (str) => {
-      const label2 = str.replace(/_/g, " ");
-      return label2.replace(
-        /\w\S*/g,
-        function(txt) {
-          return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-        }
-      );
-    };
-    const queryLabel = (str) => {
-      const index = str.indexOf(":");
-      const label2 = str.substr(index + 1);
-      return toTitleCase(label2.trim());
-    };
     return (_ctx, _cache) => {
       const _component_ProgressBar = resolveComponent("ProgressBar");
       return openBlock(), createElementBlock("div", _hoisted_1$3, [
         createBaseVNode("div", _hoisted_2$2, [
-          createBaseVNode("b", null, toDisplayString(toTitleCase(__props.name)) + ": ", 1),
+          createBaseVNode("b", null, toDisplayString(label.value) + ": ", 1),
           updateMessage.value ? (openBlock(), createElementBlock("span", _hoisted_3$2, [
             _hoisted_4$2,
             createTextVNode(toDisplayString(updateMessage.value), 1)
@@ -21564,28 +21575,14 @@ const _sfc_main$2 = /* @__PURE__ */ defineComponent({
       return pctComplete;
     });
     const label = computed(() => {
-      return toTitleCase(props.formQueries.form_name);
+      return formLabel(props.formQueries.form_name);
     });
     const message = computed(() => {
       if (props.formQueries.complete) {
         return "Complete";
       }
-      return queryLabel(props.formQueries.last_message) + " in progress.";
+      return queryMessage(props.formQueries.last_message);
     });
-    const toTitleCase = (str) => {
-      const label2 = str.replace(/_/g, " ");
-      return label2.replace(
-        /\w\S*/g,
-        function(txt) {
-          return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-        }
-      );
-    };
-    const queryLabel = (str) => {
-      const index = str.indexOf(":");
-      const label2 = str.substr(index + 1);
-      return toTitleCase(label2.trim());
-    };
     return (_ctx, _cache) => {
       const _component_ProgressBar = resolveComponent("ProgressBar");
       return openBlock(), createElementBlock("div", _hoisted_1$2, [
@@ -21687,11 +21684,11 @@ const _hoisted_20 = { key: 3 };
 const _hoisted_21 = ["innerHTML"];
 const _hoisted_22 = {
   key: 0,
-  class: "text-center"
+  class: "text-left"
 };
 const _hoisted_23 = { class: "grid" };
 const _hoisted_24 = { class: "col-3" };
-const _hoisted_25 = /* @__PURE__ */ createBaseVNode("b", null, "Cohort:", -1);
+const _hoisted_25 = /* @__PURE__ */ createBaseVNode("b", null, "Researcher Provided Information:", -1);
 const _hoisted_26 = { key: 0 };
 const _hoisted_27 = /* @__PURE__ */ createBaseVNode("br", null, null, -1);
 const _hoisted_28 = { class: "col-8" };
@@ -21715,9 +21712,9 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     const project_setup_url = ref(projectConfig.project_setup_url);
     const get_data_url = ref(projectConfig.get_data_api);
     const step = ref(0);
-    const errorMessage = ref();
+    const errorMessage = ref("");
     const saveMessage = ref("Saving ...");
-    const cohortMessage = ref("Cohort sync in progress.");
+    const cohortMessage = ref("Researcher provided information update in progress.");
     const previousRequestStatus = ref();
     const startLoad = ref(false);
     const isProduction = ref(false);
@@ -21742,6 +21739,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
       }
     });
     watch(isProduction, async (prodStatus) => {
+      var _a, _b, _c, _d, _e;
       if (prodStatus) {
         isLoading.value = true;
         const response = await axios$1.get(get_data_url.value + "&action=dataRequestStatus").catch(function(error) {
@@ -21750,10 +21748,10 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
         });
         if (!hasError(response)) {
           console.log(response);
-          if ((response == null ? void 0 : response.data.dataRequestStatus) === "sync") {
+          if (((_a = response == null ? void 0 : response.data) == null ? void 0 : _a.dataRequestStatus) === "sync") {
             isLoading.value = false;
             errorMessage.value = "<p>Real time Data Request initiated by " + (response == null ? void 0 : response.data.redcapUserName) + " already in progress.  Please wait for this request to complete before submitting a new data request.";
-          } else if ((response == null ? void 0 : response.data.dataRequestStatus) === "async") {
+          } else if (((_b = response == null ? void 0 : response.data) == null ? void 0 : _b.dataRequestStatus) === "async") {
             console.log("dataRequestStatus async");
             isLoading.value = false;
             isLoaded.value = true;
@@ -21762,8 +21760,8 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
             saveMessage.value = "<p>Background Data Request initiated by " + (response == null ? void 0 : response.data.redcapUserName) + " already in progress.</p><p>This view will update status every " + asyncPollInterval.value + " seconds.</p>";
             asyncPollStatus();
           } else {
-            if ((response == null ? void 0 : response.data.dataRequestStatus) && (response == null ? void 0 : response.data.dataRequestStatus) !== "no status") {
-              let date = new Date(Date.parse("2012-01-26T13:51:50.417-07:00"));
+            if (((_c = response == null ? void 0 : response.data) == null ? void 0 : _c.dataRequestStatus) && ((_d = response == null ? void 0 : response.data) == null ? void 0 : _d.dataRequestStatus) !== "no status") {
+              let date = new Date(Date.parse((_e = response == null ? void 0 : response.data) == null ? void 0 : _e.dataRequestTimestamp));
               previousRequestStatus.value = "Previous request status: " + (response == null ? void 0 : response.data.dataRequestStatus) + " at " + date.toLocaleString("en-us");
             }
             startLoad.value = true;
@@ -21802,10 +21800,11 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
       window.location = url;
     };
     const hasError = (response) => {
+      var _a, _b;
       if (response.status !== 200) {
         errorMessage.value = response.message;
         return true;
-      } else if (response.data.status && response.data.status !== 200) {
+      } else if (((_a = response.data) == null ? void 0 : _a.status) && ((_b = response.data) == null ? void 0 : _b.status) !== 200) {
         errorMessage.value += response.data.message + "<br>";
         return true;
       } else {
@@ -21816,15 +21815,6 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
         }
       }
       return false;
-    };
-    const toTitleCase = (str) => {
-      str = str.replace(/_/g, " ");
-      return str.replace(
-        /\w\S*/g,
-        function(txt) {
-          return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-        }
-      );
     };
     const cancel = () => {
       axios$1.get(get_data_url.value + "&action=logStatus&status=cancel");
@@ -21838,7 +21828,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
         cohortProgress.value = 100;
         totalProgress.value = saveSize.value;
         if (!hasError(cohortSync)) {
-          saveMessage.value = "Cohort sync complete.";
+          saveMessage.value = "Researcher Provided Information update complete.";
           cohortMessage.value = "Complete";
         }
       } catch (error) {
@@ -22029,6 +22019,15 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                     ])) : createCommentVNode("", true)
                   ])) : createCommentVNode("", true),
                   step.value == 4 ? (openBlock(), createElementBlock("div", _hoisted_20, [
+                    createVNode(_component_Message, {
+                      closeable: false,
+                      severity: "warn"
+                    }, {
+                      default: withCtx(() => [
+                        createTextVNode("Do not click on other links or close this browser tab/window until data request is complete.")
+                      ]),
+                      _: 1
+                    }),
                     createBaseVNode("p", null, [
                       createBaseVNode("strong", null, [
                         createBaseVNode("span", { innerHTML: saveMessage.value }, null, 8, _hoisted_21)
@@ -22113,33 +22112,25 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                       _: 1
                     }, 8, ["visible"]),
                     createVNode(_component_Divider),
-                    isAsyncRequest.value ? (openBlock(), createBlock(_component_Button, {
-                      key: 2,
-                      label: "Project Home",
-                      class: "p-button-primary mr-2",
-                      size: "small",
-                      icon: "pi pi-home",
-                      onClick: _cache[8] || (_cache[8] = ($event) => goToUrl(project_setup_url.value))
-                    })) : createCommentVNode("", true),
                     totalProgress.value < 100 ? (openBlock(), createBlock(_component_Button, {
-                      key: 3,
+                      key: 2,
                       class: "p-button-secondary",
                       size: "small",
                       icon: "pi pi-times",
                       label: "Cancel Data Request",
-                      onClick: _cache[9] || (_cache[9] = ($event) => confirmCancel.value = true)
+                      onClick: _cache[8] || (_cache[8] = ($event) => confirmCancel.value = true)
                     })) : (openBlock(), createBlock(_component_Button, {
-                      key: 4,
+                      key: 3,
                       label: "Export Data Page",
                       class: "p-button-primary",
                       size: "small",
                       icon: "pi pi-download",
-                      onClick: _cache[10] || (_cache[10] = ($event) => goToUrl(data_exports_url.value))
+                      onClick: _cache[9] || (_cache[9] = ($event) => goToUrl(data_exports_url.value))
                     }))
                   ])) : createCommentVNode("", true),
                   createVNode(_component_Dialog, {
                     visible: showSync.value,
-                    "onUpdate:visible": _cache[13] || (_cache[13] = ($event) => showSync.value = $event),
+                    "onUpdate:visible": _cache[12] || (_cache[12] = ($event) => showSync.value = $event),
                     "max-width": "500px",
                     modal: "",
                     style: { width: "40vw" },
@@ -22166,14 +22157,14 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                             size: "small",
                             icon: "pi pi-check",
                             label: "Yes, Launch",
-                            onClick: _cache[11] || (_cache[11] = ($event) => syncCohort())
+                            onClick: _cache[10] || (_cache[10] = ($event) => syncCohort())
                           }),
                           createVNode(_component_Button, {
                             class: "ml-2 p-button-secondary",
                             size: "small",
                             icon: "pi pi-times",
                             label: "No, Cancel",
-                            onClick: _cache[12] || (_cache[12] = ($event) => showSync.value = false)
+                            onClick: _cache[11] || (_cache[11] = ($event) => showSync.value = false)
                           })
                         ]),
                         _: 1
@@ -22183,17 +22174,17 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                   }, 8, ["visible"]),
                   createVNode(_component_Dialog, {
                     visible: showAsyncNotify.value,
-                    "onUpdate:visible": _cache[17] || (_cache[17] = ($event) => showAsyncNotify.value = $event),
+                    "onUpdate:visible": _cache[16] || (_cache[16] = ($event) => showAsyncNotify.value = $event),
                     "max-width": "500px",
                     header: "Run in Background"
                   }, {
                     default: withCtx(() => [
-                      createVNode(_component_Card, null, {
+                      createVNode(_component_Card, { style: { "box-shadow": "none" } }, {
                         content: withCtx(() => [
                           _hoisted_32,
                           createVNode(_component_InputText, {
                             modelValue: email.value,
-                            "onUpdate:modelValue": _cache[14] || (_cache[14] = ($event) => email.value = $event)
+                            "onUpdate:modelValue": _cache[13] || (_cache[13] = ($event) => email.value = $event)
                           }, null, 8, ["modelValue"])
                         ]),
                         footer: withCtx(() => [
@@ -22202,14 +22193,14 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                             size: "small",
                             icon: "pi pi-check",
                             label: "Submit",
-                            onClick: _cache[15] || (_cache[15] = ($event) => asyncRequestData())
+                            onClick: _cache[14] || (_cache[14] = ($event) => asyncRequestData())
                           }),
                           createVNode(_component_Button, {
                             class: "ml-2 p-button-secondary",
                             size: "small",
                             icon: "pi pi-times",
                             label: "Cancel",
-                            onClick: _cache[16] || (_cache[16] = ($event) => showAsyncNotify.value = false)
+                            onClick: _cache[15] || (_cache[15] = ($event) => showAsyncNotify.value = false)
                           })
                         ]),
                         _: 1

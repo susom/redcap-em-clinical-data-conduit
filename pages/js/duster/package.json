@@ -1,12 +1,6 @@
 {
   "name": "duster",
   "private": true,
-  "scripts": {
-    "build": "run-p type-check build-only",
-    "build-dev": "vite build --minify false",
-    "build-only": "vite builds",
-    "type-check": "vue-tsc --noEmit"
-  },
   "workspaces": [
     "./shared",
     "./new-project",

@@ -1,6 +1,6 @@
 <template>
   <div class="grid mt-3">
-       <div class="col-3"><b> {{ toTitleCase(name) }}: </b>
+       <div class="col-3"><b> {{ label }}: </b>
              <span v-if="updateMessage"><br>{{ updateMessage }}</span>
          </div>
        <div class="col-8">
@@ -15,9 +15,10 @@
 </template>
 
 <script setup lang="ts">
-import {ref, watch, computed, capitalize} from "vue";
+import {ref, watch, computed} from "vue";
 import type {PropType} from "vue";
 import axios from 'axios';
+import { toTitleCase, queryLabel, formLabel } from "@/utils/helpers.js"
 
 const props = defineProps({
   queries: {
@@ -78,25 +79,8 @@ const progress =  computed(()=> {
 })
 
 const label = computed(() => {
-  return toTitleCase(props.name);
+  return formLabel(props.name);
 })
-
-const toTitleCase = (str:string) => {
-  const label = str.replace(/_/g, ' ')
-  return label.replace(
-      /\w\S*/g,
-      function(txt) {
-        return txt.charAt(0).toUpperCase() +
-            txt.substr(1).toLowerCase();
-      }
-  );
-}
-
-const queryLabel = (str:string) => {
-  const index = str.indexOf(":");
-  const label = str.substr(index + 1);
-  return toTitleCase(label.trim());
-}
 
 </script>
 

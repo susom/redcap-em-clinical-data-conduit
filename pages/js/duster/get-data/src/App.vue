@@ -111,14 +111,16 @@
               </div>
 
               <div v-if="step == 4">
+                <Message :closeable="false" severity="warn">Do not click on other links or close this browser
+                  tab/window until data request is complete.</Message>
                 <p><strong>
                   <span v-html="saveMessage"></span>
                 </strong>
                 </p>
                 <!--synchronized request progress display-->
-                <div class="text-center" v-if="!isAsyncRequest && dusterData.rp_data">
+                <div class="text-left" v-if="!isAsyncRequest && dusterData.rp_data">
                   <div class="grid">
-                    <div class="col-3"><b>Cohort:</b>
+                    <div class="col-3"><b>Researcher Provided Information:</b>
                       <span v-if="cohortMessage"><br>{{ cohortMessage }}</span>
                     </div>
                     <div class="col-8">
@@ -179,11 +181,11 @@
                 </Dialog>
 
                 <Divider></Divider>
-                <Button v-if="isAsyncRequest"
+                <!--Button v-if="isAsyncRequest"
                         label="Project Home"
                         class="p-button-primary mr-2" size="small" icon="pi pi-home"
                         @click="goToUrl(project_setup_url)"
-                />
+                /-->
                 <Button v-if="totalProgress < 100"
                         class="p-button-secondary" size="small" icon="pi pi-times"
                         label="Cancel Data Request"
@@ -242,7 +244,7 @@
                   max-width="500px"
                   header="Run in Background"
               >
-                <Card>
+                <Card style="box-shadow: none">
                   <template #content>
                     <p>
                       Enter an email address to get
@@ -283,8 +285,7 @@ import RequestDataTable from "@/components/RequestDataTable.vue";
 import RcProgressBar from "@/components/RcProgressBar.vue";
 import AsyncFormProgressBar from "@/components/AsyncFormProgressBar.vue";
 import SystemErrorDialog from '@shared/components/SystemErrorDialog.vue'
-import DusterHeader from '@shared/components/DusterHeader.vue'
-import type {FormQueries} from '@/types/Query'
+import { toTitleCase } from "@/utils/helpers.js"
 
 const projectConfig = JSON.parse(localStorage.getItem('getDataObj') || '{}');
 console.log("getDataObj " + localStorage.getItem('getDataObj'))
@@ -302,9 +303,9 @@ const project_setup_url = ref<string>(projectConfig.project_setup_url)
 const get_data_url = ref<string>(projectConfig.get_data_api)
 //<?php echo $module->getUrl("services/getData.php?pid=$projectId&action=productionStatus"); ?>
 const step = ref<number>(0)
-const errorMessage = ref<string>()
+const errorMessage = ref<string>("")
 const saveMessage = ref<string>("Saving ...")
-const cohortMessage = ref<string>("Cohort sync in progress.")
+const cohortMessage = ref<string>("Researcher provided information update in progress.")
 const previousRequestStatus = ref<string>()
 const startLoad = ref<boolean>(false)
 const isProduction = ref<boolean>(false)
@@ -361,11 +362,11 @@ watch (isProduction, async(prodStatus) => {
         })
     if (!hasError(response)) {
       console.log(response)
-      if (response?.data.dataRequestStatus === 'sync') {
+      if (response?.data?.dataRequestStatus === 'sync') {
         isLoading.value = false;
         errorMessage.value = '<p>Real time Data Request initiated by ' + response?.data.redcapUserName +
             ' already in progress.  Please wait for this request to complete before submitting a new data request.'
-      } else if (response?.data.dataRequestStatus === 'async') {
+      } else if (response?.data?.dataRequestStatus === 'async') {
         console.log("dataRequestStatus async")
         isLoading.value = false;
         isLoaded.value = true
@@ -376,11 +377,11 @@ watch (isProduction, async(prodStatus) => {
             asyncPollInterval.value +' seconds.</p>'
         asyncPollStatus()
       } else {
-        if (response?.data.dataRequestStatus && response?.data.dataRequestStatus !== 'no status') {
-          let date = new Date( Date.parse('2012-01-26T13:51:50.417-07:00') );
+        if (response?.data?.dataRequestStatus && response?.data?.dataRequestStatus !== 'no status') {
+          let date = new Date( Date.parse(response?.data?.dataRequestTimestamp) );
 
-          previousRequestStatus.value = 'Previous request status: ' + response?.data.dataRequestStatus + ' at ' +
-              date.toLocaleString('en-us')
+          previousRequestStatus.value = 'Previous request status: ' + response?.data.dataRequestStatus
+              + ' at ' + date.toLocaleString('en-us')
         }
         startLoad.value = true
       }
@@ -427,7 +428,7 @@ const hasError = (response:any) => {
   if (response.status !== 200) {
     errorMessage.value = response.message;
     return true;
-  } else if (response.data.status && response.data.status !== 200) {
+  } else if (response.data?.status && response.data?.status !== 200) {
     errorMessage.value += response.data.message + '<br>';
     return true;
   } else {
@@ -443,17 +444,6 @@ const hasError = (response:any) => {
   return false;
 }
 
-const toTitleCase = (str:string) => {
-  str = str.replace(/_/g,' ')
-  return str.replace(
-      /\w\S*/g,
-      function(txt) {
-        return txt.charAt(0).toUpperCase() +
-            txt.substr(1).toLowerCase();
-      }
-  );
-}
-
 const cancel = () => {
   axios.get(get_data_url.value + "&action=logStatus&status=cancel")
   goToUrl(record_base_url.value)
@@ -467,7 +457,7 @@ const syncCohort = async() => {
     cohortProgress.value = 100;
     totalProgress.value = saveSize.value;
     if (!hasError(cohortSync)) {
-      saveMessage.value = "Cohort sync complete.";
+      saveMessage.value = "Researcher Provided Information update complete.";
       cohortMessage.value = "Complete";
     }
   } catch (error:any) {
