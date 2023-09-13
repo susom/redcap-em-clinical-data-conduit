@@ -40,13 +40,18 @@ namespace Stanford\Duster;
   postObj['check_irb_url'] = "<?php echo $module->getUrl("services/checkIRB.php"); ?>" ;
 
   // store URL for services/createProject.php
-  postObj['create_project_url'] ="<?php echo $module->getUrl("services/createProject.php"); ?>";
+  postObj['create_project_url'] = "<?php echo $module->getUrl("services/createProject.php"); ?>";
 
   // store URL for services/callMetadata.php
   postObj['metadata_url'] = "<?php echo $module->getUrl("services/callMetadata.php"); ?>";
 
+  // store URL fore services/refreshSession.php
+  postObj['refresh_session_url'] = "<?php echo $module->getUrl("services/refreshSession.php"); ?>";
+
   // store URL for pages/newProjectIntro.php
-  postObj['new_project_intro_url'] ="<?php echo $module->getUrl("pages/newProjectIntro.php"); ?>";
+  postObj['new_project_intro_url'] = "<?php echo $module->getUrl("pages/newProjectIntro.php"); ?>";
+
+  // save to local storage
   localStorage.setItem('postObj', JSON.stringify(postObj));
 
   // redirect to 'new-project' Vue app for creating a new project
