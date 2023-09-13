@@ -140,11 +140,9 @@
   setInterval(() => {
     axios.get(projectConfig.refresh_session_url)
       .then(response => {
-        console.log(response);
       }).catch(function (error) {
-        console.log(error)
     });
-  },3000);
+  }, 60000);
 
   const dev = ref<boolean>(false)
   const systemError = ref<boolean>(false)
