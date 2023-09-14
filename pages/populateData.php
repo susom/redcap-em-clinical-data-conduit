@@ -314,6 +314,14 @@ $project_id = PROJECT_ID;
         });
       }
     },
+    created: function() {
+      setInterval(() => {
+        axios.get('<?php echo $module->getUrl("services/refreshSession.php"); ?>')
+          .then(response => {
+          }).catch(function (error) {
+        });
+      }, 60000);
+    },
     methods: {
       goToUrl(url) {
         window.location = url;
