@@ -136,6 +136,14 @@
   const projectConfig = JSON.parse(localStorage.getItem('postObj') || '{}');
   //console.log("postObj" + localStorage.getItem('postObj'))
   localStorage.removeItem('postObj');
+
+  setInterval(() => {
+    axios.get(projectConfig.refresh_session_url)
+      .then(response => {
+      }).catch(function (error) {
+    });
+  }, 60000);
+
   const dev = ref<boolean>(false)
   const systemError = ref<boolean>(false)
 
@@ -188,7 +196,7 @@
 
   onMounted(() => {
     // check irb
-    checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number)
+    checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number);
   })
 
   watch(irbValid, (irbValidUpdate) => {
