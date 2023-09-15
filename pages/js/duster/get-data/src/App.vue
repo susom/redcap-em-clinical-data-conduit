@@ -115,7 +115,7 @@
                   Do not click on other links or close this browser
                   tab/window until data request is complete.</Message>
                 <p><strong>
-                  <span v-html="saveMessage"></span> <span v-html="updateMessage"></span>
+                  <span v-html="saveMessage"></span> <span v-html="nextUpdateMessage"></span>
                 </strong>
                 </p>
                 <!--synchronized request progress display-->
@@ -187,7 +187,7 @@
                         class="p-button-primary mr-2" size="small" icon="pi pi-home"
                         @click="goToUrl(project_setup_url)"
                 /-->
-                <Button v-if="totalProgress < 100"
+                <Button v-if="totalProgress < 100 && !cancelled"
                         class="p-button-secondary" size="small" icon="pi pi-times"
                         label="Cancel Data Request"
                         @click="confirmCancel = true"/>
@@ -366,11 +366,11 @@ watch (isProduction, async(prodStatus) => {
         })
     if (!hasError(response)) {
       console.log(response)
-      if (response?.data?.dataRequestStatus === 'sync') {
+      if (response?.data?.dataRequestStatus == 'sync') {
         isLoading.value = false;
         errorMessage.value = '<p>Real time Data Request initiated by ' + response?.data.redcapUserName +
             ' already in progress.  Please wait for this request to complete before submitting a new data request.'
-      } else if (response?.data?.dataRequestStatus === 'async') {
+      } else if (response?.data?.dataRequestStatus == 'async') {
         console.log("dataRequestStatus async")
         isLoading.value = false;
         isLoaded.value = true
@@ -381,7 +381,7 @@ watch (isProduction, async(prodStatus) => {
             asyncPollInterval.value +' seconds.</p>'
         asyncPollStatus()
       } else {
-        if (response?.data?.dataRequestStatus && response?.data?.dataRequestStatus !== 'no status') {
+        if (response?.data?.dataRequestStatus && response?.data?.dataRequestStatus != 'no status') {
           let date = new Date( Date.parse(response?.data?.dataRequestTimestamp) );
 
           previousRequestStatus.value = 'Previous request status: ' + response?.data.dataRequestStatus
@@ -470,11 +470,19 @@ const syncCohort = async() => {
   }
 }
 
-const updateMessage = computed(()=>{
-  if (updateTime.value.length > 0 && totalProgress.value < 100) {
-    return 'Last update at: ' + updateTime.value + ". " + countDownUpdate.value
+const nextUpdateMessage = computed(()=> {
+  let msg = ""
+  if (totalProgress.value == 100) {
+    return msg
+  } else {
+    if (updateTime.value.length > 0) {
+      msg += 'Last update at: ' + updateTime.value + ". "
+    }
+    if (totalProgress.value < 100) {
+      msg += countDownUpdate.value
+    }
   }
-  return "";
+  return msg
   });
 
 const updateProgress = (dataSync:any) => {
@@ -533,7 +541,6 @@ const zeropad = (num:number) => {
 const dataRequestLog = ref<any>()
 const asyncPollStatus = async() => {
   let complete = false
-  let cancelled = false
   let count = 0 // count the number of status requests.  Used to set limit on number of requests.
   while (!complete) {
     count++
@@ -545,10 +552,6 @@ const asyncPollStatus = async() => {
             updateTime.value = zeropad(today.getHours()) + ":" + zeropad(today.getMinutes()) + ":" +
                 zeropad(today.getSeconds());
             if (response?.data) {
-              cancelled = (response.data.request_status.message === 'cancel')
-            }
-            if (!cancelled) {
-
               dataRequestLog.value = response.data.data_request_log
               console.log("count " + count)
               console.log(response)
@@ -560,10 +563,12 @@ const asyncPollStatus = async() => {
                     formComplete = false
                   }
                 }
-                complete = (response.data.request_status.message === 'complete') || cancelled
-                //complete = (response.data.num_queries > 0 && response.data.num_queries == response.data.num_complete)
+                //complete = (response.data.request_status.message == 'complete')
+                complete = (response.data.num_queries > 0 && response.data.num_queries == response.data.num_complete)
                 totalProgress.value = 100 * response.data.num_complete / response.data.num_queries
               }
+              cancelled.value = (response.data.request_status.message == 'cancel')
+              complete = (cancelled.value) ? cancelled.value: complete
             }
           }
         })
@@ -572,7 +577,7 @@ const asyncPollStatus = async() => {
           errorMessage.value += error.message + '<br>';
           systemError.value = true
         })
-    if (count > asyncPollLimit.value) {
+    if (!complete && count > asyncPollLimit.value) {
       console.log("Hit async poll limit.");
       complete = true
       // TODO add option to resume status updates
@@ -585,8 +590,9 @@ const asyncPollStatus = async() => {
       console.log('stop sleep')
     }
   }
-  if (cancelled) {
+  if (cancelled.value) {
    saveMessage.value = "Data Request Cancelled."
+    countDownUpdate.value = ""
   } else {
     saveMessage.value = 'Data Request Complete.'
   }
