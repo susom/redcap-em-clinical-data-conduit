@@ -111,10 +111,11 @@
               </div>
 
               <div v-if="step == 4">
-                <Message :closeable="false" severity="warn">Do not click on other links or close this browser
+                <Message :closeable="false" severity="warn" v-if="!isAsyncRequest && totalProgress < 100">
+                  Do not click on other links or close this browser
                   tab/window until data request is complete.</Message>
                 <p><strong>
-                  <span v-html="saveMessage"></span>
+                  <span v-html="saveMessage"></span> <span v-html="updateMessage"></span>
                 </strong>
                 </p>
                 <!--synchronized request progress display-->
@@ -247,9 +248,7 @@
                 <Card style="box-shadow: none">
                   <template #content>
                     <p>
-                      Enter an email address to get
-                      notifications when data request is
-                      complete.
+                      {{ asyncNotifyMessage }}
                     </p>
                     <InputText v-model="email">
                     </InputText>
@@ -277,7 +276,7 @@
   <SystemErrorDialog v-if="systemError"/>
 </template>
 <script setup lang="ts">
-import {ref, watch, onMounted} from 'vue'
+import {ref, watch, computed, onMounted} from 'vue'
 
 import axios from 'axios'
 import MissingFieldsTable from "@/components/MissingFieldsTable.vue";
@@ -290,6 +289,7 @@ import { toTitleCase } from "@/utils/helpers.js"
 const projectConfig = JSON.parse(localStorage.getItem('getDataObj') || '{}');
 console.log("getDataObj " + localStorage.getItem('getDataObj'))
 localStorage.removeItem('getDataObj');
+
 const dev = ref<boolean>(false)
 const systemError = ref<boolean>(false)
 
@@ -312,6 +312,7 @@ const isProduction = ref<boolean>(false)
 const isLoading = ref<boolean>(false)
 const isLoaded = ref<boolean>(false)
 const confirmCancel = ref<boolean>(false)
+const cancelled = ref<boolean>(false) // used in case async request cancels
 const cohortProgress = ref<number>(0)
 const totalProgress = ref<number>(0)
 const saveSize = ref<number>(0)
@@ -324,6 +325,9 @@ const asyncPollLimit = ref<number>(100)
 const showAsyncNotify = ref<boolean>(false)
 const showSync = ref<boolean>(false)
 const email = ref<string>(projectConfig.user_email)
+const asyncNotifyMessage = ref<string>("Enter an email address to get notifications when data request is complete.")
+const countDownUpdate = ref<string>("")
+const updateTime = ref<string>("")
 
 onMounted(async () => {
   // bypass the production status check for now
@@ -453,7 +457,7 @@ const syncCohort = async() => {
   step.value = 4;
   showSync.value = false ;
   try {
-    const cohortSync = await axios.get(get_data_url.value + "&action=syncCohort");
+    const cohortSync = await axios.get(get_data_url.value + "&action=realTimeSyncCohort");
     cohortProgress.value = 100;
     totalProgress.value = saveSize.value;
     if (!hasError(cohortSync)) {
@@ -465,6 +469,13 @@ const syncCohort = async() => {
     systemError.value = true
   }
 }
+
+const updateMessage = computed(()=>{
+  if (updateTime.value.length > 0 && totalProgress.value < 100) {
+    return 'Last update at: ' + updateTime.value + ". " + countDownUpdate.value
+  }
+  return "";
+  });
 
 const updateProgress = (dataSync:any) => {
   totalProgress.value += saveSize.value;
@@ -483,15 +494,29 @@ const updateProgress = (dataSync:any) => {
 }
 
 const asyncRequestData = async() => {
-  isAsyncRequest.value = true
-  showAsyncNotify.value = false
-  step.value = 4;
-  const emailParam = (email.value) ? '&email=' + email.value : ''
-  axios.get(get_data_url.value + "&action=asyncDataRequest" + emailParam);
-  saveMessage.value = "<p>Background Data request submitted.  An email will be sent to " + email.value +
-      " when it is completed.</p><p>This view will update status every "+ asyncPollInterval.value +" seconds.</p>";
-  await sleep(asyncPollInterval.value * 1000)
-  asyncPollStatus()
+  const emailParam = (email.value) ? '&email=' + email.value : false
+  if (!emailParam) {
+    asyncNotifyMessage.value = "No email value was entered. " + asyncNotifyMessage.value
+    showAsyncNotify.value = true;
+  } else {
+    isAsyncRequest.value = true
+    showAsyncNotify.value = false
+    step.value = 4;
+    axios.get(get_data_url.value + "&action=asyncDataRequest" + emailParam);
+    saveMessage.value = "<p>Background Data request submitted.  An email will be sent to " + email.value +
+        " when it is completed.</p><p>This view will request status every " + asyncPollInterval.value + " seconds.</p>";
+    await sleep(10000); // this is a hack because there is some lag in updating the requestId
+    asyncPollStatus();
+  }
+}
+
+const sleepWithCountDown = async (milliseconds:number) => {
+  let seconds = milliseconds/1000
+
+  for(let remaining = seconds; remaining > 0; remaining--) {
+    countDownUpdate.value =  remaining + " seconds until next update."
+    await sleep(1000)
+  }
 }
 
 const sleep = async (milliseconds:number) => {
@@ -501,46 +526,71 @@ const sleep = async (milliseconds:number) => {
   });
 };
 
+const zeropad = (num:number) => {
+  return ("00" + num).slice(-2)
+}
+
 const dataRequestLog = ref<any>()
 const asyncPollStatus = async() => {
   let complete = false
+  let cancelled = false
   let count = 0 // count the number of status requests.  Used to set limit on number of requests.
   while (!complete) {
     count++
-    const response = await axios.get(get_data_url.value + "&action=asyncDataLog")
+    countDownUpdate.value = "Getting status ... "
+    await axios.get(get_data_url.value + "&action=asyncDataLog")
+        .then(response => {
+          if (!hasError(response)) {
+            const today = new Date();
+            updateTime.value = zeropad(today.getHours()) + ":" + zeropad(today.getMinutes()) + ":" +
+                zeropad(today.getSeconds());
+            if (response?.data) {
+              cancelled = (response.data.request_status.message === 'cancel')
+            }
+            if (!cancelled) {
+
+              dataRequestLog.value = response.data.data_request_log
+              console.log("count " + count)
+              console.log(response)
+
+              if (dataRequestLog.value) {
+                let formComplete = true
+                for (const formName in dataRequestLog.value) {
+                  if (!dataRequestLog.value[formName].complete) {
+                    formComplete = false
+                  }
+                }
+                complete = (response.data.request_status.message === 'complete') || cancelled
+                //complete = (response.data.num_queries > 0 && response.data.num_queries == response.data.num_complete)
+                totalProgress.value = 100 * response.data.num_complete / response.data.num_queries
+              }
+            }
+          }
+        })
         .catch(function (error) {
           complete = true
           errorMessage.value += error.message + '<br>';
           systemError.value = true
         })
-    if (response?.data) {
-      dataRequestLog.value = response.data.data_request_log
-      console.log("count " + count)
-      console.log(response)
-
-      if (dataRequestLog.value) {
-        let formComplete = true
-        for (const formName in dataRequestLog.value){
-          if (!dataRequestLog.value[formName].complete){
-            formComplete = false
-          }
-        }
-        complete = (response.data.num_queries > 0 && response.data.num_queries == response.data.num_complete)
-        totalProgress.value = 100 * response.data.num_complete / response.data.num_queries
-      }
-      if (count > asyncPollLimit.value) {
-        console.log("Hit async poll limit.");
-        complete = true
-      }
-      if (!complete) {
-        console.log('not complete. sleep ' + asyncPollInterval.value + ' seconds')
-        await sleep(asyncPollInterval.value * 1000)
-        console.log('stop sleep')
-      }
+    if (count > asyncPollLimit.value) {
+      console.log("Hit async poll limit.");
+      complete = true
+      // TODO add option to resume status updates
+      errorMessage.value =
+          "The max number of status updates has been reached.  Click 'Duster: Get Data' link to continue to monitor this background request."
+    }
+    if (!complete) {
+      console.log('not complete. sleep ' + asyncPollInterval.value + ' seconds')
+      await sleepWithCountDown(asyncPollInterval.value * 1000)
+      console.log('stop sleep')
     }
   }
-  saveMessage.value = 'Data Request Complete.'
-  console.log("async complete");
+  if (cancelled) {
+   saveMessage.value = "Data Request Cancelled."
+  } else {
+    saveMessage.value = 'Data Request Complete.'
+  }
+  console.log("async complete")
 }
 
 </script>

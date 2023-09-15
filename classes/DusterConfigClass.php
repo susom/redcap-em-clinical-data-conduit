@@ -30,9 +30,9 @@ class DusterConfigClass
         $config_url = $config_url .
             ((substr($config_url, -1) === '/') ? "" : "/") . SERVER_NAME . '/' . $this->project_id
             . '?redcap_user=' . $this->module->getUser()->getUserName();
-        $this->module->emDebug("config url = $config_url");
+        //$this->module->emDebug("config url = $config_url");
         $this->duster_config = $this->module->starrApiGetRequest($config_url, 'ddp');
-        $this->module->emDebug('duster_config = ' . print_r($this->duster_config, true));
+        //$this->module->emDebug('duster_config = ' . print_r($this->duster_config, true));
         if (empty($this->duster_config)) {
             $this->module->handleError('DUSTER Error: Unable to load Duster config', "No Duster configuration was retrieved from the server.");
             return false;
@@ -80,7 +80,7 @@ class DusterConfigClass
                 foreach ($this->duster_config['rp_info']['rp_dates'] as $rp_dates) {
                     $rp_fields[] = $rp_dates['redcap_field_name'];
                 }
-                $this->module->emDebug('$request_fields: ' . print_r($rp_fields, true));
+                //$this->module->emDebug('$request_fields: ' . print_r($rp_fields, true));
                 $records = REDCap::getData('array', null, $rp_fields);
 
                 // populate $rp_data with data in $records
@@ -113,6 +113,7 @@ class DusterConfigClass
             }
             return $rp_data;
         } else {
+            $this->module->emDebug('Unable to retrieve Duster config from starr-api');
             $return_obj['status'] = 400;
             $return_obj['message'] = 'Unable to retrieve Duster config.';
             return $return_obj;
@@ -137,16 +138,16 @@ class DusterConfigClass
             $duster_fields = array_merge($duster_fields, $this->getDusterFields($collection_window,
                 $forms[$index]));
         }
-        $this->module->emDebug("DUSTER FIELDS: " . print_r($duster_fields, true));
+        //$this->module->emDebug("DUSTER FIELDS: " . print_r($duster_fields, true));
 
         $missing_fields = [];
         $missing_names = array_diff(array_keys($duster_fields), REDCap::getFieldNames());
-        $this->module->emDebug("MISSING NAMES: " . print_r($missing_names, true));
+        //$this->module->emDebug("MISSING NAMES: " . print_r($missing_names, true));
 
         foreach ($missing_names as $field_name) {
             $missing_fields[] = $duster_fields[$field_name];
         }
-        $this->module->emDebug("MISSING FIELDS: " . print_r($missing_fields, true));
+        //$this->module->emDebug("MISSING FIELDS: " . print_r($missing_fields, true));
         return $missing_fields;
     }
 

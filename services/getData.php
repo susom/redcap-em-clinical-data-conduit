@@ -22,17 +22,49 @@ function syncCohort($rtoslink_config) {
     return $return_obj;
 }
 
-function getRequestId($pid){
+function setRequestId($request_id, $pid) {
     global $module;
-    // TODO: need to add request status to synchronized requests
-    $request_id = $module->getProjectSetting('requestId', $pid); // returns integer
-    if (!$request_id) {
-        $request_id = 0;
-    }
-    return $request_id;
+    $module->emDebug('setRequestId = '. $request_id);
+    //$module->db_query("SET AUTOCOMMIT=0");
+    //$module->db_query("BEGIN");
+    $response = $module->query('UPDATE redcap_external_module_settings set `value`=? where `project_id`=? and `key`=?',[$request_id, $pid, 'requestId']);
+    //$module->setProjectSetting('requestId', $request_id, $pid);
+    //$module->db_query("COMMIT");
+    //$module->db_query("SET AUTOCOMMIT=1");
+    $module->emDebug($response);
+    $module->emDebug('setRequestId get = '. getRequestId($pid));
 }
 
-function logToServer($pid, $query_name, $message) {
+function getRequestId($pid){
+    global $module, $external_module_id;
+    //$rid = $module->getProjectSetting('requestId', $pid);
+    if (!isset($external_module_id)) {
+        $external_module_result = $module->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = ?', ['duster']);
+        $external_module_id = $external_module_result->fetch_assoc()['external_module_id'];
+    }
+    $request_id = $module->query('SELECT `value` FROM redcap_external_module_settings WHERE `external_module_id` = ? and `project_id`=? and `key`=? and `type`=?',
+        [$external_module_id, $pid, 'requestId', 'integer']);
+    //$module->emDebug('request_id=' . print_r($request_id->fetch_assoc(), true));
+    // TODO: need to add request status to synchronized requests
+    $rid = $request_id->fetch_assoc()['value'];
+    $module->emDebug("request_id=$rid");
+    //$request_id = $module->getProjectSetting('requestId', $pid); // returns integer
+    if (!isset($rid) ) {
+        //setRequestId(0, $pid);
+        $rid = 0;
+        //$module->db_query("SET AUTOCOMMIT=0");
+        //$module->db_query("BEGIN");
+        //$module->setProjectSetting('requestId', 0, $pid);
+        $module->query('insert into redcap_external_module_settings (`project_id`,`external_module_id`,`key`,`type`,
+        `value`) values (?,?,?,?,?) ',
+            [$pid, $external_module_id, 'requestId', 'integer', $rid]);
+        //$module->db_query("COMMIT");
+        //$module->db_query("SET AUTOCOMMIT=1");
+    }
+    return $rid;
+}
+
+function logToStarrApi($pid, $query_name, $message) {
     global $module;
     $log_url = $module->getSystemSetting("starrapi-data-url")
         . "log";
@@ -41,61 +73,32 @@ function logToServer($pid, $query_name, $message) {
     $post_fields['query_name'] = $query_name;
     $post_fields['message'] = $message;
     $response = $module->starrApiPostRequest($log_url, 'ddp', $post_fields);
+    possibleResponseError($log_url . 'POST FIELDS: ' . print_r($post_fields, true), $response);
     return $response;
 }
 
+function possibleResponseError($url, $response) {
+    global $module;
+    if (isset($response['status']) && $response['status'] != 200) {
+        $module->handleError('Duster getData: Starr API request failed', "ERROR: $url  STATUS:". $response['status'] . " MESSAGE:" . $response['message']);
+    }
+}
+
+// should return the request status 'no status', 'sync','async', 'complete', 'cancel', 'fail: <message>'
 function getRequestStatus($pid) {
     global $module;
     // TODO: need to add request status to synchronized requests
     $request_id = getRequestId($pid); // returns integer
+    $module->emDebug("request_id = $request_id");
+
     $log_url = $module->getSystemSetting("starrapi-data-url")
         . "log/" . SERVER_NAME
         . "/$pid/$request_id/status?user=" . $module->getUser()->getUserName();
-    // should return the request id and status 'sync','async', 'complete', 'cancel', 'fail: <message>'
     $request_status = $module->starrApiGetRequest($log_url, 'ddp');
-    $module->emDebug("log_url = $log_url");
+    possibleResponseError($log_url, $request_status);
+    //$module->emDebug("log_url = $log_url");
     $module->emDebug("request_status = " . print_r($request_status, true));
-    /*$return_obj['dataRequestStatus'] = $return_status['dataRequestStatus'];
-    $return_obj['dataRequestTimestamp'] = $return_status['dataRequestTimestamp'];
-    $return_obj['redcapUserName'] = $return_status['redcapUserName'];
-
-    $return_obj['status'] = $return_status['status'];*/
     return $request_status;
-}
-
-function emailAsyncStatus($request_log) {
-    global $module, $pid;
-    $module->emDebug('$email = ' . $_GET['email']);
-
-    $email = (isset($_GET['email']) && !empty($_GET['email']))
-        ? $_GET['email'] :
-        $module->getProjectSetting('dataUpdateNotify', $pid);
-
-    //send an email to user
-    $redcap_version = explode('_',APP_PATH_WEBROOT)[1];
-    $data_exports_url = APP_PATH_WEBROOT_FULL
-        . 'redcap_' . $redcap_version .'DataExport/index.php?pid=' . $pid;
-    $message = '<html><body>Your Duster data request is complete.<br>';
-    foreach($request_log as $form_name=>$form_status) {
-        foreach($form_status['queries'] as $query_name=>$query_status) {
-            $message .= $query_status['message'] . '<br>';
-            /*} else {
-                $message .= '<span style="color:red">'. fixLabel($return_obj['label']) . ' failed.</span><br>';
-            }*/
-        }
-    }
-    // Add a link to the redcap project
-    $message .= "<a href=\"$data_exports_url\">View data in redcap.</a>";
-    $message .= '</body></html>';
-    $module->emDebug('$message = ' . $message);
-    $module->emDebug('$email = ' . $email);
-
-    if (!empty($email)) {
-        $emailStatus = REDCap::email($email, 'no-reply@stanford.edu', 'DUSTER data request complete', $message);
-        if (!$emailStatus) {
-            $module->emError("Email Notification to $email Failed.");
-        }
-    }
 }
 
 /* build the request log structure to return to async status requests*/
@@ -105,28 +108,18 @@ function initRequestLog($forms) {
     $request_log['researcher_provided_information']['num_queries'] = 1;
     $request_log['researcher_provided_information']['num_complete'] = 0;
     $request_log['researcher_provided_information']['complete'] = false;
-    //$request_log['researcher_provided_information']['queries']['cohort sync']['query_name'] = 'cohort sync';
-    //$request_log['researcher_provided_information']['queries']['cohort sync']['message'] = 'not started';
-    //$request_log['researcher_provided_information']['queries']['cohort sync']['order'] = 0;
-
     foreach($forms as $form_name => $form_queries) {
         $request_log[$form_name]['form_name'] = $form_name;
         $request_log[$form_name]['num_queries'] = count($form_queries);
         $request_log[$form_name]['num_complete'] = 0;
         $request_log[$form_name]['complete'] = false;
-        /*for ($i = 0; $i < sizeof($form_queries); $i++) {
-            $key = $form_queries[$i]['query_name'];
-            $request_log[$form_name]['queries'][$key] = $form_queries[$i];
-            $request_log[$form_name]['queries'][$key]['message'] = 'not started';
-            $request_log[$form_name]['queries'][$key]['order'] = $i;
-        }*/
     }
     return $request_log;
 }
 
 function getData($rtoslink_config, $query) {
     global $module;
-    REDCap::logEvent("DUSTER: Get Data for " . $query);
+    REDCap::logEvent("DUSTER: Get Data for " . $query['query_name']);
     $return_obj = array();
     if ($query != null) {
         //$module->emDebug('$query = ' . $query);
@@ -167,7 +160,7 @@ if ($action === 'productionStatus') {
     }
 } else if ($action === 'cohort') {
     // populate the cohort for get-data
-    REDCap::logEvent("DUSTER: Get Data Start");
+    REDCap::logEvent("DUSTER: Get Data loaded");
     $duster_config = new DusterConfigClass($pid, $module);
     $return_obj = $duster_config->getDusterRequestObject();
     if (isset($return_obj['status']) && $return_obj['status'] != 200) {
@@ -188,7 +181,10 @@ if ($action === 'productionStatus') {
             $return_obj['message'] = handleError('Duster getData: No configured queries', 'This project does not have any configured queries.');
         }
     }
-} else if ($action === 'syncCohort') {
+} else if ($action === 'dataRequestStatus') {
+    // check if there's an ongoing data request
+    $return_obj = getRequestStatus($pid);
+} else if ($action === 'realTimeSyncCohort') {
     // real time rtos link cohort sync
     $in_progress = getRequestStatus($pid);
     $module->emDebug("in_progress = $in_progress");
@@ -196,11 +192,13 @@ if ($action === 'productionStatus') {
     $request_id = getRequestId($pid);
     if ($in_progress === 'complete' || 'no status') {
         $request_id = $request_id + 1;
-        $module->setProjectSetting('requestId', $request_id, $pid);
-        logToServer($pid, "status::" . $request_id, 'sync');
+        setRequestId($request_id, $pid);
+        //$module->setProjectSetting('requestId', $request_id, $pid);
+        REDCap::logEvent("DUSTER: getData Real Time Cohort Sync Request ID " . $request_id);
+        logToStarrApi($pid, $request_id . "::status", 'sync');
         $return_obj = syncCohort($rtoslink_config);
     }
-} else if ($action === 'getData') {
+} else if ($action === 'realTimeDataRequest') {
     // real time rtos data request
     $query = isset($_GET['query']) && !empty($_GET['query']) ? json_decode($_GET['query'], true) : null;
     if ($query != null) {
@@ -209,24 +207,23 @@ if ($action === 'productionStatus') {
         $return_obj['status'] = 400;
         $return_obj['message'] = $module->handleError('Duster getData: Unable to verify retrieve data', "Missing query parameter.");
     }
-} else if ($action === 'dataRequestStatus') {
-    // check if there's an ongoing data request
-    $return_obj = getRequestStatus($pid);
 } else if ($action === 'asyncDataRequest') {
-    // background data request
+    // make a background data request
     $in_progress = getRequestStatus($pid);
     $module->emDebug("in_progress = " . print_r($in_progress, true));
     // request id is used to distinguish between different get data requests
     $request_id = getRequestId($pid);
     if ($in_progress['dataRequestStatus'] === 'complete' || 'no status' || 'cancel') {
         $request_id = $request_id + 1;
-        $module->setProjectSetting('requestId', $request_id, $pid);
+        //$module->setProjectSetting('requestId', $request_id, $pid);
+        setRequestId($request_id, $pid);
+        REDCap::logEvent("DUSTER: getData Background Request Started. Request ID " . $request_id);
+
         $module->emDebug(' IN ASYNC requestId=' . getRequestId($pid) . ' ' . $request_id);
         $module->emDebug('$email = ' . $_GET['email']);
 
         $email = (isset($_GET['email']) && !empty($_GET['email']))
-            ? $_GET['email'] :
-            $module->getSystemSetting("duster-email");
+            ? $_GET['email'] : null;
         $module->setProjectSetting('dataUpdateNotify', $email, $pid);
         $post_fields['redcap_url'] = APP_PATH_WEBROOT_FULL;
         $post_fields['user'] = $module->getUser()->getUserName();
@@ -236,13 +233,14 @@ if ($action === 'productionStatus') {
         $post_fields['queries'] = $rtoslink_config->getQueries();
         $duster_api_url = $module->getSystemSetting("starrapi-data-url");
 
-        $module->starrApiPostRequest($duster_api_url, 'ddp', $post_fields, true);
-        $module->emDebug('RETURNED FROM IN ASYNC requestId=' . getRequestId($pid) . ' ' . $request_id);
-        $return_obj['request_id'] = $request_id;
+        $response = $module->starrApiPostRequest($duster_api_url, 'ddp', $post_fields, true);
+        possibleResponseError($duster_api_url . 'POST FIELDS: ' . print_r($post_fields, true), $response);
+
     }
 } else if ($action === 'asyncDataLog') {
     // return logs for an on-going async request
-    $request_id = $module->getProjectSetting('requestId', $pid); // returns integer
+    //$request_id = $module->getProjectSetting('requestId', $pid); // returns integer
+    $request_id = getRequestId($pid);
     $module->emDebug("log request id = $request_id");
     $forms = $rtoslink_config->getQueries();
 
@@ -253,7 +251,11 @@ if ($action === 'productionStatus') {
         . "log/" . SERVER_NAME . "/$pid/$request_id?user="
         . $module->getUser()->getUserName();
     $return_logs = $module->starrApiGetRequest($log_url, 'ddp');
+    possibleResponseError($log_url, $return_logs);
     $module->emDebug("asyncDataLog " . print_r($return_logs, true));
+    REDCap::logEvent("DUSTER: getData Background Get Status. Request ID " . $request_id);
+    $return_obj['request_status'] = $return_logs['request_status'];
+    unset($return_logs['request_status']);
 
     // map the response messages into queries
     $num_queries = 0;
@@ -261,8 +263,7 @@ if ($action === 'productionStatus') {
     foreach($return_logs as $form_name => $form_status) {
         $request_log[$form_name]['last_message'] = $form_status['queries'][0]['message'];
         $request_log[$form_name]['last_logdttm'] = $form_status['queries'][0]['log_dttm'];
-        $num_queries += $request_log[$form_name]['num_queries'];
-
+            $num_queries += $request_log[$form_name]['num_queries'];
         for ($i = 0; $i < sizeof($form_status['queries']); $i++) {
             if ($form_status['queries'][$i]['query_name'] == 'complete') {
                 $request_log[$form_name]['complete'] = true;
@@ -272,10 +273,10 @@ if ($action === 'productionStatus') {
                     // form is complete if num_queries = num_complete
                     $request_log[$form_name]['complete'] = ($request_log[$form_name]['num_complete'] ===
                         $request_log[$form_name]['num_queries']);
+                    }
                 }
             }
-        }
-        $num_complete += $request_log[$form_name]['num_complete'];
+            $num_complete += $request_log[$form_name]['num_complete'];
     }
     //$module->emDebug("log response = ". print_r($return_logs, true));
     $return_obj['data_request_log'] = $request_log;
@@ -289,14 +290,22 @@ if ($action === 'productionStatus') {
     // logStatus with status::cancel will cancel async data request
     $status = isset($_GET['status']) && !empty($_GET['status']) ? $_GET['status'] : null;
     $request_id = getRequestId($pid);
-    $return_obj = logToServer($pid, "status::" . $request_id, $status);
+    $return_obj = logToStarrApi($pid, $request_id . "::status", $status);
+    REDCap::logEvent("DUSTER: Request ID $request_id Get Data $status", null, null, null, null, $pid);
 } else if ($action === 'emailComplete') {
+    REDCap::logEvent("DUSTER: Async Get Data Complete", null, null, null, null, $pid);
     // This is a NOAUTH request from the duster server, so it can not access any part of the EM that
     // requires authentication (i.e. status)
     $email = isset($_GET['email']) && !empty($_GET['email']) ? $_GET['email'] : null;
+    $request_status = $_GET['request_status'];
+    $request_id = $_GET['request_id'];
     if (isset($email)) {
         $module->emDebug('email status');
-        $message = "Duster data request is complete.  ";
+        if ($request_status == 'success') {
+            $message = "Duster data request $request_id for pid $pid completed successfully. ";
+        } else {
+            $message = "Duster data request $request_id for pid $pid completed with status $request_status. Please contact Duster support " . $this->getSystemSetting("duster-email") . ".";
+        }
         // Add a link to the redcap project
         $redcap_version = explode('_',APP_PATH_WEBROOT)[1];
         $data_exports_url = APP_PATH_WEBROOT_FULL
@@ -305,24 +314,24 @@ if ($action === 'productionStatus') {
         $message .= '</body></html>';
         $module->emDebug('$message = ' . $message);
         $module->emDebug('$email = ' . $email);
+        $project_title = REDCap::getProjectTitle();
 
         if (!empty($email)) {
-            $return_obj = REDCap::email($email, 'no-reply@stanford.edu', 'DUSTER data request complete', $message);
+            $subject = "'$project_title' PID $pid Duster Request $request_status";
+            $return_obj = REDCap::email($email, 'no-reply@stanford.edu', $subject , $message);
             if (!$return_obj) {
-                $module->emError("Email Notification to $email Failed.");
                 $return_obj['status'] = 400;
-                $return_obj['message'] = $module->handleError('Duster getData: Unable to send async request completion email', "Email Notification to $email Failed.");
+                // pid is added to message as part of handleError function
+                $return_obj['message'] = $module->handleError("Duster getData: Unable to send async request completion email", "Email Notification to $email Failed. SUBJECT: $subject, MESSAGE: $message");
             } else {
                 $return_obj['status'] = 200;
             }
         }
     }
-    REDCap::logEvent("DUSTER: Async Get Data Complete");
 } else if ($action === 'complete') {
-    REDCap::logEvent("DUSTER: Get Data Complete");
+    REDCap::logEvent("DUSTER: Real Time Get Data Complete", null, null, null, null, $pid);
     $return_obj['status'] = 200;
 } else {
-    $module->emDebug("Unrecognized action: $action");
     $return_obj['status'] = 400;
     $return_obj['message'] = $module->handleError('Duster getData: Unrecognized action', "Unrecognized action: $action");
 }

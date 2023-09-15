@@ -52,8 +52,8 @@ watch(localCohortProgress, async (updatedCohort) => {
   if (updatedCohort === 100) {
     for (var i = 0; i < numQueries.value; i++) {
       updateMessage.value = queryLabel(props.queries[i].query_label) + " in progress.";
-      console.log(props.dataApiUrl + "&action=getData&query=" + JSON.stringify(props.queries[i]))
-      const dataSync = await axios.get(props.dataApiUrl + "&action=getData&query="
+      console.log(props.dataApiUrl + "&action=realTimeDataRequest&query=" + JSON.stringify(props.queries[i]))
+      const dataSync = await axios.get(props.dataApiUrl + "&action=realTimeDataRequest&query="
           + JSON.stringify(props.queries[i]));
       numComplete.value++;
       emit('update:progress', dataSync)

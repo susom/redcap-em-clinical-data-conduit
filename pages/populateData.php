@@ -44,7 +44,7 @@ $user_email = $module->getUser()->getEmail();
 </Script>
 
 <script type="module" crossorigin src="<?php echo $module->getUrl("pages/js/duster/get-data/dist/index.js"); ?>"></script>
-<link rel="stylesheet" href="<?php echo $module->getUrl("pages/js/duster/get-data/dist/assets/index-c660f257.css"); ?>">
+<link rel="stylesheet" href="<?php echo $module->getUrl("pages/js/duster/get-data/dist/assets/index-95284b24.css"); ?>">
 
 <div id="app">
 

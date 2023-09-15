@@ -136,6 +136,16 @@ import {useVuelidate} from "@vuelidate/core";
 const projectConfig = JSON.parse(localStorage.getItem('postObj') || '{}');
 //console.log("postObj" + localStorage.getItem('postObj'))
 localStorage.removeItem('postObj');
+
+setInterval(() => {
+  axios.get(projectConfig.refresh_session_url)
+      .then(response => {
+        console.log(response);
+      }).catch(function (error) {
+    console.log(error)
+  });
+},3000);
+
 const dev = ref<boolean>(false)
 const systemError = ref<boolean>(false)
 

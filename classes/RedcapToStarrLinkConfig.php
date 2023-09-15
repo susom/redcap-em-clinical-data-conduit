@@ -32,7 +32,7 @@ class RedcapToStarrLinkConfig
     public function configureRedcapToStarrLink($em_config) {
         // there's no api for this so just saving settings directly to database
         $data_sync_settings = $em_config['rcToStarrLinkConfig']['dataSync'];
-        $this->module->emDebug('data_sync_settings: ' . print_r($data_sync_settings, true));
+        //$this->module->emDebug('data_sync_settings: ' . print_r($data_sync_settings, true));
 
         foreach ($data_sync_settings as $key=>$setting) {
             $this->saveSetting($key, $this->transformSetting($key, $setting));
@@ -40,7 +40,7 @@ class RedcapToStarrLinkConfig
 
         // these settings are for the data queries
         $data_queries = $em_config['rcToStarrLinkConfig']['queries'];
-        $this->module->emDebug("data queries: ".print_r($data_queries, true));
+        //$this->module->emDebug("data queries: ".print_r($data_queries, true));
 
         $query_settings = [];
         foreach($data_queries as $data_query) {
@@ -85,7 +85,7 @@ class RedcapToStarrLinkConfig
         $resp = curl_exec($curl);
         if (!json_encode($resp)) {
             $curl_error = curl_error($curl);
-            //TODO
+            $this->module->emLog("$url curl error = " . print_r($curl_error, true));
         }
         curl_close($curl);
         $this->module->emLog("$url response = " . json_encode($resp));
@@ -118,7 +118,6 @@ class RedcapToStarrLinkConfig
         if ($result->num_rows > 0) {
             $query_names = json_decode($result->fetch_assoc()['value'], true);
         }
-        $this->module->emDebug('query_names: ' . $query_names);
         return $query_names;
     }
 
@@ -181,7 +180,7 @@ class RedcapToStarrLinkConfig
         if ($ex_mod_result->num_rows > 0) {
             $rts_ex_mod_id = $ex_mod_result->fetch_assoc()['external_module_id'];
         }
-        $this->module->emDebug('external module id: ' . $rts_ex_mod_id);
+        //$this->module->emDebug('external module id: ' . $rts_ex_mod_id);
         return $rts_ex_mod_id;
     }
 
@@ -189,7 +188,7 @@ class RedcapToStarrLinkConfig
     @return double quoted strings or "null" string*/
     private function transformSetting($key, $setting)
     {
-        $this->module->emDebug("key: ".$key.", pre-setting: ".$setting);
+        //$this->module->emDebug("key: ".$key.", pre-setting: ".$setting);
         $event_id = strval($this->module->getEventId());
         return ($setting == null || $setting=='null') ? 'null' :
             ((strpos($key, 'event') > -1) ? '"'.$event_id .'"':
