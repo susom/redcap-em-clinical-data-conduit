@@ -35,16 +35,18 @@ $user_email = $module->getUser()->getEmail();
 
   getDataObj['server_name'] ="<?php echo SERVER_NAME; ?>";
   getDataObj['user_email'] = "<?php echo $user_email; ?>";
+  // store URL fore services/refreshSession.php
+  getDataObj['refresh_session_url'] = "<?php echo $module->getUrl("services/refreshSession.php"); ?>";
 
   localStorage.setItem('getDataObj', JSON.stringify(getDataObj));
 
   // redirect to 'new-project' Vue app for creating a new project
-  // window.location = "<?php echo $module->getUrl("pages/js/duster/get-data/dist/index.html"); ?>";
+  //window.location = "<--?php echo $module->getUrl("pages/js/duster/get-data/dist/index.html"); ?-->";
 
 </Script>
 
 <script type="module" crossorigin src="<?php echo $module->getUrl("pages/js/duster/get-data/dist/index.js"); ?>"></script>
-<link rel="stylesheet" href="<?php echo $module->getUrl("pages/js/duster/get-data/dist/assets/index-95284b24.css"); ?>">
+<link rel="stylesheet" href="<?php echo $module->getUrl("pages/js/duster/get-data/dist/index.css"); ?>">
 
 <div id="app">
 

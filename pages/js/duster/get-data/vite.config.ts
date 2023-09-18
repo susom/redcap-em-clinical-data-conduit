@@ -12,14 +12,14 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@shared': fileURLToPath(new URL('../shared/src', import.meta.url)),
       '@assets': fileURLToPath(new URL('../shared/src/assets', import.meta.url))
-
     }
   },
   build: {
     rollupOptions: {
       output: [
         {
-          entryFileNames: "[name].js"
+          entryFileNames: "[name].js",
+          assetFileNames: "[name][extname]"
         } ]
     }
   }

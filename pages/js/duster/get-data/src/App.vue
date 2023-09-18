@@ -290,6 +290,15 @@ const projectConfig = JSON.parse(localStorage.getItem('getDataObj') || '{}');
 console.log("getDataObj " + localStorage.getItem('getDataObj'))
 localStorage.removeItem('getDataObj');
 
+setInterval(() => {
+  axios.get(projectConfig.refresh_session_url)
+      .then(response => {
+        console.log(response);
+      }).catch(function (error) {
+    console.log(error)
+  });
+},60000);
+
 const dev = ref<boolean>(false)
 const systemError = ref<boolean>(false)
 

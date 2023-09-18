@@ -253,7 +253,7 @@ if ($action === 'productionStatus') {
     $return_logs = $module->starrApiGetRequest($log_url, 'ddp');
     possibleResponseError($log_url, $return_logs);
     $module->emDebug("asyncDataLog " . print_r($return_logs, true));
-    REDCap::logEvent("DUSTER: getData Background Get Status. Request ID " . $request_id);
+    //REDCap::logEvent("DUSTER: getData Background Get Status. Request ID " . $request_id);
     $return_obj['request_status'] = $return_logs['request_status'];
     unset($return_logs['request_status']);
 
@@ -297,6 +297,7 @@ if ($action === 'productionStatus') {
     // This is a NOAUTH request from the duster server, so it can not access any part of the EM that
     // requires authentication (i.e. status)
     $email = isset($_GET['email']) && !empty($_GET['email']) ? $_GET['email'] : null;
+    $duster_email = $module->getSystemSetting("duster-email");
     $request_status = $_GET['request_status'];
     $request_id = $_GET['request_id'];
     if (isset($email)) {
@@ -304,7 +305,7 @@ if ($action === 'productionStatus') {
         if ($request_status == 'success') {
             $message = "Duster data request $request_id for pid $pid completed successfully. ";
         } else {
-            $message = "Duster data request $request_id for pid $pid completed with status $request_status. Please contact Duster support " . $this->getSystemSetting("duster-email") . ".";
+            $message = "Duster data request $request_id for pid $pid completed with status $request_status. Please contact Duster support " . $duster_email . ".";
         }
         // Add a link to the redcap project
         $redcap_version = explode('_',APP_PATH_WEBROOT)[1];
@@ -314,12 +315,13 @@ if ($action === 'productionStatus') {
         $message .= '</body></html>';
         $module->emDebug('$message = ' . $message);
         $module->emDebug('$email = ' . $email);
-        $project_title = REDCap::getProjectTitle();
+        $project_title = $module->getProject($pid)->getTitle();
+        $module->emDebug('$project_title = ' . $project_title);
 
         if (!empty($email)) {
-            $subject = "'$project_title' PID $pid Duster Request $request_status";
-            $return_obj = REDCap::email($email, 'no-reply@stanford.edu', $subject , $message);
-            if (!$return_obj) {
+            $subject = "\"$project_title \" PID $pid Duster Request $request_status";
+            $email_status = REDCap::email($email, $duster_email, $subject , $message);
+            if (!$email_status) {
                 $return_obj['status'] = 400;
                 // pid is added to message as part of handleError function
                 $return_obj['message'] = $module->handleError("Duster getData: Unable to send async request completion email", "Email Notification to $email Failed. SUBJECT: $subject, MESSAGE: $message");
@@ -327,7 +329,13 @@ if ($action === 'productionStatus') {
                 $return_obj['status'] = 200;
             }
         }
+    } else {
+        $return_obj['status'] = 400;
+        $return_obj['message'] = 'Email is not set';
+        $module->emError('email parameter is not set.');
     }
+    $module->emDebug('end emailComplete');
+
 } else if ($action === 'complete') {
     REDCap::logEvent("DUSTER: Real Time Get Data Complete", null, null, null, null, $pid);
     $return_obj['status'] = 200;
