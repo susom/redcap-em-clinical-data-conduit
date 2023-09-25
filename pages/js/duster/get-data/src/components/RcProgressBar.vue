@@ -56,10 +56,16 @@ watch(localCohortProgress, async (updatedCohort) => {
       const dataSync = await axios.get(props.dataApiUrl + "&action=realTimeDataRequest&query="
           + JSON.stringify(props.queries[i]));
       numComplete.value++;
-      emit('update:progress', dataSync)
-      if (numComplete.value === numQueries.value) {
+      if (dataSync.data.message && dataSync.data.message.indexOf('Error') > -1) {
+        updateMessage.value = "Fail";
+        dataSync.data['numRemaining'] = numQueries.value - numComplete.value
+        emit('update:progress', dataSync) // need this before the break
+        break
+      } else if (numComplete.value === numQueries.value) {
         updateMessage.value = "Complete";
       }
+      emit('update:progress', dataSync)
+
     }
   }
 })

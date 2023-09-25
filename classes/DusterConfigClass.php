@@ -32,18 +32,12 @@ class DusterConfigClass
             . '?redcap_user=' . $this->module->getUser()->getUserName();
         //$this->module->emDebug("config url = $config_url");
         $this->duster_config = $this->module->starrApiGetRequest($config_url, 'ddp');
-        //$this->module->emDebug('duster_config = ' . print_r($this->duster_config, true));
-        if (empty($this->duster_config)) {
-            $this->module->handleError('DUSTER Error: Unable to load Duster config', "No Duster configuration was retrieved from the server.");
-            return false;
-        }
-        return true;
     }
 
     public function getDusterConfig()
     {
         if ($this->duster_config == null) {
-            $success = $this->loadConfig();
+            $this->loadConfig();
         }
         return $this->duster_config;
     }
@@ -65,9 +59,9 @@ class DusterConfigClass
     public function getDusterRequestObject()
     {
         if (empty($this->duster_config)) {
-            $loaded = $this->loadConfig();
+            $this->getDusterConfig();
         }
-        if ($loaded) {
+        if (!isset($this->duster_config['status']) || $this->duster_config['status'] === 200) {
             $rp_data['redcap_project_id'] = intval($this->project_id);
             $rp_data['missing_fields'] = $this->getMissingRedcapFields();
 
@@ -113,8 +107,8 @@ class DusterConfigClass
             }
             return $rp_data;
         } else {
-            $this->module->emDebug('Unable to retrieve Duster config from starr-api');
-            $return_obj['status'] = 400;
+            $this->module->emDebug("PID ". $this->getProjectId() . ' Unable to retrieve Duster config from starr-api');
+            $return_obj['status'] = $this->duster_config['status'];
             $return_obj['message'] = 'Unable to retrieve Duster config.';
             return $return_obj;
         }

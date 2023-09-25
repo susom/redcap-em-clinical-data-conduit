@@ -42,9 +42,6 @@ const label = computed(() => {
 })
 
 const message = computed(() => {
-  if (props.formQueries.complete) {
-    return "Complete"
-  }
   return queryMessage(props.formQueries.last_message);
 })
 

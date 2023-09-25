@@ -85,7 +85,9 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       $sunet = $this->getUser()->getUsername();
       return in_array($sunet, $allowlist);
     } catch(Exception $e) {
-      $this->emError($e);
+        $this->handleError("ERROR: isUserAllowed Exception",
+            "Checking user " . $this->getUser()->getUsername()
+            . " on allowlist " . print_r($allowlist, true), $e);
     }
     return false;
   }
@@ -101,7 +103,8 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       $tokenMgnt = \ExternalModules\ExternalModules::getModuleInstance('vertx_token_manager');
       $token = $tokenMgnt->findValidToken($service);
     } catch (Exception $ex) {
-      $this->emError("Could not find a valid token for service $service");
+        $this->handleError("ERROR: getValidToken Exception",
+            "Could not find a valid token for service $service", $ex);
     }
     return $token;
   }
@@ -114,7 +117,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    */
   public function starrApiGetRequest($url, $service) {
     $token = $this->getValidToken($service);
-    $resp_arr=[];
     if ($token !== false) {
       $curl = curl_init($url);
       curl_setopt($curl, CURLOPT_URL, $url);
@@ -125,12 +127,17 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         "Authorization: Bearer " . $token
       );
       curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-      $resp = curl_exec($curl);
+      $this->emDebug("PID ". $this->getProjectId() . " DEBUG: starrApiGetRequest $url");
+      $response = $this->handleStarrApiRequest($curl);
+      if (!empty($response['status']) && $response['status'] !== 200) {
+          $this->handleError("ERROR: starrApiGetRequest",
+                "URL: $url<br>RESPONSE BODY: " . $response['body']
+                . "<br>RESPONSE CODE: " . $response['status']
+                . "<br>ERROR: " . $response['message']);
+      }
       curl_close($curl);
-      $resp_arr = json_decode($resp, true);
     }
-    //$this->emLog("$url response = " . print_r($resp_arr, true));
-    return $resp_arr;
+      return $response;
   }
 
   /**
@@ -140,55 +147,66 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    * @param $post_fields
    * @return array|mixed
    */
-    public function starrApiPostRequest($url, $service, $post_fields) {
+    public function starrApiPostRequest($url, $service, $post_fields)
+    {
         $token = $this->getValidToken($service);
-        $resp_arr=[];
-        $message= json_encode($post_fields);
+        $resp_arr = [];
+        $message = json_encode($post_fields);
         $content_type = 'application/json';
         if ($token !== false) {
             $headers = array(
-                "Content-Type: ". $content_type,
+                "Content-Type: " . $content_type,
                 "Authorization: Bearer " . $token,
-                "Content-Length: ".  length($message)
+                "Content-Length: " . length($message)
             );
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($curl,CURLOPT_POST, true);
-            curl_setopt($curl,CURLOPT_POSTFIELDS, $message);
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $message);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            $response = curl_exec($curl);
+            $this->emDebug("PID ". $this->getProjectId() . ": DEBUG starrApiPostRequest $url; post_fields $message;");
+            $response = $this->handleStarrApiRequest($curl);
+            if (!empty($response['status']) && $response['status'] !== 200) {
+                $this->handleError("ERROR: starrApiPostRequest",
+                    "URL: $url; POST_FIELDS: " . $message
+                    . "; RESPONSE BODY: " .
+                    ((json_encode($response['body']))
+                        ? json_encode($response['body'])
+                        : $response['body'])
+                    . "; RESPONSE CODE: " . $response['status']
+                    . "; ERROR: " . $response['message']);
+            }
             curl_close($curl);
-            //$response = http_post($url, $message, null, $content_type, null, $headers);
-            $this->emDebug("Returned from starrApiPostRequest $url");
-            $this->emDebug("$url response: " . $response);
-            $resp_arr = json_decode($response, true);
         }
-        return $resp_arr;
+        return $response;
     }
 
-  public function starrApiPostRequestBk($url, $service, $post_fields) {
-    $token = $this->getValidToken($service);
-    $resp_arr=[];
-    $message= json_encode($post_fields);
-    $content_type = 'application/json';
-    if ($token !== false) {
-      $headers = array(
-        "Content-Type: ". $content_type,
-        "Authorization: Bearer " . $token,
-        "Content-Length: ".  length($message)
-      );
-      //$this->emDebug("headers: " . print_r($headers, true));
+    // if there is an error, returns a json object with "status" field indicating the response code and "message"
+    // field containing the error message
+    // otherwise, return json decoded response or just the response string
+    public function handleStarrApiRequest($curl_handle) {
+        //$response = http_post($url, $message, null, $content_type, null, $headers);
+        $response = curl_exec($curl_handle);
+        $resp_code = curl_getinfo($curl_handle, CURLINFO_RESPONSE_CODE);
+        $curl_error = curl_error($curl_handle);
+        $response = (json_decode($response) === false) ? $response : json_decode($response, true);
+        // sometimes the valid response is a string and response code is 0 or missing.
+        //  Don't want to convert the response to an json object unless there's an error.
+        if ((!empty($resp_code['status']) && $resp_code['status'] !== 200)
+            || !empty($curl_error) || !empty($resp_code['error'])) {
+            $resp_arr['body'] = $response;
+            $resp_arr['status'] = ($resp_code['status']) ? $resp_code['status'] : 400;
+            $resp_arr['message'] = ((empty($resp_code['error']))
+                    ? '' : $resp_code['error'] . ";") . $curl_error;
+            $response = $resp_arr;
+        }
+        curl_close($curl_handle);
+        $this->emDebug("PID ". $this->getProjectId() . ": DEBUG handleStarrApiRequest response: " .
+            ((json_encode($response) === false) ? $response : json_encode($response)));
 
-      $response = http_post($url, $message, null, $content_type, null, $headers);
-      $resp_arr = json_decode($response, true);
-      $this->emDebug("Returned from starrApiPostRequest api ");
-      if (!$resp_arr) {
-          $this->emDebug("$url response: " . print_r($resp_arr, true));
-      }
+        return $response;
     }
-    return $resp_arr;
-  }
 
   /**
    * sends a STARR-API GET request to retrieve DUSTER metadata
@@ -196,19 +214,22 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    */
   public function getMetadata() {
     $metadata_url = $this->getSystemSetting("starrapi-metadata-url");
+    $this->emDebug("PID ". $this->getProjectId() . ":getMetadata url = $metadata_url for PID " . $this->getProjectId());
     $metadata = $this->starrApiGetRequest($metadata_url,'ddp');
+    // error handled by starrApiGetRequest
     return $metadata;
   }
 
     public function refreshMetadata() {
         // build and send GET request to config webservice
         // add a '/' at the end of the url if it's not there
+
         $url = $this->getSystemSetting("starrapi-metadata-url");
         $url = $url .
             ((substr($url,-1) ==='/') ? "" : "/") . 'refresh';
-        $this->emDebug("refresh url = $url");
-        $response = $this->starrApiGetRequest($url,'ddp');
-        $this->emDebug('refresh response = ' . print_r($response, true));
+        $this->emDebug("PID ". $this->getProjectId() . ":refreshMetadata url = $url for PID " . $this->getProjectId());
+        $this->starrApiGetRequest($url,'ddp');
+        // error handled by starrApiGetRequest
     }
 
   /**
@@ -231,15 +252,26 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       $row = $result->fetch_assoc();
       return $row['project_id'];
     } else {
+        $this->handleError("ERROR: Unable to retrieve user project from token", "Returned $num_results in " .
+            __METHOD__ . " from token '$token'");
       throw new Exception ("Returned $num_results in " . __METHOD__ . " from token '$token'");
     }
   }
 
+    // attaches PID to the $subject
+    // logs error in duster.log as well as REDCap log
+    // sends error to duster configured email
   public function handleError($subject, $message, $throwable=null) {
-    if (!empty($throwable)) {
-        $message .= "<br>Message: ".$throwable->getMessage()."<br>Trace: " .$throwable->getTraceAsString();
+      $subject = "PID" . $this->getProjectId() . '-' . $subject;
+      //$subject = "PID: " . $this->getProjectId() ;
+
+      if (!empty($throwable)) {
+        $message .= "<br>Message: ".$throwable->getMessage()."<br>Trace: "
+            .$throwable->getTraceAsString();
+        $this->emError("PID ". $this->getProjectId() . " ERROR: Subject: $subject; Message: $message", $throwable);
+    } else {
+        $this->emError("PID ". $this->getProjectId() . " ERROR: Subject: $subject; Message: $message");
     }
-    $this->emError("DUSTER Project Error Subject: $subject; Message: $message", $throwable);
       REDCap::logEvent("DUSTER: ERROR $message");
       $duster_email = $this->getSystemSetting("duster-email");
     if (!empty($duster_email)) {
@@ -247,13 +279,13 @@ class Duster extends \ExternalModules\AbstractExternalModule {
             $message);
         if (!$emailStatus) {
             REDCap::logEvent("DUSTER: Email notification to $duster_email failed");
-            $this->emError("Email Notification to $duster_email Failed. Subject: $subject");
+            $this->emError("PID ". $this->getProjectId() . " ERROR: Email Notification to $duster_email Failed. Subject: $subject; MESSAGE: $message");
             return "Unable to send an error notification email to $duster_email. Please notify your REDCap administrator with the following error message: " . $message;
         } else {
             return "$message  An email regarding this issue has been sent to $duster_email.";
         }
     } else {
-        $this->emLog("No DUSTER email configured as a system-level setting.");
+        $this->emError("PID ". $this->getProjectId() . " ERROR: No DUSTER email configured as a system-level setting. Unable send message SUBJECT: $subject; MESSAGE: $message");
         return "Unable to send an error notification email to DUSTER's development team. Please notify your REDCap administrator of the following error: " . $message;
     }
   }

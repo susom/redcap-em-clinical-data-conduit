@@ -22,7 +22,8 @@ class RedcapToStarrLinkConfig
 
     /*enable RtoS Link EM in the project*/
     public function enableRedcapToStarrLink() {
-        $this->module->emDebug('Enabling REDCap to STARR Link on project.');
+        $this->module->emDebug("PID ". $this->module->getProjectId() . ' Enabling REDCap to STARR Link on project id ' .
+            $this->project_id);
         $external_module_id = $this->module->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = ?', ['redcap_to_starr_link']);
         $this->module->query('INSERT INTO `redcap_external_module_settings`(`external_module_id`, `project_id`, `key`, `type`, `value`) VALUES (?, ?, ?, ?, ?)',
             [$external_module_id->fetch_assoc()['external_module_id'], $this->project_id, 'enabled', 'boolean', 'true']);
@@ -61,15 +62,15 @@ class RedcapToStarrLinkConfig
     @return "1" if successful*/
     private function invokeRedcapToStarrLink($action, $query) {
         $url = APP_PATH_WEBROOT_FULL .
-            'api/?type=module&prefix=redcap_to_starr_link&page=src%2FRedcapProjectToStarrLink&NOAUTH' .
-            '&action=' . $action . // should be either data or records
-            '&pid=' . $this->project_id;
-        try {
+            'api/?type=module&prefix=redcap_to_starr_link&page=src%2FRedcapProjectToStarrLink&NOAUTH'
+            . '&action=' . $action // should be either data or records
+            . '&pid=' . $this->project_id;
+        //try {
           $url .= '&user=' . $this->module->getUser()->getUserName();
-        } catch(Exception $e) {
-          $this->module->emError($e);
-          return 0;
-        }
+        //} catch(Exception $e) {
+        //  $this->module->emError($e);
+        //  return 0;
+        //}
         if ($query) {
             $url = $url . '&query='.$query;
         }
@@ -82,13 +83,8 @@ class RedcapToStarrLinkConfig
             "Content-Type: text/html"
         );
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        $resp = curl_exec($curl);
-        if (!json_encode($resp)) {
-            $curl_error = curl_error($curl);
-            $this->module->emLog("$url curl error = " . print_r($curl_error, true));
-        }
-        curl_close($curl);
-        $this->module->emLog("$url response = " . json_encode($resp));
+        $this->module->emDebug("PID ". $this->module->getProjectId() . " DEBUG: RedcapToStarrLinkConfig invokeRedcapToStarrLink $url");
+        $resp = $this->module->handleStarrApiRequest($curl);
         return $resp;
     }
 

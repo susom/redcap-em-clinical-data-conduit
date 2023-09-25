@@ -23,253 +23,260 @@
 
         <div>
 
-          <p class="text-center mt-5" v-if="isLoading && !isLoaded">
+          <p class="text-center mt-5" v-if="isLoading && !isLoaded && !errorMessage">
             <i class="pi pi-spin pi-spinner mr-3" style="font-size: 2rem;color: dodgerblue"></i> Loading...
           </p>
-            <div v-if="isLoaded">
-              <div v-if="step ==1 && dusterData.missing_fields">
+          <div v-if="isLoaded">
+            <div v-if="step ==1 && dusterData.missing_fields">
+              <div>
+                <MissingFieldsTable
+                    :table-data="dusterData.missing_fields">
+                </MissingFieldsTable>
+              </div>
+              <div>
+                <Button
+                    class="p-button-primary" size="small" icon="pi pi-cog"
+                    label="Project Setup"
+                    @click="goToUrl(designer_url)"/>
+              </div>
+            </div>
+            <div v-if="step==2">
+              <div>
+                <div v-if="!dusterData.missing_data && !dusterData.rp_data">
+                  <div class="text-xl p-2 mb-1 font-italic mr-5 text-red-500">
+                    ERROR: Your REDCap project contains no records. Add at least one record to your project in order to proceed.
+                  </div>
+                </div>
+                <div v-else-if="dusterData.missing_data">
+                  <RequestDataTable
+                      title='Missing Researcher-Provided Information'
+                      alert-type="warn"
+                      alert-content="The following records are missing required researcher provided data.  You may still continue, but DUSTER may not be able to retrieve all possible data for these records."
+                      :record-base-url="record_base_url"
+                      :table-data="dusterData.missing_data"
+                  >
+                  </RequestDataTable>
+                </div>
                 <div>
-                  <MissingFieldsTable
-                      :table-data="dusterData.missing_fields">
-                  </MissingFieldsTable>
+                  <Button v-if="dusterData.rp_data"
+                          label="Continue"
+                          class="p-button-primary" size="small" icon="pi pi-caret-right"
+                          @click="step = 3"
+                  />
+                  <!--
+                  <Button text outlined @click="goToUrl(record_base_url)"
+                          class="p-button-secondary" size="small" icon="pi pi-times"
+                          label="Cancel"
+                  />
+                  -->
+                </div>
+              </div>
+            </div>
+
+            <div v-if="step == 3">
+              <Message severity="info" v-if="previousRequestStatus">
+                {{ previousRequestStatus }}
+              </Message>
+              <div v-if="dusterData.rp_data">
+                <div>
+                  <RequestDataTable
+                      title='Data Records'
+                      alert-type="info"
+                      alert-content="DUSTER will attempt to get data for the following records:"
+                      :record-base-url="record_base_url"
+                      :table-data="dusterData.rp_data"
+                  >
+                  </RequestDataTable>
                 </div>
                 <div>
                   <Button
-                      class="p-button-primary" size="small" icon="pi pi-cog"
-                      label="Project Setup"
-                      @click="goToUrl(designer_url)"/>
+                      class="p-button-primary" size="small" icon="pi pi-caret-right"
+                      label="Run in real time"
+                      @click="showSync = true"
+                  />
+                  <Button
+                      class="mx-2 p-button-primary" size="small" icon="pi pi-forward"
+                      label="Run in background"
+                      @click="showAsyncNotify = true"
+                  />
+                  <!--
+                  <Button
+                      class="p-button-secondary" size="small" icon="pi pi-times"
+                      label="Cancel"
+                      @click="goToUrl(project_setup_url)"
+                  />
+                  -->
                 </div>
               </div>
-              <div v-if="step==2">
-                <div>
-                  <div v-if="!dusterData.missing_data && !dusterData.rp_data">
-                    <div class="text-xl p-2 mb-1 font-italic mr-5 text-red-500">
-                      ERROR: Your REDCap project contains no records. Add at least one record to your project in order to proceed.
-                    </div>
+            </div>
+
+            <div v-if="step == 4">
+              <Message :closeable="false" severity="warn" v-if="!isAsyncRequest && totalProgress < 100">
+                Do not click on other links or close this browser
+                tab/window until data request is complete.</Message>
+              <p><strong>
+                <span v-html="saveMessage"></span> <span v-html="nextStatusUpdateMessage"></span>
+              </strong>
+              </p>
+              <div v-if="failures.length > 0">
+                Query Failures
+                <ul></ul>
+                <li v-for="(value, key)  in failures" :key="key">
+                  {{ value }}
+                </li>
+              </div>
+              <!--synchronized request progress display-->
+              <div class="text-left" v-if="!isAsyncRequest && dusterData.rp_data">
+                <div class="grid">
+                  <div class="col-3"><b>Researcher Provided Information:</b>
+                    <span v-if="cohortMessage"><br>{{ cohortMessage }}</span>
                   </div>
-                  <div v-else-if="dusterData.missing_data">
-                    <RequestDataTable
-                        title='Missing Researcher-Provided Information'
-                        alert-type="warn"
-                        alert-content="The following records are missing required researcher provided data.  You may still continue, but DUSTER may not be able to retrieve all possible data for these records."
-                        :record-base-url="record_base_url"
-                        :table-data="dusterData.missing_data"
+                  <div class="col-8">
+                    <ProgressBar
+                        :value="cohortProgress"
+                        height="25"
                     >
-                    </RequestDataTable>
-                  </div>
-                  <div>
-                    <Button v-if="dusterData.rp_data"
-                            label="Continue"
-                            class="p-button-primary" size="small" icon="pi pi-caret-right"
-                            @click="step = 3"
-                    />
-                    <!--
-                    <Button text outlined @click="goToUrl(record_base_url)"
-                            class="p-button-secondary" size="small" icon="pi pi-times"
-                            label="Cancel"
-                    />
-                    -->
+                      <strong>{{ cohortProgress }}%</strong>
+                    </ProgressBar>
                   </div>
                 </div>
-              </div>
 
-              <div v-if="step == 3">
-                <Message severity="info" v-if="previousRequestStatus">
-                  {{ previousRequestStatus }}
-                </Message>
-                <div v-if="dusterData.rp_data">
-                  <div>
-                    <RequestDataTable
-                        title='Data Records'
-                        alert-type="info"
-                        alert-content="DUSTER will attempt to get data for the following records:"
-                        :record-base-url="record_base_url"
-                        :table-data="dusterData.rp_data"
-                    >
-                    </RequestDataTable>
-                  </div>
-                  <div>
-                    <Button
-                        class="p-button-primary" size="small" icon="pi pi-caret-right"
-                        label="Run in real time"
-                        @click="showSync = true"
-                    />
-                    <Button
-                        class="mx-2 p-button-primary" size="small" icon="pi pi-forward"
-                        label="Run in background"
-                        @click="showAsyncNotify = true"
-                    />
-                    <!--
-                    <Button
-                        class="p-button-secondary" size="small" icon="pi pi-times"
-                        label="Cancel"
-                        @click="goToUrl(project_setup_url)"
-                    />
-                    -->
-                  </div>
-                </div>
-              </div>
-
-              <div v-if="step == 4">
-                <Message :closeable="false" severity="warn" v-if="!isAsyncRequest && totalProgress < 100">
-                  Do not click on other links or close this browser
-                  tab/window until data request is complete.</Message>
-                <p><strong>
-                  <span v-html="saveMessage"></span> <span v-html="nextUpdateMessage"></span>
-                </strong>
-                </p>
-                <!--synchronized request progress display-->
-                <div class="text-left" v-if="!isAsyncRequest && dusterData.rp_data">
-                  <div class="grid">
-                    <div class="col-3"><b>Researcher Provided Information:</b>
-                      <span v-if="cohortMessage"><br>{{ cohortMessage }}</span>
-                    </div>
-                    <div class="col-8">
-                      <ProgressBar
-                          :value="cohortProgress"
-                          height="25"
-                      >
-                        <strong>{{ cohortProgress }}%</strong>
-                      </ProgressBar>
-                    </div>
-                  </div>
-
-                  <RcProgressBar v-for="(value, key) in cwQueries"
-                                 :key="key"
-                                 @update:progress="updateProgress"
-                                 :queries="value"
-                                 :name="key"
-                                 :cohort-progress="cohortProgress"
-                                 :data-api-url="get_data_url"
-                  >
-                  </RcProgressBar>
-                </div>
-                <!--background request progress display-->
-                <div v-else-if="isAsyncRequest && dataRequestLog != null" >
-                  <AsyncFormProgressBar
-                      v-for="(value, key) in dataRequestLog"
-                      :key="key"
-                      :form-queries="value"
-                  >
-                  </AsyncFormProgressBar>
-
-                </div>
-
-                <Dialog
-                    v-model:visible="confirmCancel"
-                    max-width="500px"
-                    modal
-                    header="Cancel"
+                <RcProgressBar v-for="(value, key) in cwQueries"
+                               :key="key"
+                               @update:progress="updateProgress"
+                               :queries="value"
+                               :name="key"
+                               :cohort-progress="cohortProgress"
+                               :data-api-url="get_data_url"
                 >
-                  <Message severity="warn" :closable="false">
-                    Are you sure you want to exit data retrieval?
-                    <br>
-                    Data that has already been saved to REDCap will not be deleted.
-                  </Message>
-                  <template #footer>
-                    <Button
-                        class="p-button-primary" size="small" icon="pi pi-check"
-                          label="No, Continue"
-                          @click="confirmCancel = false"
-                    />
-                    <Button
-                          class="ml-2 p-button-danger" size="small" icon="pi pi-times"
-                          label="Yes, Cancel"
-                          outlined
-                          @click="cancel()"
-                      />
-                    </template>
-                </Dialog>
+                </RcProgressBar>
+              </div>
+              <!--background request progress display-->
+              <div v-else-if="isAsyncRequest && dataRequestLog != null" >
+                <AsyncFormProgressBar
+                    v-for="(value, key) in dataRequestLog"
+                    :key="key"
+                    :form-queries="value"
+                >
+                </AsyncFormProgressBar>
 
-                <Divider></Divider>
-                <!--Button v-if="isAsyncRequest"
-                        label="Project Home"
-                        class="p-button-primary mr-2" size="small" icon="pi pi-home"
-                        @click="goToUrl(project_setup_url)"
-                /-->
-                <Button v-if="totalProgress < 100 && !cancelled"
-                        class="p-button-secondary" size="small" icon="pi pi-times"
-                        label="Cancel Data Request"
-                        @click="confirmCancel = true"/>
-                <Button v-else
-                        label="Export Data Page"
-                        class="p-button-primary" size="small" icon="pi pi-download"
-                        @click="goToUrl(data_exports_url)"
-                />
               </div>
 
               <Dialog
-                  v-model:visible="showSync"
+                  v-model:visible="confirmCancel"
                   max-width="500px"
                   modal
-                  :style="{ width: '40vw' }"
-                  header="Run in real time"
+                  header="Cancel"
               >
-                <Card>
-                  <template #content>
-                    <Message severity="warn" :closable="false">
-                      This will launch the DUSTER process to get the data and populate the REDCap project in real time.
-                      Please keep the current browser tab open till the processing completes.
-                      If you close the current browser tab, it will stop processing and project will be left in inconsistent state.
-                      <br>
-                      Are you sure to launch the process in real time?
-                    </Message>
-                    <!--
-                    <p>
-                      This will launch the DUSTER process to get the data and populate the REDCap project in real time.
-                      Please keep the current browser tab open till the processing completes.
-                      If you close the current browser tab, it will stop processing and project will be left in inconsistent state.
-                    </p>
-                    <p class="mt-2">
-                      Are you sure to launch the process in real time?
-                    </p>
-                    -->
-                  </template>
-                  <template #footer>
-                    <Button
-                        class="p-button-primary" size="small" icon="pi pi-check"
-                        label="Yes, Launch"
-                        @click="syncCohort()"
-                    />
-                    <Button
-                        class="ml-2 p-button-secondary" size="small" icon="pi pi-times"
-                        label="No, Cancel"
-                        @click="showSync = false"
-                    />
-                  </template>
-                </Card>
+                <Message severity="warn" :closable="false">
+                  Are you sure you want to exit data retrieval?
+                  <br>
+                  Data that has already been saved to REDCap will not be deleted.
+                </Message>
+                <template #footer>
+                  <Button
+                      class="p-button-primary" size="small" icon="pi pi-check"
+                      label="No, Continue"
+                      @click="confirmCancel = false"
+                  />
+                  <Button
+                      class="ml-2 p-button-danger" size="small" icon="pi pi-times"
+                      label="Yes, Cancel"
+                      outlined
+                      @click="cancel()"
+                  />
+                </template>
               </Dialog>
 
-              <Dialog
-                  v-model:visible="showAsyncNotify"
-                  max-width="500px"
-                  header="Run in Background"
-              >
-                <Card style="box-shadow: none">
-                  <template #content>
-                    <p>
-                      {{ asyncNotifyMessage }}
-                    </p>
-                    <InputText v-model="email">
-                    </InputText>
-
-                  </template>
-                  <template #footer>
-                    <Button
-                        class="p-button-primary" size="small" icon="pi pi-check"
-                        label="Submit"
-                        @click="asyncRequestData()"
-                    />
-                    <Button
-                        class="ml-2 p-button-secondary" size="small" icon="pi pi-times"
-                        label="Cancel"
-                        @click="showAsyncNotify = false"
-                    />
-                  </template>
-                </Card>
-              </Dialog>
+              <Divider></Divider>
+              <!--Button v-if="isAsyncRequest"
+                      label="Project Home"
+                      class="p-button-primary mr-2" size="small" icon="pi pi-home"
+                      @click="goToUrl(project_setup_url)"
+              /-->
+              <Button v-if="totalProgress < 100 && !cancelled"
+                      class="p-button-secondary" size="small" icon="pi pi-times"
+                      label="Cancel Data Request"
+                      @click="confirmCancel = true"/>
+              <Button v-else
+                      label="Export Data Page"
+                      class="p-button-primary" size="small" icon="pi pi-download"
+                      @click="goToUrl(data_exports_url)"
+              />
             </div>
+
+            <Dialog
+                v-model:visible="showSync"
+                max-width="500px"
+                modal
+                :style="{ width: '40vw' }"
+                header="Run in real time"
+            >
+              <Card>
+                <template #content>
+                  <Message severity="warn" :closable="false">
+                    This will launch the DUSTER process to get the data and populate the REDCap project in real time.
+                    Please keep the current browser tab open till the processing completes.
+                    If you close the current browser tab, it will stop processing and project will be left in inconsistent state.
+                    <br>
+                    Are you sure to launch the process in real time?
+                  </Message>
+                  <!--
+                  <p>
+                    This will launch the DUSTER process to get the data and populate the REDCap project in real time.
+                    Please keep the current browser tab open till the processing completes.
+                    If you close the current browser tab, it will stop processing and project will be left in inconsistent state.
+                  </p>
+                  <p class="mt-2">
+                    Are you sure to launch the process in real time?
+                  </p>
+                  -->
+                </template>
+                <template #footer>
+                  <Button
+                      class="p-button-primary" size="small" icon="pi pi-check"
+                      label="Yes, Launch"
+                      @click="syncCohort()"
+                  />
+                  <Button
+                      class="ml-2 p-button-secondary" size="small" icon="pi pi-times"
+                      label="No, Cancel"
+                      @click="showSync = false"
+                  />
+                </template>
+              </Card>
+            </Dialog>
+
+            <Dialog
+                v-model:visible="showAsyncNotify"
+                max-width="500px"
+                header="Run in Background"
+            >
+              <Card style="box-shadow: none">
+                <template #content>
+                  <p>
+                    {{ asyncNotifyMessage }}
+                  </p>
+                  <InputText v-model="email">
+                  </InputText>
+
+                </template>
+                <template #footer>
+                  <Button
+                      class="p-button-primary" size="small" icon="pi pi-check"
+                      label="Submit"
+                      @click="asyncRequestData()"
+                  />
+                  <Button
+                      class="ml-2 p-button-secondary" size="small" icon="pi pi-times"
+                      label="Cancel"
+                      @click="showAsyncNotify = false"
+                  />
+                </template>
+              </Card>
+            </Dialog>
           </div>
+        </div>
       </div>
     </div>
   </div>
@@ -371,6 +378,8 @@ watch (isProduction, async(prodStatus) => {
     const response = await axios.get(get_data_url.value + "&action=dataRequestStatus")
         .catch(function (error) {
           systemError.value = true
+          console.log("dataRequestStatus error")
+          console.log(error)
           errorMessage.value += error.message + '<br>';
         })
     if (!hasError(response)) {
@@ -386,7 +395,7 @@ watch (isProduction, async(prodStatus) => {
         isAsyncRequest.value = true
         step.value = 4
         saveMessage.value = '<p>Background Data Request initiated by ' + response?.data.redcapUserName +
-                ' already in progress.</p><p>This view will update status every '+
+            ' already in progress.</p><p>This view will update status every '+
             asyncPollInterval.value +' seconds.</p>'
         asyncPollStatus()
       } else {
@@ -438,11 +447,16 @@ const goToUrl = (url:any) => {
 }
 
 const hasError = (response:any) => {
+  console.log('hasError')
   if (response.status !== 200) {
+    console.log(response)
     errorMessage.value = response.message;
     return true;
   } else if (response.data?.status && response.data?.status !== 200) {
+    console.log('hasError data')
+    console.log(response.data)
     errorMessage.value += response.data.message + '<br>';
+    //systemError.value = true;
     return true;
   } else {
     const data_str = JSON.stringify(response.data).toLowerCase();
@@ -479,7 +493,7 @@ const syncCohort = async() => {
   }
 }
 
-const nextUpdateMessage = computed(()=> {
+const nextStatusUpdateMessage = computed(()=> {
   let msg = ""
   if (totalProgress.value == 100) {
     return msg
@@ -492,10 +506,16 @@ const nextUpdateMessage = computed(()=> {
     }
   }
   return msg
-  });
+});
 
 const updateProgress = (dataSync:any) => {
+  console.log('updateProgress')
+  console.log(dataSync)
   totalProgress.value += saveSize.value;
+
+  if (dataSync.data.numRemaining) {
+    totalProgress.value += dataSync.data.numRemaining * saveSize.value;
+  }
   console.log('totalProgress ' + totalProgress.value)
   if (totalProgress.value > 99.5) {
     totalProgress.value = 100;
@@ -506,6 +526,12 @@ const updateProgress = (dataSync:any) => {
       axios.get(get_data_url.value + "&action=logStatus&status=complete");
     } else {
       saveMessage.value = toTitleCase(dataSync.data.message);
+    }
+  } else { // there's an error
+    if (totalProgress.value === 100) {
+      errorMessage.value = "Some queries had failures.  Data save incomplete.<br><br>" + errorMessage.value
+      saveMessage.value = ""
+      axios.get(get_data_url.value + "&action=logStatus&status=fail");
     }
   }
 }
@@ -548,44 +574,54 @@ const zeropad = (num:number) => {
 }
 
 const dataRequestLog = ref<any>()
+const failures = ref<string[]>([])
 const asyncPollStatus = async() => {
   let complete = false
   let count = 0 // count the number of status requests.  Used to set limit on number of requests.
   while (!complete) {
     count++
     countDownUpdate.value = "Getting status ... "
-    await axios.get(get_data_url.value + "&action=asyncDataLog")
-        .then(response => {
-          if (!hasError(response)) {
-            const today = new Date();
-            updateTime.value = zeropad(today.getHours()) + ":" + zeropad(today.getMinutes()) + ":" +
-                zeropad(today.getSeconds());
-            if (response?.data) {
-              dataRequestLog.value = response.data.data_request_log
-              console.log("count " + count)
-              console.log(response)
-
-              if (dataRequestLog.value) {
-                let formComplete = true
-                for (const formName in dataRequestLog.value) {
-                  if (!dataRequestLog.value[formName].complete) {
-                    formComplete = false
-                  }
-                }
-                //complete = (response.data.request_status.message == 'complete')
-                complete = (response.data.num_queries > 0 && response.data.num_queries == response.data.num_complete)
-                totalProgress.value = 100 * response.data.num_complete / response.data.num_queries
-              }
-              cancelled.value = (response.data.request_status.message == 'cancel')
-              complete = (cancelled.value) ? cancelled.value: complete
-            }
-          }
-        })
+    let response = await axios.get(get_data_url.value + "&action=asyncDataLog")
         .catch(function (error) {
           complete = true
           errorMessage.value += error.message + '<br>';
           systemError.value = true
         })
+    if (!hasError(response) && response?.data && response.data.data_request_log) {
+      const today = new Date();
+      updateTime.value = zeropad(today.getHours()) + ":" + zeropad(today.getMinutes()) + ":" +
+          zeropad(today.getSeconds());
+      //if (response?.data) {
+      dataRequestLog.value = response.data.data_request_log
+      console.log("count " + count)
+      console.log(response)
+      cancelled.value = (response.data.request_status.message == 'cancel')
+
+      //if (dataRequestLog.value) {
+      if (cancelled.value) {
+        complete = true
+      } else {
+        let failMessages = ""
+        complete = true
+        for (const formName in dataRequestLog.value) {
+          complete = complete && (dataRequestLog.value[formName].complete ||
+              dataRequestLog.value[formName].fail)
+          if (dataRequestLog.value[formName].fail) {
+            failMessages += toTitleCase(dataRequestLog.value[formName]['last_message'].substr(5)) + '<br>'
+          }
+        }
+        //complete = (response.data.num_queries > 0 && response.data.num_queries == response.data.num_complete)
+        totalProgress.value = 100 * response.data.num_complete / response.data.num_queries
+        if (failMessages.length > 0) {
+          errorMessage.value = failMessages
+        }
+      }
+      //}
+    } else {
+      // end due to error
+      complete = true
+    }
+
     if (!complete && count > asyncPollLimit.value) {
       console.log("Hit async poll limit.");
       complete = true
@@ -599,9 +635,13 @@ const asyncPollStatus = async() => {
       console.log('stop sleep')
     }
   }
+  countDownUpdate.value = ""
+  if (totalProgress.value < 100) {
+    totalProgress.value = 100
+    errorMessage.value = "Some queries had failures.  Data save incomplete.<br><br>" + errorMessage.value
+  }
   if (cancelled.value) {
-   saveMessage.value = "Data Request Cancelled."
-    countDownUpdate.value = ""
+    saveMessage.value = "Data Request Cancelled."
   } else {
     saveMessage.value = 'Data Request Complete.'
   }
