@@ -262,7 +262,6 @@ const getDusterMetadata = (metadataUrl:string) => {
     scoreOptions.value = resp.data.scores;
     clinicalDateOptions.value = resp.data.clinical_dates
   } else {
-
     axios.get(metadataUrl)
         .then(response => {
           demographicsOptions.value = response.data.demographics;
