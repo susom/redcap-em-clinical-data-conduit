@@ -447,19 +447,20 @@ const goToUrl = (url:any) => {
 }
 
 const hasError = (response:any) => {
-  console.log('hasError')
   if (response.status !== 200) {
+    console.log('hasError status !== 200')
     console.log(response)
     errorMessage.value = response.message;
     return true;
   } else if (response.data?.status && response.data?.status !== 200) {
-    console.log('hasError data')
+    console.log('hasError data.status != 200')
     console.log(response.data)
     errorMessage.value += response.data.message + '<br>';
-    //systemError.value = true;
+    if (response.data.status == 500) systemError.value = true;
     return true;
   } else {
-    const data_str = JSON.stringify(response.data).toLowerCase();
+    console.log('hasError data.stringify contains error')
+    const data_str = JSON.stringify(response.data).toLowerCase()
     if (data_str.indexOf('error message') !== -1  ||
         data_str.indexOf('syntax error') !== -1 ||
         data_str.indexOf('fatal error') !== -1) {

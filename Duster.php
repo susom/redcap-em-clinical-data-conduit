@@ -194,11 +194,11 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         // sometimes the valid response is a string and response code is 0 or missing.
         //  Don't want to convert the response to an json object unless there's an error.
         if ((!empty($resp_code['status']) && $resp_code['status'] !== 200)
-            || !empty($curl_error) || !empty($resp_code['error'])) {
+            || !empty($curl_error) || !empty($response['error'])) {
             $resp_arr['body'] = $response;
             $resp_arr['status'] = ($resp_code['status']) ? $resp_code['status'] : 400;
-            $resp_arr['message'] = ((empty($resp_code['error']))
-                    ? '' : $resp_code['error'] . ";") . $curl_error;
+            $resp_arr['message'] = ((empty($response['error']))
+                    ? '' : $response['error'] . ";") . $curl_error;
             $response = $resp_arr;
         }
         curl_close($curl_handle);
