@@ -107,8 +107,8 @@ class DusterConfigClass
             }
             return $rp_data;
         } else {
-            $this->module->emDebug("PID ". $this->getProjectId() . ' Unable to retrieve Duster config from starr-api');
-            $return_obj['status'] = $this->duster_config['status'];
+            $this->module->emDebug("PID ". $this->module->getProjectId() . ' Unable to retrieve Duster config from starr-api');
+            $return_obj['status'] = 500;
             $return_obj['message'] = 'Unable to retrieve Duster config.';
             return $return_obj;
         }

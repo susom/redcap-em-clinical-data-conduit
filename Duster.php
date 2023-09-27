@@ -131,7 +131,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       $response = $this->handleStarrApiRequest($curl);
       if (!empty($response['status']) && $response['status'] !== 200) {
           $this->handleError("ERROR: starrApiGetRequest",
-                "URL: $url<br>RESPONSE BODY: " . $response['body']
+                "URL: $url<br>RESPONSE BODY: " . print_r($response['body'], true)
                 . "<br>RESPONSE CODE: " . $response['status']
                 . "<br>ERROR: " . $response['message']);
       }
@@ -169,13 +169,11 @@ class Duster extends \ExternalModules\AbstractExternalModule {
             $response = $this->handleStarrApiRequest($curl);
             if (!empty($response['status']) && $response['status'] !== 200) {
                 $this->handleError("ERROR: starrApiPostRequest",
-                    "URL: $url; POST_FIELDS: " . $message
-                    . "; RESPONSE BODY: " .
-                    ((json_encode($response['body']))
-                        ? json_encode($response['body'])
-                        : $response['body'])
-                    . "; RESPONSE CODE: " . $response['status']
-                    . "; ERROR: " . $response['message']);
+                    "URL: $url;<br>POST_FIELDS: " . $message
+                    . ";<br>RESPONSE BODY: "
+                    . print_r($response['body'], true)
+                    . ";<br>RESPONSE CODE: " . $response['status']
+                    . ";<br>ERROR: " . $response['message']);
             }
             curl_close($curl);
         }
@@ -189,16 +187,19 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         //$response = http_post($url, $message, null, $content_type, null, $headers);
         $response = curl_exec($curl_handle);
         $resp_code = curl_getinfo($curl_handle, CURLINFO_RESPONSE_CODE);
+        $this->emDebug("DEBUG resp_code = $resp_code");
         $curl_error = curl_error($curl_handle);
         $response = (json_decode($response) === false) ? $response : json_decode($response, true);
         // sometimes the valid response is a string and response code is 0 or missing.
         //  Don't want to convert the response to an json object unless there's an error.
-        if ((!empty($resp_code['status']) && $resp_code['status'] !== 200)
+        if ($resp_code !== 200 || (!empty($resp_code['status']) && $resp_code['status'] !== 200)
             || !empty($curl_error) || !empty($response['error'])) {
             $resp_arr['body'] = $response;
-            $resp_arr['status'] = ($resp_code['status']) ? $resp_code['status'] : 400;
-            $resp_arr['message'] = ((empty($response['error']))
-                    ? '' : $response['error'] . ";") . $curl_error;
+            $resp_arr['status'] = (!empty($resp_code['status'])) ? $resp_code['status'] : $resp_code;
+            $resp_arr['message'] = implode('; ', array_filter([$response['error'], $curl_error]));
+            if (strpos($resp_arr['message'], 'Connection refused') > -1) {
+                $resp_arr['status'] = 500;
+            }
             $response = $resp_arr;
         }
         curl_close($curl_handle);

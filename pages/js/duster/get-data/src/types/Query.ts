@@ -11,6 +11,7 @@ export interface FormQueries {
     num_queries: number,
     num_complete: number,
     complete: boolean,
+    fail: boolean,
     last_message: string,
     last_logdttm: string,
     queries: any // JsonObject of queries keyed by query_name
