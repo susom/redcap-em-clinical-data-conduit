@@ -678,10 +678,15 @@ const createProject = ()=> {
           }
         })
         .catch(function (error) {
+          // TODO
           createProjectMessage.value = error.message;
           createProjectError.value = true
           showCreateProjectDialog.value = true;
           console.log("Catch: " + error);
+
+          console.log(error.toJSON());
+          console.log(error.response);
+          console.log(error.response.data);
         });
   }
 }

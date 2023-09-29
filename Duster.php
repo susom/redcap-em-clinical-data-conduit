@@ -202,7 +202,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       $pid = $this->getProjectId() ? : 'No Project ID';
       $response = curl_exec($curl_handle);
       $resp_code = curl_getinfo($curl_handle, CURLINFO_RESPONSE_CODE);
-      $this->emDebug("DEBUG resp_code = $resp_code");
       $curl_error = curl_error($curl_handle);
       $response = (json_decode($response) === false) ? $response : json_decode($response, true);
       // sometimes the valid response is a string and response code is 0 or missing.
@@ -222,8 +221,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         $response = $resp_arr;
       }
       curl_close($curl_handle);
-      $this->emDebug("PID: $pid. STARR-API response " .
-        ((json_encode($response) === false) ? $response : json_encode($response)));
 
       return $response;
     }
@@ -235,7 +232,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
   public function getMetadata() {
     $metadata_url = $this->getSystemSetting("starrapi-metadata-url");
     //$this->emDebug("PID ". $this->getProjectId() . ":getMetadata url = $metadata_url for PID " . $this->getProjectId());
-    $this->emDebug("STARR-API GET request to $metadata_url.");
+    // $this->emDebug("STARR-API GET request to $metadata_url.");
     $metadata = $this->starrApiGetRequest($metadata_url,'ddp');
     // error handled by starrApiGetRequest
     return $metadata;
@@ -291,6 +288,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     // attaches PID to the $subject
     // logs error in duster.log as well as REDCap log
     // sends error to duster configured email
+  // TODO include USERID
   public function handleError($subject, $message, $throwable=null) {
       $subject = "PID" . $this->getProjectId() . '-' . $subject;
       //$subject = "PID: " . $this->getProjectId() ;

@@ -111,6 +111,7 @@ try {
   $odm_str = $odm->getOdmXmlString();
   $module->emLog($odm_str);
 } catch (Throwable $ex) {
+  http_response_code(400);
   $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to create an ODM XML string.", $ex );
   print "Error: Failed to create project. " . $msg;
   exit();
@@ -138,12 +139,13 @@ $super_token = $db->getUserSuperToken(USERID);
 if (!$super_token) {
   // Create a temporary token
   if ($db->setAPITokenSuper(USERID)) {
-    $module->emDebug("REDCap Super API Token created for " . USERID . ".");
+    $module->emLog("REDCap Super API Token created for " . USERID . ".");
     $super_token = $db->getUserSuperToken(USERID);
     $delete_token = true;
     // Remember to delete the temporary token
     // register_shutdown_function(array($this, "deleteTempSuperToken"));
   } else {
+    http_response_code(500);
     $msg = $module->handleError('DUSTER Error: Project Create', "Failed to create a REDCap SUPER API Token for user " . USERID);
     print "Error: Failed to create project. " . $msg;
     exit();
@@ -176,27 +178,29 @@ curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
 
 $project_token = curl_exec($ch);
-$module->emDebug($project_token);
+curl_close($ch);
+$module->emDebug($project_token); // TODO not informative enough as-is
 
 // delete the super token if needed
-if($delete_token) {
+if ($delete_token) {
   $db->deleteApiTokenSuper(USERID);
   $module->emLog("REDCap Super API Token deleted for " . USERID . ".");
 }
 
-if (empty($project_token)) {
+if (empty($project_token)) { // TODO verify it's empty or 32 characters only, no other responses (change different parameters in curl)
+  http_response_code(500);
   $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to retrieve project token." );
   print "Error: Failed to create project. " . $msg;
   exit();
 }
-//echo $output;
-curl_close($ch);
 
 // use the user's project-level token for the newly created project to identify the pid
 try {
   $project_id = $module->getUserProjectFromToken($project_token);
-  $module->emDebug($project_id);
+  $module->emDebug($project_id); //TODO not enough context, delete or add context
 } catch (Throwable $ex) {
+  http_response_code(500);
+  // TODO make sure logging includes USERID, app_title
   $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to retrieve user token/project id.", $ex);
   print "Error: Failed to create project. " . $msg; // TODO change message here since project was created
   exit();
@@ -236,8 +240,9 @@ $project_info_sql_result = $module->query(
     $project_id // project_id
   ]
 );
-$module->emDebug($project_info_sql_result);
+$module->emDebug($project_info_sql_result); // TODO not enough context
 if(!$project_info_sql_result) {
+  http_response_code(500);
   $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to add project info in services/createProject.php. Db insert failed with data=".print_r($data, true));
   print "Error: A REDCap project was created (pid $project_id), but DUSTER failed to add project info to it. " . $msg;
   exit();
@@ -256,12 +261,15 @@ $external_module_id = $module->query('SELECT external_module_id FROM redcap_exte
 $em_module_sql_result = $module->query('INSERT INTO `redcap_external_module_settings`(`external_module_id`, `project_id`, `key`, `type`, `value`) VALUES (?, ?, ?, ?, ?)',
   [$external_module_id->fetch_assoc()['external_module_id'], $project_id, 'enabled', 'boolean', 'true']);
 if (!$em_module_sql_result) {
+  http_response_code(500);
   $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to enable DUSTER EM on new project $project_id. Db insert failed with following values: external_module_id" .  $external_module_id->fetch_assoc()['external_module_id'] . ", project_id: $project_id, key: enabled, type: boolean, value: true");
   print "Error: A new REDCap project was created (pid $project_id), but the DUSTER EM failed to enable itself on the project. " . $msg;
   exit();
 }
 
-/* send POST request to DUSTER's config route in STARR-API */
+/* send POST request to DUSTER's config route in STARR-API
+   saves config to postgres and generates REDCap to STARR Link queries
+ */
 // TODO refactor to use $module->starrApiPostRequest()
 
 // Retrieve the data URL that is saved in the config file
@@ -276,6 +284,7 @@ try {
     throw new Exception();
   }
 } catch (Throwable $ex) {
+  http_response_code(500);
   $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to find a valid vertx token for service ddp in createProject.", $ex);
   print "Error: A new REDCap project was created (pid $project_id), but DUSTER's data queries for this project failed to set up. " . $msg;
   exit();

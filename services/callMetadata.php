@@ -7,7 +7,7 @@ namespace Stanford\Duster;
  */
 $results = $module->getMetadata();
 if ($results === null) {
-  http_response_code(404);
+  http_response_code(500);
 } else if (array_key_exists('status', $results)) {
   http_response_code($results['status']);
 }

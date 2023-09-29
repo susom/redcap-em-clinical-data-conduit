@@ -224,6 +224,9 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
             irbCheckMessage.value = "IRB " + projectIrbNumber + " check success.  Fetching DUSTER metadata."
             projectConfig.project_irb_number = projectIrbNumber
           } else {
+            // TODO check if response contains Fatal Error
+            // TODO -> show SystemErrorDialog
+            // TODO -> trigger handleError() to log and notify DUSTER team
             irbValid.value = false
             irbCheckMessage.value = "IRB " + projectIrbNumber
                 + " is invalid. Please enter a different IRB number."
@@ -274,7 +277,6 @@ const getDusterMetadata = (metadataUrl:string) => {
       }).catch(function (error) {
         irbCheckMessage.value = "Unable to load DUSTER metadata";
         systemError.value = true ;
-        console.log(error)
     });
   }
 }
