@@ -263,18 +263,18 @@ const getDusterMetadata = (metadataUrl:string) => {
     clinicalDateOptions.value = resp.data.clinical_dates
   } else {
     axios.get(metadataUrl)
-        .then(response => {
-          demographicsOptions.value = response.data.demographics;
-          labOptions.value = response.data.labs;
-          vitalOptions.value = response.data.vitals;
-          outcomeOptions.value = response.data.outcomes;
-          scoreOptions.value = response.data.scores;
-          clinicalDateOptions.value = response.data.clinical_dates
-          irbCheckVisible.value = false
-        }).catch(function (error) {
-      irbCheckMessage.value = "Unable to load DUSTER metadata"
-      systemError.value = true ;
-      console.log(error)
+      .then(response => {
+        demographicsOptions.value = response.data.demographics;
+        labOptions.value = response.data.labs;
+        vitalOptions.value = response.data.vitals;
+        outcomeOptions.value = response.data.outcomes;
+        scoreOptions.value = response.data.scores;
+        clinicalDateOptions.value = response.data.clinical_dates;
+        irbCheckVisible.value = false;
+      }).catch(function (error) {
+        irbCheckMessage.value = "Unable to load DUSTER metadata";
+        systemError.value = true ;
+        console.log(error)
     });
   }
 }
