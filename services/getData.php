@@ -78,6 +78,10 @@ function requestIsDone($pid) {
     return false;
 }
 
+function responseHasError($response) {
+    return (isset($response['status']) &&  $response['status'] !== 200);
+}
+
 function logToStarrApi($pid, $query_name, $message) {
     global $module;
     $log_url = $module->getSystemSetting("starrapi-data-url")
@@ -88,6 +92,13 @@ function logToStarrApi($pid, $query_name, $message) {
     $post_fields['message'] = $message;
     //$module->emDebug("DEBUG: logToStarrApi query_name=$query_name; pid=$pid");
     $response = $module->starrApiPostRequest($log_url, 'ddp', $post_fields);
+    if (responseHasError($response)) {
+        $request_id = getRequestId($pid);
+        $module->handleError('CRITICAL: Unable to log status to starr-api',"Starr-api server returned with status "
+            . $response['status'] . "; error message: " . $response['message']
+            . " for Request ID $request_id. Update request $request_id::status to 'fail' for PID $pid in duster_log table.");
+        $response['status'] = 500;
+    }
     return $response;
 }
 
@@ -100,7 +111,16 @@ function getRequestStatus($pid) {
         . "log/" . SERVER_NAME
         . "/$pid/$request_id/status?user=" . $module->getUser()->getUserName();
     $request_status = $module->starrApiGetRequest($log_url, 'ddp');
-    if (empty($request_status)) {
+    if (responseHasError($request_status)) {
+        $module->handleError('Unable to retrieve request status',"Starr-api server returned with status "
+            . $request_status['status']
+            . "; error message: " . $request_status['message']
+            . " for Request ID $request_id.");
+        $request_status['message'] = "Unable to process request due to ". $request_status['message']. ". Duster 
+        administrators have been notified of this problem.";
+        // setting status to 500 to indicate to UI that this is a system error
+        $request_status['status'] = 500;
+    } else if (empty($request_status)) {
         $request_status['status'] = 500;
         $request_status['message'] = 'Unable to process request. No response from server. Duster administrators have been notified of this problem.';
         $module->handleError('Unable to retrieve request status',"Starr-api server returned a request status of 'null' for Request ID $request_id.   Please check if Starr-api server online.");
@@ -128,7 +148,7 @@ function initRequestLog($forms) {
     return $request_log;
 }
 
-function getData($rtoslink_config, $query) {
+function realTimeDataRequest($rtoslink_config, $query) {
     global $module, $pid;
     REDCap::logEvent("DUSTER: Get Data for " . $query['query_name']);
     $return_obj = array();
@@ -138,19 +158,30 @@ function getData($rtoslink_config, $query) {
         $query_label = $query['query_label'];
         $module->emDebug("PID $pid DEBUG: getData query= " . $query['query_name']
             . "; resp =  $resp");
+        $return_obj['query_name'] = $query['query_name'];
         if ($resp && !isset($resp['status'])) {
-            $return_obj['status'] = 200;
-            $return_obj['message'] = "Update for $query_label is complete.";
+            $return_obj['message'] = "Update for " . toQueryLabel($query_label) . " is complete.";
         } else {
-            $return_obj['status'] = ($resp && isset($resp['status'])) ? $resp['status'] : 500;
-            $return_obj['message'] = $module->handleError('Duster getData: Unable to retrieve data', "Real time Error: Unable to update $query_label");
+            $request_id = getRequestId($pid);
+            $module->handleError('Duster getData: Real Time', "Request ID $request_id Get Data Error: Unable to update "
+                . $query['query_name'] . ".");
+            $return_obj['message'] = 'Get Data Error: Unable to update ' . toQueryLabel($query_label);
         }
+        // set status to 200 even in error case because we don't handle this as an error in the UI
+        $return_obj['status'] = 200;
+
     } else {
         $return_obj['status'] = 500;
-        $return_obj['message'] = $module->handleError('Duster getData: Unable to retrieve data',
-            "Real time Error: Missing query parameter.");
+        $return_obj['message'] = $module->handleError('Duster getData: Real Time',
+            "Get Data Error: No query.");
     }
     return $return_obj;
+}
+
+function toQueryLabel($queryLabel) {
+    $label = explode('_', $queryLabel);
+    array_shift($label);
+    return ucwords(implode(' ', $label));
 }
 
 $action = isset($_GET['action']) && !empty($_GET['action']) ? $_GET['action'] : null;
@@ -205,21 +236,23 @@ if ($action === 'productionStatus') {
         setRequestId($request_id, $pid);
         //$module->setProjectSetting('requestId', $request_id, $pid);
         REDCap::logEvent("DUSTER: getData Real Time Cohort Sync Request ID " . $request_id);
-        logToStarrApi($pid, $request_id . "::status", 'sync');
-        // response should be '1'
-        $return_obj = syncCohort($rtoslink_config);
-        if ($return_obj && $return_obj['status'] !== 200) {
-            logToStarrApi($pid, $request_id . "::status", 'fail: ' . $return_obj['message']);
-            handleError('Duster getData: Real time cohort sync',
-                'Real time Error: ' . $return_obj['message']);
-            $return_obj['system_error'] = true;
+        $return_obj = logToStarrApi($pid, $request_id . "::status", 'sync');
+        if (!responseHasError($return_obj)) {
+            // response should be '1'
+            $return_obj = syncCohort($rtoslink_config);
+            $module->emDebug("PID $pid DEBUG: 'realTimeSyncCohort' response " . print_r($return_obj, true));
+            if (responseHasError($return_obj)) {
+                logToStarrApi($pid, $request_id . "::status", 'fail: ' . $return_obj['message']);
+                $module->handleError('Duster getData: Real time cohort sync',
+                    'Real time Error: ' . $return_obj['message']);
+            }
         }
     }
 } else if ($action === 'realTimeDataRequest') {
     // real time rtos data request
     $query = isset($_GET['query']) && !empty($_GET['query']) ? json_decode($_GET['query'], true) : null;
     if ($query != null) {
-        $return_obj = getData($rtoslink_config, $query);
+        $return_obj = realTimeDataRequest($rtoslink_config, $query);
     } else {
         $return_obj['status'] = 500;
         $return_obj['message'] = $module->handleError('Duster getData: Unable to verify retrieve data', "Missing query parameter.");
@@ -248,7 +281,7 @@ if ($action === 'productionStatus') {
         $duster_api_url = $module->getSystemSetting("starrapi-data-url");
 
         $return_obj = $module->starrApiPostRequest($duster_api_url, 'ddp', $post_fields);
-        if (isset($return_obj['status']) && $return_obj['status'] !== 200) {
+        if (responseHasError($return_obj)) {
             $return_obj['status'] = 500;
             $module->emError("PID $pid ERROR: asyncDataRequest unable to post async requests.");
             logToStarrApi($pid, $request_id . "::status", 'fail');
@@ -271,12 +304,11 @@ if ($action === 'productionStatus') {
     //REDCap::logEvent("DUSTER: getData Background Get Status. Request ID " . $request_id);
 
     //if there was an error from the get request, just return the contents of the get request
-    if (isset($logs['status']) && $logs['status'] !== 200) {
+    if (responseHasError($logs)) {
+        $return_obj = $logs;
         $return_obj['status'] = 500;
         $module->emError("PID $pid ERROR: asyncDataLog problem retrieving status from server.");
         logToStarrApi($pid, $request_id . "::status", 'fail');
-
-        $return_obj = $logs;
     } else {
         $return_obj['request_status'] = $logs['request_status'];
         unset($logs['request_status']);
@@ -324,6 +356,7 @@ if ($action === 'productionStatus') {
         $return_obj['message'] = $module->handleError('Duster logStatus: status is not set', 'No status set in logStatus.');
     }
 } else if ($action === 'emailComplete') {
+    // called by starr api server to send email at the end of async request
     REDCap::logEvent("DUSTER: Async Get Data Complete", null, null, null, null, $pid);
     // This is a NOAUTH request from the duster server, so it can not access any part of the EM that
     // requires authentication (i.e. status)
@@ -337,10 +370,24 @@ if ($action === 'productionStatus') {
             $message = "Duster data request $request_id for pid $pid completed successfully.<br>";
         } else {
             $message = "Duster data request $request_id for pid $pid completed with status " . $request_status . ".<br>";
-            if ($request_status === 'fail' && isset($failed_instruments)) {
-                $failed_instruments = ucwords(preg_replace('/_|(cw\d+_)/',' ', $failed_instruments));
-                //$module->emDebug("failed instruments: $failed_instruments");
-                $message .= "The following instrument queries were unable to complete: " . $failed_instruments . ".<br>An email regarding this issue has been sent to Duster support team.  Please contact " . $duster_email . " for more information.<br>";
+            if ($request_status === 'fail') {
+                $admin_subject = "PID $pid Duster Async Request $request_status";
+                $admin_message = "Request Id $request_id async queries failed. ";
+                if (isset($failed_instruments)) {
+                    $failed_instruments = ucwords(preg_replace('/_|(cw\d+_)/', ' ', $failed_instruments));
+                    //$module->emDebug("failed instruments: $failed_instruments");
+                    $message .= "The following instrument queries were unable to complete: "
+                        . $failed_instruments
+                        . ".<br>An email regarding this issue has been sent to Duster support team.  Please contact "
+                        . $duster_email . " for more information.<br>";
+                    $admin_message .= 'Failed instruments: ' . $failed_instruments . '. Please review duster logs.';
+                }
+                // send an email to duster admin about async failures
+                if (!empty($duster_email)) {
+                    //$module->emDebug("homepage_contact_email " . $GLOBALS['homepage_contact_email']);
+                    $email_status = REDCap::email($duster_email, $GLOBALS['homepage_contact_email'], $admin_subject,
+                            $admin_message);
+                }
             }
         }
         // Add a link to the redcap project
@@ -371,8 +418,13 @@ if ($action === 'productionStatus') {
         $module->emError("PID $pid email parameter is not set.");
     }
     $module->emDebug("PID $pid end emailComplete");
-
+} else if ($action === 'error') {
+    // log to redcap log and send error email
+    REDCap::logEvent("DUSTER: Get Data Error", null, null, null, null, $pid);
+    $message = isset($_GET['message']) && !empty($_GET['message']) ? $_GET['message'] : null;
+    $module->handleError('Uncaught Error', $message);
 } else if ($action === 'complete') {
+    // log complete to redcap log
     REDCap::logEvent("DUSTER: Real Time Get Data Complete", null, null, null, null, $pid);
     $return_obj['status'] = 200;
 } else {

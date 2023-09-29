@@ -6,9 +6,10 @@
     <div class="col-8">
       <ProgressBar
           :value="progress"
+          :pt="barColor"
           height="25"
       >
-        <strong>{{ Math.ceil(progress) }}%</strong>
+        <strong>{{ barLabel }}</strong>
       </ProgressBar>
     </div>
   </div>
@@ -30,9 +31,11 @@ const props = defineProps({
 const progress =  computed(()=> {
   var pctComplete=100* props.formQueries.num_complete / props.formQueries.num_queries
   if (isNaN(pctComplete))
-    pctComplete = 0;
+    pctComplete = 0
   else if (pctComplete > 99.5) {
-    pctComplete = 100;
+    pctComplete = 100
+  } else if (props.formQueries.fail) {
+    pctComplete = 100
   }
   return pctComplete;
 })
@@ -43,6 +46,20 @@ const label = computed(() => {
 
 const message = computed(() => {
   return queryMessage(props.formQueries.last_message);
+})
+
+const barColor = computed(() => {
+ if (props.formQueries.fail) {
+   return {
+     value: {style: {background: 'red'}}
+   }
+ } else return {}
+})
+
+const barLabel = computed(() => {
+  if (props.formQueries.fail) {
+    return 'Fail'
+  } else return Math.ceil(progress.value) + '%'
 })
 
 </script>

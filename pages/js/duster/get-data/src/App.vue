@@ -11,7 +11,7 @@
           </ul>
         </div>
         <div v-if="errorMessage">
-          <Message severity="error"><span v-html="errorMessage"></span></Message>
+          <Message :closable="false" severity="error"><span v-html="errorMessage"></span></Message>
           <!-- display button to Project Setup if error is due to production status -->
           <Button
               v-if="!isProduction"
@@ -111,20 +111,13 @@
             </div>
 
             <div v-if="step == 4">
-              <Message :closeable="false" severity="warn" v-if="!isAsyncRequest && totalProgress < 100">
+              <Message :closable="false" severity="warn" v-if="!isAsyncRequest && totalProgress < 100">
                 Do not click on other links or close this browser
                 tab/window until data request is complete.</Message>
               <p><strong>
-                <span v-html="saveMessage"></span> <span v-html="nextStatusUpdateMessage"></span>
+                <span v-html="saveMessage"></span> <span v-html="nextAsyncUpdateMessage"></span>
               </strong>
               </p>
-              <div v-if="failures.length > 0">
-                Query Failures
-                <ul></ul>
-                <li v-for="(value, key)  in failures" :key="key">
-                  {{ value }}
-                </li>
-              </div>
               <!--synchronized request progress display-->
               <div class="text-left" v-if="!isAsyncRequest && dusterData.rp_data">
                 <div class="grid">
@@ -280,7 +273,7 @@
       </div>
     </div>
   </div>
-  <SystemErrorDialog v-if="systemError"/>
+  <SystemErrorDialog v-if="systemError" :exit-url="exit_url"/>
 </template>
 <script setup lang="ts">
 import {ref, watch, computed, onMounted} from 'vue'
@@ -291,10 +284,10 @@ import RequestDataTable from "@/components/RequestDataTable.vue";
 import RcProgressBar from "@/components/RcProgressBar.vue";
 import AsyncFormProgressBar from "@/components/AsyncFormProgressBar.vue";
 import SystemErrorDialog from '@shared/components/SystemErrorDialog.vue'
-import { toTitleCase } from "@/utils/helpers.js"
+import {queryMessage, toTitleCase, formLabel} from "@/utils/helpers.js"
 
 const projectConfig = JSON.parse(localStorage.getItem('getDataObj') || '{}');
-console.log("getDataObj " + localStorage.getItem('getDataObj'))
+//console.log("getDataObj " + localStorage.getItem('getDataObj'))
 localStorage.removeItem('getDataObj');
 
 setInterval(() => {
@@ -317,6 +310,7 @@ const designer_url = ref<string>(projectConfig.designer_url)
 const data_exports_url = ref<string>(projectConfig.data_exports_url)
 const project_setup_url = ref<string>(projectConfig.project_setup_url)
 const get_data_url = ref<string>(projectConfig.get_data_api)
+const exit_url = ref<string>(projectConfig.exit_url)
 //<?php echo $module->getUrl("services/getData.php?pid=$projectId&action=productionStatus"); ?>
 const step = ref<number>(0)
 const errorMessage = ref<string>("")
@@ -383,13 +377,13 @@ watch (isProduction, async(prodStatus) => {
           errorMessage.value += error.message + '<br>';
         })
     if (!hasError(response)) {
-      console.log(response)
+      //console.log(response)
       if (response?.data?.dataRequestStatus == 'sync') {
         isLoading.value = false;
         errorMessage.value = '<p>Real time Data Request initiated by ' + response?.data.redcapUserName +
             ' already in progress.  Please wait for this request to complete before submitting a new data request.'
       } else if (response?.data?.dataRequestStatus == 'async') {
-        console.log("dataRequestStatus async")
+        //console.log("dataRequestStatus async")
         isLoading.value = false;
         isLoaded.value = true
         isAsyncRequest.value = true
@@ -414,15 +408,15 @@ watch (isProduction, async(prodStatus) => {
 
 watch(startLoad, async (start) => {
   if (start) {
-    console.log(get_data_url.value + "&action=cohort")
+    //console.log(get_data_url.value + "&action=cohort")
     axios.get(get_data_url.value + "&action=cohort").then
     (response => {
-      console.log(response)
+      //console.log(response)
       isLoading.value = false;
       isLoaded.value = true;
       if (!hasError(response)) {
         dusterData.value = response.data;
-        console.log(response.data);
+        //console.log(response.data);
         cwQueries.value = response.data.queries;
         numQueries.value = response.data.num_queries + 1
         saveSize.value = 100 / numQueries.value;
@@ -455,17 +449,21 @@ const hasError = (response:any) => {
   } else if (response.data?.status && response.data?.status !== 200) {
     console.log('hasError data.status != 200')
     console.log(response.data)
-    errorMessage.value += response.data.message + '<br>';
+    errorMessage.value = response.data.message;
     if (response.data.status == 500) systemError.value = true;
     return true;
   } else {
-    console.log('hasError data.stringify contains error')
     const data_str = JSON.stringify(response.data).toLowerCase()
     if (data_str.indexOf('error message') !== -1  ||
         data_str.indexOf('syntax error') !== -1 ||
         data_str.indexOf('fatal error') !== -1) {
+      // this is usually a redcap or php level error
+      console.log('hasError data.stringify contains error')
+      console.log(data_str)
       errorMessage.value += data_str;
-      //console.log("error:" + data_str);
+      systemError.value = true;
+      axios.get(get_data_url.value + "&action=error&message=" + errorMessage.value);
+      axios.get(get_data_url.value + "&action=logStatus&status=fail:Redcap EM error");
       return true;
     }
   }
@@ -482,11 +480,14 @@ const syncCohort = async() => {
   showSync.value = false ;
   try {
     const cohortSync = await axios.get(get_data_url.value + "&action=realTimeSyncCohort");
-    cohortProgress.value = 100;
-    totalProgress.value = saveSize.value;
+
     if (!hasError(cohortSync)) {
+      cohortProgress.value = 100;
+      totalProgress.value = saveSize.value;
       saveMessage.value = "Researcher Provided Information update complete.";
       cohortMessage.value = "Complete";
+    } else {
+      cohortMessage.value = "Error";
     }
   } catch (error:any) {
     errorMessage.value += error.message + '<br>';
@@ -494,7 +495,7 @@ const syncCohort = async() => {
   }
 }
 
-const nextStatusUpdateMessage = computed(()=> {
+const nextAsyncUpdateMessage = computed(()=> {
   let msg = ""
   if (totalProgress.value == 100) {
     return msg
@@ -510,30 +511,41 @@ const nextStatusUpdateMessage = computed(()=> {
 });
 
 const updateProgress = (dataSync:any) => {
-  console.log('updateProgress')
-  console.log(dataSync)
+  //console.log('updateProgress')
+  //console.log(dataSync)
   totalProgress.value += saveSize.value;
-
-  if (dataSync.data.numRemaining) {
-    totalProgress.value += dataSync.data.numRemaining * saveSize.value;
+  if (dataSync.data.message.indexOf('Get Data Error') > -1) {
+    let msg = 'Get Data Error:' + queryMessage(dataSync.data.query_name)
+    if (dataSync.data.num_queries > 1 &&  (dataSync.data.num_complete) > 1) {
+      msg += ". Data from completed queries for this collection window saved."
+    }
+    failures.value.push(msg)
   }
-  console.log('totalProgress ' + totalProgress.value)
+  if (dataSync.data.num_remaining) {
+    totalProgress.value += dataSync.data.num_remaining * saveSize.value;
+  }
+  //console.log('totalProgress ' + totalProgress.value)
   if (totalProgress.value > 99.5) {
     totalProgress.value = 100;
   }
-  if (!hasError(dataSync)) {
-    if (totalProgress.value === 100) {
-      saveMessage.value = "Data save complete";
-      axios.get(get_data_url.value + "&action=logStatus&status=complete");
-    } else {
-      saveMessage.value = toTitleCase(dataSync.data.message);
-    }
-  } else { // there's an error
-    if (totalProgress.value === 100) {
-      errorMessage.value = "Some queries had failures.  Data save incomplete.<br><br>" + errorMessage.value
-      saveMessage.value = ""
+  if (totalProgress.value === 100) {
+    if (!hasError(dataSync)) {
+      if (failures.value.length > 0) {
+        errorMessage.value =
+            "Data save incomplete. Some queries had failures.  An email regarding these issues has been sent to Duster support.<br><br>" +
+            failures.value.join('<br>')
+        saveMessage.value = ""
+      }  // else hasError should handle error message
       axios.get(get_data_url.value + "&action=logStatus&status=fail");
+    } else {
+        saveMessage.value = "Data save complete";
+        axios.get(get_data_url.value + "&action=logStatus&status=complete");
     }
+  } else {
+      saveMessage.value = toTitleCase(dataSync.data.message);
+      if (failures.value.length > 0) {
+        errorMessage.value = failures.value.join("<br>")
+      }
   }
 }
 
@@ -564,7 +576,7 @@ const sleepWithCountDown = async (milliseconds:number) => {
 }
 
 const sleep = async (milliseconds:number) => {
-  console.log('start sleep')
+  //console.log('start sleep')
   await new Promise(resolve => {
     return setTimeout(resolve, milliseconds)
   });
@@ -588,14 +600,14 @@ const asyncPollStatus = async() => {
           errorMessage.value += error.message + '<br>';
           systemError.value = true
         })
+    //console.log(response)
     if (!hasError(response) && response?.data && response.data.data_request_log) {
       const today = new Date();
       updateTime.value = zeropad(today.getHours()) + ":" + zeropad(today.getMinutes()) + ":" +
           zeropad(today.getSeconds());
       //if (response?.data) {
       dataRequestLog.value = response.data.data_request_log
-      console.log("count " + count)
-      console.log(response)
+      //console.log("count " + count)
       cancelled.value = (response.data.request_status.message == 'cancel')
 
       //if (dataRequestLog.value) {
@@ -608,7 +620,12 @@ const asyncPollStatus = async() => {
           complete = complete && (dataRequestLog.value[formName].complete ||
               dataRequestLog.value[formName].fail)
           if (dataRequestLog.value[formName].fail) {
-            failMessages += toTitleCase(dataRequestLog.value[formName]['last_message'].substr(5)) + '<br>'
+            failMessages += "Async Get Data Error: Unable to update " + formLabel(formName)
+                + ":" + queryMessage(dataRequestLog.value[formName]['last_message'].substr(5))
+            if (dataRequestLog.value[formName].num_queries > 1 && dataRequestLog.value[formName].num_complete > 1) {
+              failMessages += ". Data from completed queries for this collection window saved"
+            }
+            failMessages += '.<br>'
           }
         }
         //complete = (response.data.num_queries > 0 && response.data.num_queries == response.data.num_complete)
@@ -624,29 +641,31 @@ const asyncPollStatus = async() => {
     }
 
     if (!complete && count > asyncPollLimit.value) {
-      console.log("Hit async poll limit.");
+      //console.log("Hit async poll limit.");
       complete = true
       // TODO add option to resume status updates
       errorMessage.value =
           "The max number of status updates has been reached.  Click 'Duster: Get Data' link to continue to monitor this background request."
     }
     if (!complete) {
-      console.log('not complete. sleep ' + asyncPollInterval.value + ' seconds')
+      //console.log('not complete. sleep ' + asyncPollInterval.value + ' seconds')
       await sleepWithCountDown(asyncPollInterval.value * 1000)
-      console.log('stop sleep')
+      //console.log('stop sleep')
     }
   }
   countDownUpdate.value = ""
   if (totalProgress.value < 100) {
     totalProgress.value = 100
-    errorMessage.value = "Some queries had failures.  Data save incomplete.<br><br>" + errorMessage.value
+    errorMessage.value =
+        "Data save incomplete.  An email regarding the following query failures will be sent to Duster support.<br><br>" +
+        errorMessage.value
   }
   if (cancelled.value) {
     saveMessage.value = "Data Request Cancelled."
   } else {
     saveMessage.value = 'Data Request Complete.'
   }
-  console.log("async complete")
+  //console.log("async complete")
 }
 
 </script>

@@ -7,6 +7,8 @@ namespace Stanford\Duster;
  * stores POST form data in REDCap's new project creation page and URLs in local storage and redirects to Vue app
  */
 $redcap_version = explode('_',APP_PATH_WEBROOT)[1];
+$exit_url = APP_PATH_WEBROOT_FULL
+    . 'redcap_' . $redcap_version .'index.php?pid=' . PROJECT_ID;
 $record_base_url = APP_PATH_WEBROOT_FULL
     . 'redcap_' . $redcap_version .'DataEntry/record_home.php?pid=' . PROJECT_ID;
 $designer_url = APP_PATH_WEBROOT_FULL
@@ -37,6 +39,7 @@ $user_email = $module->getUser()->getEmail();
   getDataObj['user_email'] = "<?php echo $user_email; ?>";
   // store URL fore services/refreshSession.php
   getDataObj['refresh_session_url'] = "<?php echo $module->getUrl("services/refreshSession.php"); ?>";
+  getDataObj['exit_url'] = "<?php echo $exit_url; ?>" ;
 
   localStorage.setItem('getDataObj', JSON.stringify(getDataObj));
 

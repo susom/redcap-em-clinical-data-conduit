@@ -83,7 +83,8 @@ class RedcapToStarrLinkConfig
             "Content-Type: text/html"
         );
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        $this->module->emDebug("PID ". $this->module->getProjectId() . " DEBUG: RedcapToStarrLinkConfig invokeRedcapToStarrLink $url");
+        $this->module->emDebug("PID ". $this->module->getProjectId()
+            . " DEBUG: RedcapToStarrLinkConfig invokeRedcapToStarrLink $url");
         $resp = $this->module->handleStarrApiRequest($curl);
         return $resp;
     }
