@@ -113,10 +113,14 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    * sends a STARR-API GET request
    * @param $url
    * @param $service
-   * @return array|mixed
+   * @return array|bool|mixed|string
    */
   public function starrApiGetRequest($url, $service) {
     $token = $this->getValidToken($service);
+    $response = null;
+    $pid = $this->getProjectId() ? : 'No Project ID';
+
+    // attempt STARR-API GET request
     if ($token !== false) {
       $curl = curl_init($url);
       curl_setopt($curl, CURLOPT_URL, $url);
@@ -127,17 +131,19 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         "Authorization: Bearer " . $token
       );
       curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-      $this->emDebug("PID ". $this->getProjectId() . " DEBUG: starrApiGetRequest $url");
+      $this->emDebug("PID: $pid. GET request to $url");
       $response = $this->handleStarrApiRequest($curl);
       if (!empty($response['status']) && $response['status'] !== 200) {
-          $this->handleError("ERROR: starrApiGetRequest",
-                "URL: $url<br>RESPONSE BODY: " . print_r($response['body'], true)
-                . "<br>RESPONSE CODE: " . $response['status']
-                . "<br>ERROR: " . $response['message']);
+        $this->handleError("ERROR: starrApiGetRequest",
+          "URL: $url<br>RESPONSE BODY: " . print_r($response['body'], true)
+          . "<br>RESPONSE CODE: " . $response['status']
+          . "<br>ERROR: " . $response['message']);
       }
       curl_close($curl);
+    } else {
+      $this->emError("Failed to retrieve a Vertx token.");
     }
-      return $response;
+    return $response;
   }
 
   /**
@@ -180,33 +186,46 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         return $response;
     }
 
+  /**
+   * executes a cURL for a STARR-API request
+   * if there is an error, returns a JSON object with 'status' field indicating the response code
+   * and 'message' field containing the error message
+   * else, returns the cURL execution's response (string or JSON-decoded)
+   * @param $curl_handle
+   * @return array|bool|mixed|string
+   */
     // if there is an error, returns a json object with "status" field indicating the response code and "message"
     // field containing the error message
     // otherwise, return json decoded response or just the response string
     public function handleStarrApiRequest($curl_handle) {
-        //$response = http_post($url, $message, null, $content_type, null, $headers);
-        $response = curl_exec($curl_handle);
-        $resp_code = curl_getinfo($curl_handle, CURLINFO_RESPONSE_CODE);
-        $this->emDebug("DEBUG resp_code = $resp_code");
-        $curl_error = curl_error($curl_handle);
-        $response = (json_decode($response) === false) ? $response : json_decode($response, true);
-        // sometimes the valid response is a string and response code is 0 or missing.
-        //  Don't want to convert the response to an json object unless there's an error.
-        if ($resp_code !== 200 || (!empty($resp_code['status']) && $resp_code['status'] !== 200)
-            || !empty($curl_error) || !empty($response['error'])) {
-            $resp_arr['body'] = $response;
-            $resp_arr['status'] = (!empty($resp_code['status'])) ? $resp_code['status'] : $resp_code;
-            $resp_arr['message'] = implode('; ', array_filter([$response['error'], $curl_error]));
-            if (strpos($resp_arr['message'], 'Connection refused') > -1) {
-                $resp_arr['status'] = 500;
-            }
-            $response = $resp_arr;
+      //$response = http_post($url, $message, null, $content_type, null, $headers);
+      $pid = $this->getProjectId() ? : 'No Project ID';
+      $response = curl_exec($curl_handle);
+      $resp_code = curl_getinfo($curl_handle, CURLINFO_RESPONSE_CODE);
+      $this->emDebug("DEBUG resp_code = $resp_code");
+      $curl_error = curl_error($curl_handle);
+      $response = (json_decode($response) === false) ? $response : json_decode($response, true);
+      // sometimes the valid response is a string and response code is 0 or missing.
+      // Don't want to convert the response to a JSON object unless there's an error.
+      /*
+      if ($resp_code !== 200 || (!empty($resp_code['status']) && $resp_code['status'] !== 200)
+        || !empty($curl_error) || !empty($response['error'])) {
+      */
+      if ($resp_code !== 200 || (!empty($response['status']) && $response['status'] !== 200)
+      || !empty($curl_error) || !empty($response['error'])) {
+        $resp_arr['body'] = $response;
+        $resp_arr['status'] = (!empty($resp_code['status'])) ? $resp_code['status'] : $resp_code;
+        $resp_arr['message'] = implode('; ', array_filter([$response['error'], $curl_error]));
+        if (strpos($resp_arr['message'], 'Connection refused') > -1) {
+            $resp_arr['status'] = 500;
         }
-        curl_close($curl_handle);
-        $this->emDebug("PID ". $this->getProjectId() . ": DEBUG handleStarrApiRequest response: " .
-            ((json_encode($response) === false) ? $response : json_encode($response)));
+        $response = $resp_arr;
+      }
+      curl_close($curl_handle);
+      $this->emDebug("PID: $pid. STARR-API response " .
+        ((json_encode($response) === false) ? $response : json_encode($response)));
 
-        return $response;
+      return $response;
     }
 
   /**
@@ -215,23 +234,27 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    */
   public function getMetadata() {
     $metadata_url = $this->getSystemSetting("starrapi-metadata-url");
-    $this->emDebug("PID ". $this->getProjectId() . ":getMetadata url = $metadata_url for PID " . $this->getProjectId());
+    //$this->emDebug("PID ". $this->getProjectId() . ":getMetadata url = $metadata_url for PID " . $this->getProjectId());
+    $this->emDebug("STARR-API GET request to $metadata_url.");
     $metadata = $this->starrApiGetRequest($metadata_url,'ddp');
     // error handled by starrApiGetRequest
     return $metadata;
   }
 
-    public function refreshMetadata() {
-        // build and send GET request to config webservice
-        // add a '/' at the end of the url if it's not there
+  /**
+   * @return void
+   */
+  public function refreshMetadata() {
+    // build and send GET request to config webservice
+    // add a '/' at the end of the url if it's not there
 
-        $url = $this->getSystemSetting("starrapi-metadata-url");
-        $url = $url .
-            ((substr($url,-1) ==='/') ? "" : "/") . 'refresh';
-        $this->emDebug("PID ". $this->getProjectId() . ":refreshMetadata url = $url for PID " . $this->getProjectId());
-        $this->starrApiGetRequest($url,'ddp');
-        // error handled by starrApiGetRequest
-    }
+    $url = $this->getSystemSetting("starrapi-metadata-url");
+    $url = $url .
+        ((substr($url,-1) ==='/') ? "" : "/") . 'refresh';
+    $this->emDebug("PID ". $this->getProjectId() . ":refreshMetadata url = $url for PID " . $this->getProjectId());
+    $this->starrApiGetRequest($url,'ddp');
+    // error handled by starrApiGetRequest
+  }
 
   /**
    * Fetch user information from corresponding REDCap API token
@@ -259,6 +282,12 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     }
   }
 
+  /**
+   * @param $subject
+   * @param $message
+   * @param $throwable
+   * @return string
+   */
     // attaches PID to the $subject
     // logs error in duster.log as well as REDCap log
     // sends error to duster configured email

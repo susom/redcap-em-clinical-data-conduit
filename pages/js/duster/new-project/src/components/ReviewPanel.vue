@@ -631,7 +631,7 @@ const getDusterConfig = () =>{
 
 const createProject = ()=> {
   //createProjectMessage.value=JSON.stringify(getDusterConfig(), null, 4)
-  createProjectMessage.value = "Creating Redcap Project.  Please wait."
+  createProjectMessage.value = "Creating REDCap Project. Please wait."
   showCreateProjectDialog.value = true
   if (!props.dev) {
     const data = {
