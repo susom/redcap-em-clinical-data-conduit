@@ -157,14 +157,15 @@ function realTimeDataRequest($rtoslink_config, $query) {
         $resp = $rtoslink_config->updateData($query['query_name']);
         $query_label = $query['query_label'];
         $module->emDebug("PID $pid DEBUG: getData query= " . $query['query_name']
-            . "; resp =  $resp");
+            . "; resp = $resp");
         $return_obj['query_name'] = $query['query_name'];
-        if ($resp && !isset($resp['status'])) {
+        //$resp should = 1 if successful
+        if ($resp) {
             $return_obj['message'] = "Update for " . toQueryLabel($query_label) . " is complete.";
         } else {
             $request_id = getRequestId($pid);
             $module->handleError('Duster getData: Real Time', "Request ID $request_id Get Data Error: Unable to update "
-                . $query['query_name'] . ".");
+                . $query['query_name'] . ".  RedcapToStarrLink response: " . print_r($resp, true));
             $return_obj['message'] = 'Get Data Error: Unable to update ' . toQueryLabel($query_label);
         }
         // set status to 200 even in error case because we don't handle this as an error in the UI

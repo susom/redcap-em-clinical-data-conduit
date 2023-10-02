@@ -59,6 +59,7 @@ watch(localCohortProgress, async (updatedCohort) => {
       numComplete.value++;
       if (dataSync.data.message && dataSync.data.message.indexOf('Error') > -1) {
         updateMessage.value = 'Fail: ' + queryLabel(props.queries[i].query_label)
+        dataSync.data['form'] = label.value
         dataSync.data['num_queries'] = numQueries.value
         dataSync.data['num_complete'] = numComplete.value
         dataSync.data['num_remaining'] = numQueries.value - numComplete.value

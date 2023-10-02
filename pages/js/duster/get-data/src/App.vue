@@ -205,7 +205,7 @@
                 :style="{ width: '40vw' }"
                 header="Run in real time"
             >
-              <Card>
+              <Card style="box-shadow: none">
                 <template #content>
                   <Message severity="warn" :closable="false">
                     This will launch the DUSTER process to get the data and populate the REDCap project in real time.
@@ -511,20 +511,20 @@ const nextAsyncUpdateMessage = computed(()=> {
 });
 
 const updateProgress = (dataSync:any) => {
-  //console.log('updateProgress')
-  //console.log(dataSync)
+  console.log('updateProgress')
+  console.log(dataSync)
   totalProgress.value += saveSize.value;
   if (dataSync.data.message.indexOf('Get Data Error') > -1) {
-    let msg = 'Get Data Error:' + queryMessage(dataSync.data.query_name)
+    let msg = 'Failed: ' + queryMessage(dataSync.data.query_name) + " request for " + dataSync.data.form
     if (dataSync.data.num_queries > 1 &&  (dataSync.data.num_complete) > 1) {
-      msg += ". Data from completed queries for this collection window saved."
+      msg += ". Some data has already been saved."
     }
     failures.value.push(msg)
   }
   if (dataSync.data.num_remaining) {
     totalProgress.value += dataSync.data.num_remaining * saveSize.value;
   }
-  //console.log('totalProgress ' + totalProgress.value)
+  console.log('totalProgress ' + totalProgress.value)
   if (totalProgress.value > 99.5) {
     totalProgress.value = 100;
   }
@@ -535,12 +535,12 @@ const updateProgress = (dataSync:any) => {
             "Data save incomplete. Some queries had failures.  An email regarding these issues has been sent to Duster support.<br><br>" +
             failures.value.join('<br>')
         saveMessage.value = ""
-      }  // else hasError should handle error message
-      axios.get(get_data_url.value + "&action=logStatus&status=fail");
-    } else {
+        axios.get(get_data_url.value + "&action=logStatus&status=fail");
+      } else {
         saveMessage.value = "Data save complete";
         axios.get(get_data_url.value + "&action=logStatus&status=complete");
-    }
+      }
+    }  // else {hasError should handle error message}
   } else {
       saveMessage.value = toTitleCase(dataSync.data.message);
       if (failures.value.length > 0) {
