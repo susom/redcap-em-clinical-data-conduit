@@ -220,21 +220,24 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
           // response.data === 1 is valid
           irbCheckStatus.value = 'checked'
           if (response.data === 1) {
-            irbValid.value = true
-            irbCheckMessage.value = "IRB " + projectIrbNumber + " check success.  Fetching DUSTER metadata."
-            projectConfig.project_irb_number = projectIrbNumber
+            irbValid.value = true;
+            irbCheckMessage.value = "IRB " + projectIrbNumber + " check success.  Fetching DUSTER metadata.";
+            projectConfig.project_irb_number = projectIrbNumber;
           } else {
-            // TODO check if response contains Fatal Error
-            // TODO -> show SystemErrorDialog
-            // TODO -> trigger handleError() to log and notify DUSTER team
-            irbValid.value = false
+
+            if (response.data.includes("Fatal error")) {
+              systemError.value = true;
+              // TODO -> trigger handleError() to log and notify DUSTER team
+
+            }
+            irbValid.value = false;
             irbCheckMessage.value = "IRB " + projectIrbNumber
-                + " is invalid. Please enter a different IRB number."
+                + " is invalid. Please enter a different IRB number.";
           }
 
         })
         .catch(function (error) {
-          irbValid.value = false
+          irbValid.value = false;
           irbCheckMessage.value = "IRB Check Error"
           systemError.value = true ;
           console.log(error)

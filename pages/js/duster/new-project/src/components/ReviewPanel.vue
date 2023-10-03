@@ -662,32 +662,40 @@ const createProject = ()=> {
     // let axios = require('axios');
     // console.log("pre axios");
     axios.post(props.projectInfo.create_project_url, formData)
-        .then(function (response) {
-          // console.log("ajax response");
-          // console.log(response);
-          console.log("Response data: " + response.data);
-          if (response.data.toLowerCase().indexOf('error') > -1) {
-            console.log("Found Error");
-            createProjectError.value = true
-            createProjectMessage.value = response.data;
-            showCreateProjectDialog.value = true;
-          } else {
-            console.log(response.data);
-            showCreateProjectDialog.value = false;
-            window.location.href = response.data;
-          }
-        })
-        .catch(function (error) {
-          // TODO
-          createProjectMessage.value = error.message;
-          createProjectError.value = true
+      .then(function (response) {
+        // console.log("ajax response");
+        // console.log(response);
+        console.log("Response data: " + response.data);
+        if(response.data.toLowerCase().indexOf('error') > -1) {
+          console.log("Found Error");
+          createProjectError.value = true;
+          createProjectMessage.value = response.data;
           showCreateProjectDialog.value = true;
-          console.log("Catch: " + error);
+        } else if (response.data.toLowerCase().includes("fatal error")) {
+          createProjectMessage.value = "Oops";
+          createProjectError.value = true;
+          showCreateProjectDialog.value = true;
+          // TODO -> trigger handleError() to log and notify DUSTER team
 
-          console.log(error.toJSON());
-          console.log(error.response);
-          console.log(error.response.data);
-        });
+        } else {
+          showCreateProjectDialog.value = false;
+          window.location.href = response.data;
+        }
+      })
+      .catch(function (error) {
+        // TODO
+        if (error.response.status == 400 || error.response.status == 500) {
+
+        }
+        createProjectMessage.value = error.message;
+        createProjectError.value = true;
+        showCreateProjectDialog.value = true;
+        console.log("Catch: " + error);
+
+        console.log(error.toJSON());
+        console.log(error.response);
+        console.log(error.response.data);
+      });
   }
 }
 

@@ -85,9 +85,9 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       $sunet = $this->getUser()->getUsername();
       return in_array($sunet, $allowlist);
     } catch(Exception $e) {
-        $this->handleError("ERROR: isUserAllowed Exception",
-            "Checking user " . $this->getUser()->getUsername()
-            . " on allowlist " . print_r($allowlist, true), $e);
+      $username = $this->getUser()->getUsername();
+      $this->handleError("ERROR: isUserAllowed Exception",
+        "Checking user $username on allowlist" . print_r($allowlist, true), $e);
     }
     return false;
   }
@@ -103,8 +103,9 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       $tokenMgnt = \ExternalModules\ExternalModules::getModuleInstance('vertx_token_manager');
       $token = $tokenMgnt->findValidToken($service);
     } catch (Exception $ex) {
-        $this->handleError("ERROR: getValidToken Exception",
-            "Could not find a valid token for service $service", $ex);
+      $this->handleError(
+        "ERROR: getValidToken Exception",
+          "Could not find a valid token for service $service", $ex);
     }
     return $token;
   }
@@ -151,40 +152,43 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    * @param $url
    * @param $service
    * @param $post_fields
-   * @return array|mixed
+   * @return array|bool|mixed|string|null
    */
-    public function starrApiPostRequest($url, $service, $post_fields)
-    {
-        $token = $this->getValidToken($service);
-        $resp_arr = [];
-        $message = json_encode($post_fields);
-        $content_type = 'application/json';
-        if ($token !== false) {
-            $headers = array(
-                "Content-Type: " . $content_type,
-                "Authorization: Bearer " . $token,
-                "Content-Length: " . length($message)
-            );
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, $url);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $message);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            $this->emDebug("PID ". $this->getProjectId() . ": DEBUG starrApiPostRequest $url; post_fields $message;");
-            $response = $this->handleStarrApiRequest($curl);
-            if (!empty($response['status']) && $response['status'] !== 200) {
-                $this->handleError("ERROR: starrApiPostRequest",
-                    "URL: $url;<br>POST_FIELDS: " . $message
-                    . ";<br>RESPONSE BODY: "
-                    . print_r($response['body'], true)
-                    . ";<br>RESPONSE CODE: " . $response['status']
-                    . ";<br>ERROR: " . $response['message']);
-            }
-            curl_close($curl);
-        }
-        return $response;
+  public function starrApiPostRequest($url, $service, $post_fields) {
+    $token = $this->getValidToken($service);
+    $response = null;
+    $pid = $this->getProjectId() ? : 'No Project ID';
+
+    $message = json_encode($post_fields);
+    $content_type = 'application/json';
+    if ($token !== false) {
+      $headers = array(
+        "Content-Type: " . $content_type,
+        "Authorization: Bearer " . $token,
+        "Content-Length: " . length($message)
+      );
+      $curl = curl_init();
+      curl_setopt($curl, CURLOPT_URL, $url);
+      curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+      curl_setopt($curl, CURLOPT_POST, true);
+      curl_setopt($curl, CURLOPT_POSTFIELDS, $message);
+      curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+      $this->emDebug("PID: $pid. POST request to $url; post_fields $message;");
+      $response = $this->handleStarrApiRequest($curl);
+      if (!empty($response['status']) && $response['status'] !== 200) {
+        $this->handleError("ERROR: starrApiPostRequest",
+            "URL: $url;<br>POST_FIELDS: " . $message
+            . ";<br>RESPONSE BODY: "
+            . print_r($response['body'], true)
+            . ";<br>RESPONSE CODE: " . $response['status']
+            . ";<br>ERROR: " . $response['message']);
+      }
+      curl_close($curl);
+    } else {
+      $this->emError("Failed to retrieve a Vertx token.");
     }
+    return $response;
+  }
 
   /**
    * executes a cURL for a STARR-API request
@@ -288,33 +292,35 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     // attaches PID to the $subject
     // logs error in duster.log as well as REDCap log
     // sends error to duster configured email
-  // TODO include USERID
+  // TODO check that USERID is correctly being included
   public function handleError($subject, $message, $throwable=null) {
-      $subject = "PID" . $this->getProjectId() . '-' . $subject;
-      //$subject = "PID: " . $this->getProjectId() ;
+    $pid = $this->getProjectId() ? : 'No Project ID';
+    $user_id = USERID;
 
-      if (!empty($throwable)) {
-        $message .= "<br>Message: ".$throwable->getMessage()."<br>Trace: "
-            .$throwable->getTraceAsString();
-        $this->emError("PID ". $this->getProjectId() . " ERROR: Subject: $subject; Message: $message", $throwable);
+    $subject = "User: $user_id | PID: $pid | $subject";
+
+    if (!empty($throwable)) {
+      $message .= "<br>Message: ".$throwable->getMessage()."<br>Trace: "
+          .$throwable->getTraceAsString();
+      $this->emError("User: $user_id | PID: $pid | ERROR: Subject: $subject; Message: $message", $throwable);
     } else {
-        $this->emError("PID ". $this->getProjectId() . " ERROR: Subject: $subject; Message: $message");
+      $this->emError("User: $user_id | PID: $pid | ERROR: Subject: $subject; Message: $message");
     }
       REDCap::logEvent("DUSTER: ERROR $message");
       $duster_email = $this->getSystemSetting("duster-email");
     if (!empty($duster_email)) {
-        $emailStatus = REDCap::email($duster_email,'no-reply@stanford.edu', $subject,
-            $message);
-        if (!$emailStatus) {
-            REDCap::logEvent("DUSTER: Email notification to $duster_email failed");
-            $this->emError("PID ". $this->getProjectId() . " ERROR: Email Notification to $duster_email Failed. Subject: $subject; MESSAGE: $message");
-            return "Unable to send an error notification email to $duster_email. Please notify your REDCap administrator with the following error message: " . $message;
-        } else {
-            return "$message  An email regarding this issue has been sent to $duster_email.";
-        }
+      $emailStatus = REDCap::email($duster_email,'no-reply@stanford.edu', $subject,
+          $message);
+      if (!$emailStatus) {
+        REDCap::logEvent("DUSTER: Email notification to $duster_email failed");
+        $this->emError("User $user_id | PID $pid | ERROR: Email Notification to $duster_email Failed. Subject: $subject; MESSAGE: $message");
+        return "Unable to send an error notification email to $duster_email. Please notify your REDCap administrator with the following error message: " . $message;
+      } else {
+        return "$message  An email regarding this issue has been sent to $duster_email.";
+      }
     } else {
-        $this->emError("PID ". $this->getProjectId() . " ERROR: No DUSTER email configured as a system-level setting. Unable send message SUBJECT: $subject; MESSAGE: $message");
-        return "Unable to send an error notification email to DUSTER's development team. Please notify your REDCap administrator of the following error: " . $message;
+      $this->emError("User $user_id | PID $pid | ERROR: No DUSTER email configured as a system-level setting. Unable send message SUBJECT: $subject; MESSAGE: $message");
+      return "Unable to send an error notification email to DUSTER's development team. Please notify your REDCap administrator of the following error: " . $message;
     }
   }
 
