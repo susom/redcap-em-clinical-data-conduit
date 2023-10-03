@@ -36,6 +36,9 @@ namespace Stanford\Duster;
 
   postObj['redcap_new_project_url'] = "<?php echo APP_PATH_WEBROOT_FULL . "index.php?action=create"; ?>";
 
+  // store URL for services/reportFatalError.php
+  postObj['report_fatal_error_url'] = "<?php echo $module->getUrl("services/reportFatalError.php"); ?>" ;
+
   // store URL for services/checkIRB.php
   postObj['check_irb_url'] = "<?php echo $module->getUrl("services/checkIRB.php"); ?>" ;
 
@@ -55,6 +58,6 @@ namespace Stanford\Duster;
   localStorage.setItem('postObj', JSON.stringify(postObj));
 
   // redirect to 'new-project' Vue app for creating a new project
-  window.location = "<?php echo $module->getUrl("pages/js/vue/duster/dist/index.html"); ?>";
+  window.location = "<?php echo $module->getUrl("pages/js/duster/new-project/dist/index.html"); ?>";
 
 </Script>
