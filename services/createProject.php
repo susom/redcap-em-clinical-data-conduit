@@ -20,7 +20,6 @@ require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
 
 /* get JSON from POST request */
 $data = json_decode($_POST['data'], true);
-// $module->emLog($data);
 
 /* construct the ODM XML string */
 try {
@@ -113,7 +112,8 @@ try {
 } catch (Throwable $ex) {
   http_response_code(400);
   $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to create an ODM XML string.", $ex );
-  print "Error: Failed to create project. " . $msg;
+  echo "fail_project";
+  // print "Error: Failed to create project. " . $msg;
   exit();
 }
 
@@ -147,7 +147,8 @@ if (!$super_token) {
   } else {
     http_response_code(500);
     $msg = $module->handleError('DUSTER Error: Project Create', "Failed to create a REDCap SUPER API Token for user " . USERID);
-    print "Error: Failed to create project. " . $msg;
+    echo "fail_project";
+    // print "Error: Failed to create project. " . $msg;
     exit();
   }
 }
@@ -163,7 +164,6 @@ $fields = array(
 
 $ch = curl_init();
 $api_url = APP_PATH_WEBROOT_FULL . "api/";
-// $api_url= "http://localhost:80/redcap/api/";
 
 $module->emDebug("Create Project POST Request to REDCap API URL $api_url");
 curl_setopt($ch, CURLOPT_URL, $api_url);
@@ -189,16 +189,11 @@ if ($delete_token) {
 if ($redcap_api_response !== false && strlen($redcap_api_response) === 32) {
   $project_token = $redcap_api_response;
 } else { // failure: cURL returned false or string JSON containing error
-  /*
-  if (strlen($redcap_api_response) === 32 && is_array(json_decode($redcap_api_response, true)) === true) {
-    $redcap_api_response = json_encode($redcap_api_response, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-  }
-  */
-
   http_response_code(500);
   $msg = $module->handleError('DUSTER Error: Project Create',
     "Create Project POST Request to REDCap API failed. Response from REDCap API: $redcap_api_response");
-  print "Error: Failed to create project. " . $msg;
+  echo "fail_project";
+  // print "Error: Failed to create project. " . $msg;
   exit();
 }
 
@@ -208,7 +203,8 @@ try {
 } catch (Throwable $ex) {
   http_response_code(500);
   $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to retrieve user token/project id.", $ex);
-  print "Error: Failed to retrieve user token/project id. " . $msg;
+  echo "fail_project_post";
+  // print "Error: Failed to retrieve user token/project id. " . $msg;
   exit();
 }
 
@@ -249,7 +245,8 @@ $project_info_sql_result = $module->query(
 if($project_info_sql_result !== true) {
   http_response_code(500);
   $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to add project info in services/createProject.php. Db insert failed with data=".print_r($data, true));
-  print "Error: A REDCap project was created (pid $project_id), but DUSTER failed to add project info to it. " . $msg;
+  echo "fail_project_post";
+  // print "Error: A REDCap project was created (pid $project_id), but DUSTER failed to add project info to it. " . $msg;
   exit();
 }
 
@@ -268,7 +265,8 @@ $em_module_sql_result = $module->query('INSERT INTO `redcap_external_module_sett
 if (!$em_module_sql_result) {
   http_response_code(500);
   $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to enable DUSTER EM on new project $project_id. Db insert failed with following values: external_module_id" .  $external_module_id->fetch_assoc()['external_module_id'] . ", project_id: $project_id, key: enabled, type: boolean, value: true");
-  print "Error: A new REDCap project was created (pid $project_id), but the DUSTER EM failed to enable itself on the project. " . $msg;
+  echo "fail_project_post";
+  // print "Error: A new REDCap project was created (pid $project_id), but the DUSTER EM failed to enable itself on the project. " . $msg;
   exit();
 }
 
@@ -295,30 +293,33 @@ $config_url = $module->getSystemSetting("starrapi-config-url");
 $save_config_results = $module->starrApiPostRequest($config_url, 'ddp', $config_data);
 if ($save_config_results === null) {
   http_response_code(500);
+  echo "fail_project_post";
   exit();
 } else if (array_key_exists('status', $save_config_results)) {
   http_response_code($save_config_results['status']);
+  echo "fail_project_post";
   exit();
 }
 
 /* Enable and configure REDCap to STARR Link EM on project */
 $module->emLog("Enabling and configuring REDCap to STARR Link EM on pid $project_id.");
-// $em_config = $save_config_results;
-// $module->emLog('em_config: '. json_encode($save_config_results, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
 if ($save_config_results['success'] && !empty($save_config_results['rcToStarrLinkConfig'])) {
   $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module);
   if ($rctostarr_config->enableRedcapToStarrLink() !== true) {
     http_response_code(500);
+    echo "fail_project_post";
     exit();
   }
   $rctostarr_config->configureRedcapToStarrLink($save_config_results);
 
   $module->emDebug(APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject");
   echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
+  exit();
 } else {
   http_response_code(500);
   $msg = $module->handleError("Duster Error: Project Create",  "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $save_config_results['error']);
-
-  print "Error: A new REDCap project was created (pid $project_id), but DUSTER's data queries for this project failed to set up. " . $msg;
+  echo "fail_project_post";
+  //  print "Error: A new REDCap project was created (pid $project_id), but DUSTER's data queries for this project failed to set up. " . $msg;
+  exit();
 }

@@ -13,7 +13,6 @@ try {
     $irb_status = $IRB->isIRBValid($irb_num);
     $irb_status_string = $irb_status === true ? 'true' : 'false';
     $module->emLog("Status for IRB number $irb_num returned by IRB Lookup EM: $irb_status_string.");
-
 } catch(Exception $ex) {
     http_response_code(500);
     $module->emError("Exception when creating an instance of the IRB Lookup EM to look up IRB number $irb_num: $ex");

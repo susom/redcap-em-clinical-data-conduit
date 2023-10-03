@@ -5,6 +5,7 @@ namespace Stanford\Duster;
 /**
  * service page to retrieve DUSTER metadata for new-project Vue app via STARR-API
  */
+
 $results = $module->getMetadata();
 if ($results === null) {
   http_response_code(500);

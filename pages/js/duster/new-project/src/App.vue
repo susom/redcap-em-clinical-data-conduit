@@ -134,15 +134,14 @@ import Toast from 'primevue/toast'
 import {useVuelidate} from "@vuelidate/core";
 
 const projectConfig = JSON.parse(localStorage.getItem('postObj') || '{}');
-//console.log("postObj" + localStorage.getItem('postObj'))
 localStorage.removeItem('postObj');
 
 setInterval(() => {
   axios.get(projectConfig.refresh_session_url)
       .then(response => {
-        console.log(response);
+        // console.log(response);
       }).catch(function (error) {
-    console.log(error)
+    // console.log(error)
   });
 },60000);
 
@@ -225,9 +224,18 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
             projectConfig.project_irb_number = projectIrbNumber;
           } else {
 
-            if (response.data.includes("Fatal error")) {
+            if (response.data.toLowerCase().includes("fatal error")) {
               systemError.value = true;
-              // TODO -> trigger handleError() to log and notify DUSTER team
+              let errorFormData = new FormData();
+              errorFormData.append('redcap_csrf_token', redcapCsrfToken);
+              errorFormData.append('fatal_error', response.data);
+              axios.post(projectConfig.report_fatal_error_url, errorFormData)
+                .then(function (response) {
+
+                })
+                .catch(function (error) {
+
+                });
 
             }
             irbValid.value = false;
@@ -255,7 +263,7 @@ const irbCheckCancel = () => {
   irbCheckVisible.value = false
   // return to project create page for invalid IRBs
   if (!irbValid.value) {
-    window.location.href = projectConfig.redcap_new_project_url
+    window.location.href = projectConfig.redcap_new_project_url;
   }
 }
 

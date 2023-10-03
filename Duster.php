@@ -202,8 +202,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     // field containing the error message
     // otherwise, return json decoded response or just the response string
     public function handleStarrApiRequest($curl_handle) {
-      //$response = http_post($url, $message, null, $content_type, null, $headers);
-      $pid = $this->getProjectId() ? : 'No Project ID';
       $response = curl_exec($curl_handle);
       $resp_code = curl_getinfo($curl_handle, CURLINFO_RESPONSE_CODE);
       $curl_error = curl_error($curl_handle);
@@ -235,8 +233,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    */
   public function getMetadata() {
     $metadata_url = $this->getSystemSetting("starrapi-metadata-url");
-    //$this->emDebug("PID ". $this->getProjectId() . ":getMetadata url = $metadata_url for PID " . $this->getProjectId());
-    // $this->emDebug("STARR-API GET request to $metadata_url.");
     $metadata = $this->starrApiGetRequest($metadata_url,'ddp');
     // error handled by starrApiGetRequest
     return $metadata;
@@ -248,7 +244,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
   public function refreshMetadata() {
     // build and send GET request to config webservice
     // add a '/' at the end of the url if it's not there
-
     $url = $this->getSystemSetting("starrapi-metadata-url");
     $url = $url .
         ((substr($url,-1) ==='/') ? "" : "/") . 'refresh';
@@ -292,7 +287,6 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     // attaches PID to the $subject
     // logs error in duster.log as well as REDCap log
     // sends error to duster configured email
-  // TODO check that USERID is correctly being included
   public function handleError($subject, $message, $throwable=null) {
     $pid = $this->getProjectId() ? : 'No Project ID';
     $user_id = USERID;
