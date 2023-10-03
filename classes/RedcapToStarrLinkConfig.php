@@ -20,14 +20,31 @@ class RedcapToStarrLinkConfig
         $this->module = $module;
     }
 
-    /*enable RtoS Link EM in the project*/
-    public function enableRedcapToStarrLink() {
-        $this->module->emDebug("PID ". $this->module->getProjectId() . ' Enabling REDCap to STARR Link on project id ' .
-            $this->project_id);
-        $external_module_id = $this->module->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = ?', ['redcap_to_starr_link']);
+  /**
+   * enables REDCap to STARR Link EM on the REDCap project via REDCap DB queries
+   * returns true if successful, else returns false
+   * @return bool
+   */
+  public function enableRedcapToStarrLink() {
+    $this->module->emDebug("PID: $this->project_id | Enabling REDCap to STARR Link.");
+    try {
+      $external_module_id = $this->module->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = ?', ['redcap_to_starr_link']);
+      $external_module_id = $external_module_id->fetch_assoc()['external_module_id'];
+      if (is_numeric($external_module_id) === true) {
         $this->module->query('INSERT INTO `redcap_external_module_settings`(`external_module_id`, `project_id`, `key`, `type`, `value`) VALUES (?, ?, ?, ?, ?)',
-            [$external_module_id->fetch_assoc()['external_module_id'], $this->project_id, 'enabled', 'boolean', 'true']);
+           [$external_module_id, $this->project_id, 'enabled', 'boolean', 'true']);
+      } else {
+        throw new Exception("REDCap DB query to identify redcap_to_starr_link's external_module_id failed.");
+      }
+    } catch (Exception $ex) {
+      $this->module->handleError(
+        "ERROR: Exception in enableRedcapToStarrLink() for pid $this->project_id",
+        "REDCap DB queries to enable REDCap to STARR Link EM failed.",
+        $ex);
+      return false;
     }
+    return true;
+  }
 
     /*takes JsonObject returned from starr-api to configure project level RtoS Link EM settings*/
     public function configureRedcapToStarrLink($em_config) {

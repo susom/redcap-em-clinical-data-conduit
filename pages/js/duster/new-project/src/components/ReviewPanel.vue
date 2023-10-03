@@ -93,19 +93,19 @@
     <Column field="redcap_field_note" header="REDCap Field Note"></Column>
   </DataTable>
 
-    <DataTable :value="cw.data.outcomes" class="mt-2"
-               tableStyle="min-width: 50rem"
-               v-if="cw.data.outcomes.length > 0">
-      <template #header>
-        <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-          <span class="text-0 text-900 font-bold">Outcomes</span>
-        </div>
-      </template>
-      <Column field="label" header="Label"></Column>
-      <Column field="redcap_field_name" header="REDCap Field Name"></Column>
-      <Column field="redcap_field_type" header="REDCap Field Type"></Column>
-      <Column field="redcap_options" header="REDCap Options"></Column>
-    </DataTable>
+  <DataTable :value="cw.data.outcomes" class="mt-2"
+             tableStyle="min-width: 50rem"
+             v-if="cw.data.outcomes.length > 0">
+    <template #header>
+      <div class="flex flex-wrap align-items-center justify-content-between gap-2">
+        <span class="text-0 text-900 font-bold">Outcomes</span>
+      </div>
+    </template>
+    <Column field="label" header="Label"></Column>
+    <Column field="redcap_field_name" header="REDCap Field Name"></Column>
+    <Column field="redcap_field_type" header="REDCap Field Type"></Column>
+    <Column field="redcap_options" header="REDCap Options"></Column>
+  </DataTable>
 
     <!-- single table version of outcomes -->
     <!--ScoreSummaryTable
@@ -149,6 +149,9 @@
       <Button label="Close" icon="pi pi-times"  @click="showCreateProjectDialog=false"/>
     </template>
   </Dialog>
+  <SystemErrorDialog
+    v-model:error-message="systemErrorMessage"
+    v-if="systemErrorFlag===true"/>
 </template>
 
 <script setup lang="ts">
@@ -165,6 +168,7 @@ import type {SubscoreDependency} from "@/types/Subscore";
 import {AGGREGATE_OPTIONS} from "@/types/FieldConfig";
 import ScoreSummaryTablePerScore from "@/components/ScoreSummaryTablePerScore.vue";
 import axios from "axios";
+import SystemErrorDialog from "@shared/components/SystemErrorDialog.vue";
 
 const props = defineProps({
   dev: Boolean,
@@ -228,7 +232,8 @@ const rpDataConfigs = computed<any> (()=>{
         redcap_field_name: rpdate.redcap_field_name,
         redcap_field_type: rpdate.redcap_field_type,
         value_type: rpdate.value_type,
-        phi: rpdate.phi}
+        phi: rpdate.phi
+      }
     }
   }
   return rpInfo
@@ -243,8 +248,8 @@ const demographicsConfigs = computed<FieldConfig[]>(()=>{
       redcap_field_type: demo.redcap_field_type,
       label: demo.label,
       value_type: demo.value_type,
-      phi: demo.phi})
-    )
+      phi: demo.phi
+    }))
   }
   return demographics
 })
@@ -617,9 +622,11 @@ const getScoresConfig = (scoresMeta:FieldMetadata[], index:number) => {
   return scoresArr
 }
 
-const showCreateProjectDialog = ref<boolean>(false)
-const createProjectMessage = ref<string>("")
-const createProjectError = ref<boolean>(false)
+const showCreateProjectDialog = ref<boolean>(false);
+const createProjectMessage = ref<string>("");
+const createProjectError = ref<boolean>(false);
+const systemErrorMessage = ref<string>("");
+const systemErrorFlag = ref<boolean>(false);
 
 const getDusterConfig = () =>{
   return JSON.parse(JSON.stringify({
@@ -629,10 +636,15 @@ const getDusterConfig = () =>{
   }))
 }
 
-const createProject = ()=> {
-  //createProjectMessage.value=JSON.stringify(getDusterConfig(), null, 4)
-  createProjectMessage.value = "Creating Redcap Project.  Please wait."
-  showCreateProjectDialog.value = true
+const showSystemError = (message:string) => {
+  showCreateProjectDialog.value = false;
+  systemErrorMessage.value = message;
+  systemErrorFlag.value = true;
+}
+
+const createProject = () => {
+  createProjectMessage.value = "Creating REDCap Project. Please wait.";
+  showCreateProjectDialog.value = true;
   if (!props.dev) {
     const data = {
       surveys_enabled: props.projectInfo.surveys_enabled,
@@ -658,31 +670,70 @@ const createProject = ()=> {
     formData.append('redcap_csrf_token', props.projectInfo.redcap_csrf_token);
     formData.append('data', JSON.stringify(data));
 
-    // use services/importMetadata.php if project has already been created
-    // let axios = require('axios');
-    // console.log("pre axios");
     axios.post(props.projectInfo.create_project_url, formData)
-        .then(function (response) {
-          // console.log("ajax response");
-          // console.log(response);
-          console.log("Response data: " + response.data);
-          if (response.data.toLowerCase().indexOf('error') > -1) {
-            console.log("Found Error");
-            createProjectError.value = true
-            createProjectMessage.value = response.data;
-            showCreateProjectDialog.value = true;
-          } else {
-            console.log(response.data);
-            showCreateProjectDialog.value = false;
-            window.location.href = response.data;
-          }
-        })
-        .catch(function (error) {
-          createProjectMessage.value = error.message;
-          createProjectError.value = true
+      .then(function (response) {
+        if (response.data.toLowerCase().includes("fatal error")) {
+          /*
+          createProjectMessage.value = "Oops";
+          createProjectError.value = true;
           showCreateProjectDialog.value = true;
-          console.log("Catch: " + error);
-        });
+          */
+          showSystemError("A project was not properly created and configured.");
+
+          // send a report of the fatal error
+          let errorFormData = new FormData();
+          errorFormData.append('fatal_error', response.data);
+          errorFormData.append('redcap_csrf_token', props.projectInfo.redcap_csrf_token);
+          errorFormData.append('fatal_error', response.data);
+          axios.post(props.projectInfo.report_fatal_error_url, errorFormData)
+            .then(function (response) {
+
+            })
+            .catch(function (error) {
+
+            });
+        } else if (response.data.toLowerCase().indexOf('error') > -1) {
+          showSystemError("A project was not properly created and configured.");
+          /*
+          console.log("Found Error");
+          createProjectError.value = true;
+          createProjectMessage.value = response.data;
+          showCreateProjectDialog.value = true;
+          */
+        } else { // success
+          // showCreateProjectDialog.value = false;
+          window.location.href = response.data;
+        }
+      })
+      .catch(function (error) {
+        if (error.response.status == 400 || error.response.status == 500) {
+          switch (error.response.data) {
+            // a project was created, but something went wrong during configuration
+            case 'fail_project_post':
+              showSystemError("A project was created, but it was not properly configured.");
+              break;
+            // a project could not be created
+            case 'fail_project':
+              showSystemError("A project was not created.");
+              break;
+            // something wrong happened
+            default:
+              showSystemError("A project was not properly created and configured.");
+          }
+        } else {
+          showSystemError("A project was not properly created and configured.");
+        }
+        /*
+        createProjectMessage.value = error.message;
+        createProjectError.value = true;
+        showCreateProjectDialog.value = true;
+        console.log("Catch: " + error);
+
+        console.log(error.toJSON());
+        console.log(error.response);
+        console.log(error.response.data);
+        */
+      });
   }
 }
 

@@ -134,15 +134,14 @@ import Toast from 'primevue/toast'
 import {useVuelidate} from "@vuelidate/core";
 
 const projectConfig = JSON.parse(localStorage.getItem('postObj') || '{}');
-//console.log("postObj" + localStorage.getItem('postObj'))
 localStorage.removeItem('postObj');
 
 setInterval(() => {
   axios.get(projectConfig.refresh_session_url)
       .then(response => {
-        console.log(response);
+        // console.log(response);
       }).catch(function (error) {
-    console.log(error)
+    // console.log(error)
   });
 },60000);
 
@@ -220,18 +219,33 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
           // response.data === 1 is valid
           irbCheckStatus.value = 'checked'
           if (response.data === 1) {
-            irbValid.value = true
-            irbCheckMessage.value = "IRB " + projectIrbNumber + " check success.  Fetching DUSTER metadata."
-            projectConfig.project_irb_number = projectIrbNumber
+            irbValid.value = true;
+            irbCheckMessage.value = "IRB " + projectIrbNumber + " check success.  Fetching DUSTER metadata.";
+            projectConfig.project_irb_number = projectIrbNumber;
           } else {
-            irbValid.value = false
+
+            if (response.data.toLowerCase().includes("fatal error")) {
+              systemError.value = true;
+              let errorFormData = new FormData();
+              errorFormData.append('redcap_csrf_token', redcapCsrfToken);
+              errorFormData.append('fatal_error', response.data);
+              axios.post(projectConfig.report_fatal_error_url, errorFormData)
+                .then(function (response) {
+
+                })
+                .catch(function (error) {
+
+                });
+
+            }
+            irbValid.value = false;
             irbCheckMessage.value = "IRB " + projectIrbNumber
-                + " is invalid. Please enter a different IRB number."
+                + " is invalid. Please enter a different IRB number.";
           }
 
         })
         .catch(function (error) {
-          irbValid.value = false
+          irbValid.value = false;
           irbCheckMessage.value = "IRB Check Error"
           systemError.value = true ;
           console.log(error)
@@ -249,7 +263,7 @@ const irbCheckCancel = () => {
   irbCheckVisible.value = false
   // return to project create page for invalid IRBs
   if (!irbValid.value) {
-    window.location.href = projectConfig.redcap_new_project_url
+    window.location.href = projectConfig.redcap_new_project_url;
   }
 }
 
@@ -262,20 +276,18 @@ const getDusterMetadata = (metadataUrl:string) => {
     scoreOptions.value = resp.data.scores;
     clinicalDateOptions.value = resp.data.clinical_dates
   } else {
-
     axios.get(metadataUrl)
-        .then(response => {
-          demographicsOptions.value = response.data.demographics;
-          labOptions.value = response.data.labs;
-          vitalOptions.value = response.data.vitals;
-          outcomeOptions.value = response.data.outcomes;
-          scoreOptions.value = response.data.scores;
-          clinicalDateOptions.value = response.data.clinical_dates
-          irbCheckVisible.value = false
-        }).catch(function (error) {
-      irbCheckMessage.value = "Unable to load DUSTER metadata"
-      systemError.value = true ;
-      console.log(error)
+      .then(response => {
+        demographicsOptions.value = response.data.demographics;
+        labOptions.value = response.data.labs;
+        vitalOptions.value = response.data.vitals;
+        outcomeOptions.value = response.data.outcomes;
+        scoreOptions.value = response.data.scores;
+        clinicalDateOptions.value = response.data.clinical_dates;
+        irbCheckVisible.value = false;
+      }).catch(function (error) {
+        irbCheckMessage.value = "Unable to load DUSTER metadata";
+        systemError.value = true ;
     });
   }
 }
