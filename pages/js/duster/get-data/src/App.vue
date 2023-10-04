@@ -609,30 +609,35 @@ const asyncPollStatus = async() => {
       dataRequestLog.value = response.data.data_request_log
       //console.log("count " + count)
       cancelled.value = (response.data.request_status.message == 'cancel')
+      const failed = (response.data.request_status.message.indexOf('fail') !== -1)
+      //console.log("failed " + failed)
+      let failMessages = ""
 
       //if (dataRequestLog.value) {
       if (cancelled.value) {
         complete = true
+      } else if (failed) {
+        complete = true
+        failMessages = response.data.request_status.message
       } else {
-        let failMessages = ""
         complete = true
         for (const formName in dataRequestLog.value) {
           complete = complete && (dataRequestLog.value[formName].complete ||
               dataRequestLog.value[formName].fail)
           if (dataRequestLog.value[formName].fail) {
-            failMessages += "Async Get Data Error: Unable to update " + formLabel(formName)
+            failMessages += "Unable to update " + formLabel(formName)
                 + ":" + queryMessage(dataRequestLog.value[formName]['last_message'].substr(5))
             if (dataRequestLog.value[formName].num_queries > 1 && dataRequestLog.value[formName].num_complete > 1) {
-              failMessages += ". Data from completed queries for this collection window saved"
+              failMessages += ". Completed queries for this collection window saved"
             }
             failMessages += '.<br>'
           }
         }
         //complete = (response.data.num_queries > 0 && response.data.num_queries == response.data.num_complete)
         totalProgress.value = 100 * response.data.num_complete / response.data.num_queries
-        if (failMessages.length > 0) {
-          errorMessage.value = failMessages
-        }
+      }
+      if (failMessages.length > 0) {
+        errorMessage.value = failMessages
       }
       //}
     } else {
@@ -656,11 +661,11 @@ const asyncPollStatus = async() => {
   countDownUpdate.value = ""
   if (totalProgress.value < 100) {
     totalProgress.value = 100
+    saveMessage.value = ""
     errorMessage.value =
         "Data save incomplete.  An email regarding the following query failures will be sent to Duster support.<br><br>" +
         errorMessage.value
-  }
-  if (cancelled.value) {
+  } else if (cancelled.value) {
     saveMessage.value = "Data Request Cancelled."
   } else {
     saveMessage.value = 'Data Request Complete.'
