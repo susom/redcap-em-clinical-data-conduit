@@ -8,6 +8,9 @@ require_once $module->getModulePath() . "classes/DusterConfigClass.php";
 require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
 
 $pid = isset($_GET['pid']) && !empty($_GET['pid']) ? $_GET['pid'] : null;
+// ensure the data url has a '/' at the end
+$data_url = $module->getSystemSetting("starrapi-data-url")
+    . ((substr($module->getSystemSetting("starrapi-data-url"), -1) === '/') ? "" : "/");
 
 function syncCohort($rtoslink_config) {
     REDCap::logEvent("DUSTER: Sync Cohort");
@@ -31,8 +34,8 @@ function setRequestId($request_id, $pid) {
     //$module->setProjectSetting('requestId', $request_id, $pid);
     //$module->db_query("COMMIT");
     //$module->db_query("SET AUTOCOMMIT=1");
-    $module->emDebug("PID $pid response $response");
-    $module->emDebug("PID $pid setRequestId get = ". getRequestId($pid));
+    //$module->emDebug("PID $pid response $response");
+    //$module->emDebug("PID $pid setRequestId get = ". getRequestId($pid));
 }
 
 function getRequestId($pid){
@@ -42,26 +45,27 @@ function getRequestId($pid){
         $external_module_result = $module->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = ?', ['duster']);
         $external_module_id = $external_module_result->fetch_assoc()['external_module_id'];
     }
-    $request_id = $module->query('SELECT `value` FROM redcap_external_module_settings WHERE `external_module_id` = ? and `project_id`=? and `key`=? and `type`=?',
+    $query_resp = $module->query('SELECT `value` FROM redcap_external_module_settings WHERE `external_module_id` = ? and `project_id`=? and `key`=? and `type`=?',
         [$external_module_id, $pid, 'requestId', 'integer']);
     //$module->emDebug('request_id=' . print_r($request_id->fetch_assoc(), true));
     // TODO: need to add request status to synchronized requests
-    $rid = $request_id->fetch_assoc()['value'];
-    $module->emDebug("PID $pid request_id=$rid");
-    //$request_id = $module->getProjectSetting('requestId', $pid); // returns integer
-    if (!isset($rid) ) {
-        //setRequestId(0, $pid);
-        $rid = 0;
+    $request_id = null;
+    $fetch_assoc = $query_resp->fetch_assoc();
+    if (isset($fetch_assoc) && array_key_exists('value', $fetch_assoc)) {
+        $request_id = $fetch_assoc['value'];
+        //$module->emDebug("PID $pid request_id=$request_id");
+    }
+    if (!isset($request_id) ) {
+        $request_id = 0;
         //$module->db_query("SET AUTOCOMMIT=0");
         //$module->db_query("BEGIN");
-        //$module->setProjectSetting('requestId', 0, $pid);
         $module->query('insert into redcap_external_module_settings (`project_id`,`external_module_id`,`key`,`type`,
         `value`) values (?,?,?,?,?) ',
-            [$pid, $external_module_id, 'requestId', 'integer', $rid]);
+            [$pid, $external_module_id, 'requestId', 'integer', $request_id]);
         //$module->db_query("COMMIT");
         //$module->db_query("SET AUTOCOMMIT=1");
     }
-    return $rid;
+    return $request_id;
 }
 
 function requestIsDone($pid) {
@@ -83,8 +87,8 @@ function responseHasError($response) {
 }
 
 function logToStarrApi($pid, $query_name, $message) {
-    global $module;
-    $log_url = $module->getSystemSetting("starrapi-data-url")
+    global $module, $data_url;
+    $log_url = $data_url
         . "log";
     $post_fields['user'] = $module->getUser()->getUserName();
     $post_fields['pid'] = $pid;
@@ -104,11 +108,10 @@ function logToStarrApi($pid, $query_name, $message) {
 
 // should return the request status 'no status', 'sync','async', 'complete', 'cancel', 'fail: <message>'
 function getRequestStatus($pid) {
-    global $module;
+    global $module, $data_url;
     // TODO: need to add request status to synchronized requests
     $request_id = getRequestId($pid); // returns integer
-    $log_url = $module->getSystemSetting("starrapi-data-url")
-        . "log/" . SERVER_NAME
+    $log_url = $data_url . "log/" . SERVER_NAME
         . "/$pid/$request_id/status?user=" . $module->getUser()->getUserName();
     $request_status = $module->starrApiGetRequest($log_url, 'ddp');
     if (responseHasError($request_status)) {
@@ -278,9 +281,7 @@ if ($action === 'productionStatus') {
         $post_fields['pid'] = $pid;
         $post_fields['request_id'] = $request_id;
         $post_fields['queries'] = $rtoslink_config->getQueries();
-        $duster_api_url = $module->getSystemSetting("starrapi-data-url");
-
-        $return_obj = $module->starrApiPostRequest($duster_api_url, 'ddp', $post_fields);
+        $return_obj = $module->starrApiPostRequest($data_url, 'ddp', $post_fields);
         if (responseHasError($return_obj)) {
             $return_obj['status'] = 500;
             $module->emError("PID $pid ERROR: asyncDataRequest unable to post async requests.");
@@ -297,8 +298,8 @@ if ($action === 'productionStatus') {
     $request_log = initRequestLog($forms);
 
     // now actually get the request status from the server
-    $log_url = $module->getSystemSetting("starrapi-data-url")
-        . "log/" . SERVER_NAME . "/$pid/$request_id?user="
+    $log_url = $data_url . "log/"
+        . SERVER_NAME . "/$pid/$request_id?user="
         . $module->getUser()->getUserName();
     $logs = $module->starrApiGetRequest($log_url, 'ddp');
     //REDCap::logEvent("DUSTER: getData Background Get Status. Request ID " . $request_id);
@@ -397,10 +398,10 @@ if ($action === 'productionStatus') {
         $module->emDebug("PID $pid message = $message");
         $module->emDebug("PID $pid email = $email");
         $project_title = $module->getProject($pid)->getTitle();
-        $module->emDebug("PID $pid $project_title = $project_title");
+        $module->emDebug("PID $pid project_title = $project_title");
 
         if (!empty($email)) {
-            $subject = "\"$project_title \" PID $pid DUSTER Request $request_status";
+            $subject = "Redcap Project \"$project_title \" PID $pid DUSTER Request $request_status";
             $email_status = REDCap::email($email, $duster_email, $subject , $message);
             if (!$email_status) {
                 $return_obj['status'] = 400;

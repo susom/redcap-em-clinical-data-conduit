@@ -9,7 +9,6 @@
             <li>Background - Data will fetch in the background. You may safely close your browser and the process will still continue. An email notification will send upon completion.</li>
           </ul>
         </div>
-        <!-- <div>Prior to any data retrieval, DUSTER will validate existing REDCap records in this project.</div> -->
         <div v-if="errorMessage">
           <Message :closable="false" severity="error"><span v-html="errorMessage"></span></Message>
           <!-- display button to Project Setup if error is due to production status -->
@@ -609,32 +608,37 @@ const asyncPollStatus = async() => {
       //if (response?.data) {
       dataRequestLog.value = response.data.data_request_log;
       //console.log("count " + count)
-      cancelled.value = (response.data.request_status.message == 'cancel');
+      cancelled.value = (response.data.request_status.message == 'cancel')
+      const failed = (response.data.request_status.message.indexOf('fail') !== -1)
+      //console.log("failed " + failed)
+      let failMessages = ""
 
       //if (dataRequestLog.value) {
       if (cancelled.value) {
-        complete = true;
+        complete = true
+      } else if (failed) {
+        complete = true
+        failMessages = response.data.request_status.message
       } else {
-        let failMessages = "";
-        complete = true;
+        complete = true
         for (const formName in dataRequestLog.value) {
           complete = complete && (dataRequestLog.value[formName].complete ||
-              dataRequestLog.value[formName].fail);
+              dataRequestLog.value[formName].fail)
           if (dataRequestLog.value[formName].fail) {
             failMessages += "Data Retrieval Error: Unable to complete query '"
-              + queryMessage(dataRequestLog.value[formName]['last_message'].substr(5))
-              + "' for '" + formLabel(formName) + "'. ";
+                + queryMessage(dataRequestLog.value[formName]['last_message'].substr(5))
+                + "' for '" + formLabel(formName) + "'. ";
             if (dataRequestLog.value[formName].num_queries > 1 && dataRequestLog.value[formName].num_complete > 1) {
               failMessages += "Data was still saved from completed queries for this collection window.";
             }
-            failMessages += '<br>';
+            failMessages += '<br>'
           }
         }
         //complete = (response.data.num_queries > 0 && response.data.num_queries == response.data.num_complete)
-        totalProgress.value = 100 * response.data.num_complete / response.data.num_queries;
-        if (failMessages.length > 0) {
-          errorMessage.value = failMessages;
-        }
+        totalProgress.value = 100 * response.data.num_complete / response.data.num_queries
+      }
+      if (failMessages.length > 0) {
+          errorMessage.value = failMessages
       }
       //}
     } else {
@@ -657,15 +661,16 @@ const asyncPollStatus = async() => {
   }
   countDownUpdate.value = "";
   if (totalProgress.value < 100) {
-    totalProgress.value = 100;
+    totalProgress.value = 100
+    saveMessage.value = ""
     errorMessage.value =
-      "Data retrieval was incomplete. An email regarding the following query failures will be sent to the DUSTER team.<br><br>"
-      + errorMessage.value;
+        "Data retrieval was incomplete. An email regarding the following query failures will be sent to the DUSTER team.<br><br>"
+        + errorMessage.value;
   }
   if (cancelled.value) {
-    saveMessage.value = "Data Retrieval Request Cancelled.";
+    saveMessage.value = "Data Retrieval Request Cancelled."
   } else {
-    saveMessage.value = 'Data Retrieval Request Completed.';
+    saveMessage.value = 'Data Retrieval Request Completed.'
   }
   //console.log("async complete")
 }
