@@ -398,10 +398,10 @@ if ($action === 'productionStatus') {
         $module->emDebug("PID $pid message = $message");
         $module->emDebug("PID $pid email = $email");
         $project_title = $module->getProject($pid)->getTitle();
-        $module->emDebug("PID $pid $project_title = $project_title");
+        $module->emDebug("PID $pid project_title = $project_title");
 
         if (!empty($email)) {
-            $subject = "\"$project_title \" PID $pid DUSTER Request $request_status";
+            $subject = "Redcap Project \"$project_title \" PID $pid DUSTER Request $request_status";
             $email_status = REDCap::email($email, $duster_email, $subject , $message);
             if (!$email_status) {
                 $return_obj['status'] = 400;
