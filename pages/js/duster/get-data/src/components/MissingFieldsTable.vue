@@ -4,11 +4,12 @@
     <DataTable :value="tableRows" tableStyle="min-width: 50rem">
       <template #header>
         <div class="flex">
-          <span class="text-xl text-900 font-bold">Missing Redcap Fields</span>
+          <span class="text-xl text-900 font-bold">Missing REDCap Fields</span>
         </div>
         <Message severity="error">
-          Duster configured fields are missing.
-          Please add the following fields to this project before proceeding</Message>
+          There are missing REDCap fields that are required by DUSTER.
+          Please add the following REDCap fields to this project before proceeding
+        </Message>
       </template>
       <Column
           v-for="col of tableHeaders"
