@@ -2,12 +2,11 @@
   <div class="container ml-0 mr-0 pr-0 pl-0">
     <div class="grid">
       <div class="col-10">
-        <div class="projhdr"> DUSTER: Get data</div>
-        <div>DUSTER will perform sanity check on the existing redcap records before it submits and asks for the data.</div>
-        <div>You have two options on how you can get the data.
+        <div class="projhdr">DUSTER: Get Data</div>
+        <div>You have two options to request data.
           <ul>
-            <li>Run in real time -> This will launch the process is current browser and so you have to keep the browser tab open. Closing will stop the data fetching process.</li>
-            <li>Run in background -> This submits the job and runs in the background. Browser can be safely closed. Notification will be sent in the email when completed.</li>
+            <li>Real time - Data will fetch in real time. This browser tab must be kept open and closing it will stop the process.</li>
+            <li>Background - Data will fetch in the background. You may safely close your browser and the process will still continue. An email notification will send upon completion.</li>
           </ul>
         </div>
         <div v-if="errorMessage">
@@ -51,7 +50,7 @@
                   <RequestDataTable
                       title='Missing Researcher-Provided Information'
                       alert-type="warn"
-                      alert-content="The following records are missing required researcher provided data.  You may still continue, but DUSTER may not be able to retrieve all possible data for these records."
+                      alert-content="The following records are missing required Researcher-Provided Data.  You may continue, but DUSTER may not retrieve all possible data for these records."
                       :record-base-url="record_base_url"
                       :table-data="dusterData.missing_data"
                   >
@@ -112,8 +111,8 @@
 
             <div v-if="step == 4">
               <Message :closable="false" severity="warn" v-if="!isAsyncRequest && totalProgress < 100">
-                Do not click on other links or close this browser
-                tab/window until data request is complete.</Message>
+                Do not click on other links or close this browser tab/window until the data request is complete.
+              </Message>
               <p><strong>
                 <span v-html="saveMessage"></span> <span v-html="nextAsyncUpdateMessage"></span>
               </strong>
@@ -121,7 +120,7 @@
               <!--synchronized request progress display-->
               <div class="text-left" v-if="!isAsyncRequest && dusterData.rp_data">
                 <div class="grid">
-                  <div class="col-3"><b>Researcher Provided Information:</b>
+                  <div class="col-3"><b>Researcher-Provided Information:</b>
                     <span v-if="cohortMessage"><br>{{ cohortMessage }}</span>
                   </div>
                   <div class="col-8">
@@ -159,10 +158,10 @@
                   v-model:visible="confirmCancel"
                   max-width="500px"
                   modal
-                  header="Cancel"
+                  header="Cancel Data Retrieval"
               >
                 <Message severity="warn" :closable="false">
-                  Are you sure you want to exit data retrieval?
+                  Are you sure you want to exit?
                   <br>
                   Data that has already been saved to REDCap will not be deleted.
                 </Message>
@@ -189,7 +188,7 @@
               /-->
               <Button v-if="totalProgress < 100 && !cancelled"
                       class="p-button-secondary" size="small" icon="pi pi-times"
-                      label="Cancel Data Request"
+                      label="Cancel Data Retrieval"
                       @click="confirmCancel = true"/>
               <Button v-else
                       label="Export Data Page"
@@ -208,11 +207,13 @@
               <Card style="box-shadow: none">
                 <template #content>
                   <Message severity="warn" :closable="false">
-                    This will launch the DUSTER process to get the data and populate the REDCap project in real time.
-                    Please keep the current browser tab open till the processing completes.
-                    If you close the current browser tab, it will stop processing and project will be left in inconsistent state.
+                    DUSTER will attempt to retrieve and save data to this REDCap project in real time.
                     <br>
-                    Are you sure to launch the process in real time?
+                    Please keep this browser tab open until the process completes.
+                    <br>
+                    If you close this browser tab, DUSTER will stop retrieving data.
+                    <br>
+                    Would you like to continue?
                   </Message>
                   <!--
                   <p>
@@ -315,7 +316,7 @@ const exit_url = ref<string>(projectConfig.exit_url)
 const step = ref<number>(0)
 const errorMessage = ref<string>("")
 const saveMessage = ref<string>("Saving ...")
-const cohortMessage = ref<string>("Researcher provided information update in progress.")
+const cohortMessage = ref<string>("Researcher-Provided Information update in progress.")
 const previousRequestStatus = ref<string>()
 const startLoad = ref<boolean>(false)
 const isProduction = ref<boolean>(false)
@@ -335,7 +336,7 @@ const asyncPollLimit = ref<number>(100)
 const showAsyncNotify = ref<boolean>(false)
 const showSync = ref<boolean>(false)
 const email = ref<string>(projectConfig.user_email)
-const asyncNotifyMessage = ref<string>("Enter an email address to get notifications when data request is complete.")
+const asyncNotifyMessage = ref<string>("Enter an email address to get notified when the data retrieval request is complete.")
 const countDownUpdate = ref<string>("")
 const updateTime = ref<string>("")
 
@@ -371,35 +372,35 @@ watch (isProduction, async(prodStatus) => {
     isLoading.value = true;
     const response = await axios.get(get_data_url.value + "&action=dataRequestStatus")
         .catch(function (error) {
-          systemError.value = true
-          console.log("dataRequestStatus error")
-          console.log(error)
+          systemError.value = true;
+          console.log("dataRequestStatus error");
+          console.log(error);
           errorMessage.value += error.message + '<br>';
         })
     if (!hasError(response)) {
       //console.log(response)
       if (response?.data?.dataRequestStatus == 'sync') {
         isLoading.value = false;
-        errorMessage.value = '<p>Real time Data Request initiated by ' + response?.data.redcapUserName +
-            ' already in progress.  Please wait for this request to complete before submitting a new data request.'
+        errorMessage.value = '<p>A request to fetch data in real time data was submitted by ' + response?.data.redcapUserName
+          + ' and is in progress. Please wait for this request to complete before submitting a new request.';
       } else if (response?.data?.dataRequestStatus == 'async') {
         //console.log("dataRequestStatus async")
         isLoading.value = false;
-        isLoaded.value = true
-        isAsyncRequest.value = true
-        step.value = 4
-        saveMessage.value = '<p>Background Data Request initiated by ' + response?.data.redcapUserName +
-            ' already in progress.</p><p>This view will update status every '+
-            asyncPollInterval.value +' seconds.</p>'
-        asyncPollStatus()
+        isLoaded.value = true;
+        isAsyncRequest.value = true;
+        step.value = 4;
+        saveMessage.value = '<p>A request to fetch data in the background was submitted by ' + response?.data.redcapUserName
+          + ' and is already in progress.</p><p>This page will check its status every '
+          + asyncPollInterval.value +' seconds.</p>';
+        asyncPollStatus();
       } else {
         if (response?.data?.dataRequestStatus && response?.data?.dataRequestStatus != 'no status') {
           let date = new Date( Date.parse(response?.data?.dataRequestTimestamp) );
 
           previousRequestStatus.value = 'Previous request status: ' + response?.data.dataRequestStatus
-              + ' at ' + date.toLocaleString('en-us')
+              + ' at ' + date.toLocaleString('en-us');
         }
-        startLoad.value = true
+        startLoad.value = true;
       }
     }
   }
@@ -418,7 +419,7 @@ watch(startLoad, async (start) => {
         dusterData.value = response.data;
         //console.log(response.data);
         cwQueries.value = response.data.queries;
-        numQueries.value = response.data.num_queries + 1
+        numQueries.value = response.data.num_queries + 1;
         saveSize.value = 100 / numQueries.value;
         if (dusterData.value.missing_fields && dusterData.value.missing_fields.length > 0) {
           step.value = 1;
@@ -431,7 +432,7 @@ watch(startLoad, async (start) => {
       }
     }).catch(function (error) {
       errorMessage.value += error.message + '<br>';
-      systemError.value = true
+      systemError.value = true;
     });
   }
 })
@@ -484,7 +485,7 @@ const syncCohort = async() => {
     if (!hasError(cohortSync)) {
       cohortProgress.value = 100;
       totalProgress.value = saveSize.value;
-      saveMessage.value = "Researcher Provided Information update complete.";
+      saveMessage.value = "Researcher-Provided Information update complete.";
       cohortMessage.value = "Complete";
     } else {
       cohortMessage.value = "Error";
@@ -532,46 +533,45 @@ const updateProgress = (dataSync:any) => {
     if (!hasError(dataSync)) {
       if (failures.value.length > 0) {
         errorMessage.value =
-            "Data save incomplete. Some queries had failures.  An email regarding these issues has been sent to Duster support.<br><br>" +
-            failures.value.join('<br>')
-        saveMessage.value = ""
+          "Data retrieval was incomplete. Some queries had failures. An email regarding this issue was sent to the DUSTER team.<br><br>"
+          + failures.value.join('<br>');
+        saveMessage.value = "";
         axios.get(get_data_url.value + "&action=logStatus&status=fail");
       } else {
-        saveMessage.value = "Data save complete";
+        saveMessage.value = "Data retrieval complete";
         axios.get(get_data_url.value + "&action=logStatus&status=complete");
       }
     }  // else {hasError should handle error message}
   } else {
       saveMessage.value = toTitleCase(dataSync.data.message);
       if (failures.value.length > 0) {
-        errorMessage.value = failures.value.join("<br>")
+        errorMessage.value = failures.value.join("<br>");
       }
   }
 }
 
 const asyncRequestData = async() => {
-  const emailParam = (email.value) ? '&email=' + email.value : false
+  const emailParam = (email.value) ? '&email=' + email.value : false;
   if (!emailParam) {
-    asyncNotifyMessage.value = "No email value was entered. " + asyncNotifyMessage.value
+    asyncNotifyMessage.value = "No email was entered. " + asyncNotifyMessage.value;
     showAsyncNotify.value = true;
   } else {
-    isAsyncRequest.value = true
-    showAsyncNotify.value = false
+    isAsyncRequest.value = true;
+    showAsyncNotify.value = false;
     step.value = 4;
     axios.get(get_data_url.value + "&action=asyncDataRequest" + emailParam);
-    saveMessage.value = "<p>Background Data request submitted.  An email will be sent to " + email.value +
-        " when it is completed.</p><p>This view will request status every " + asyncPollInterval.value + " seconds.</p>";
+    saveMessage.value = "<p>A request to fetch data in the background was submitted.  An email will be sent to " + email.value +
+        " when it is completed.</p><p>This page will check its status every " + asyncPollInterval.value + " seconds.</p>";
     await sleep(10000); // this is a hack because there is some lag in updating the requestId
     asyncPollStatus();
   }
 }
 
 const sleepWithCountDown = async (milliseconds:number) => {
-  let seconds = milliseconds/1000
-
+  let seconds = milliseconds/1000;
   for(let remaining = seconds; remaining > 0; remaining--) {
-    countDownUpdate.value =  remaining + " seconds until next update."
-    await sleep(1000)
+    countDownUpdate.value =  "Checking status again in " + remaining + " seconds.";
+    await sleep(1000);
   }
 }
 
@@ -589,24 +589,24 @@ const zeropad = (num:number) => {
 const dataRequestLog = ref<any>()
 const failures = ref<string[]>([])
 const asyncPollStatus = async() => {
-  let complete = false
-  let count = 0 // count the number of status requests.  Used to set limit on number of requests.
+  let complete = false;
+  let count = 0; // count the number of status requests.  Used to set limit on number of requests.
   while (!complete) {
-    count++
-    countDownUpdate.value = "Getting status ... "
+    count++;
+    countDownUpdate.value = "Checking status...";
     let response = await axios.get(get_data_url.value + "&action=asyncDataLog")
         .catch(function (error) {
-          complete = true
+          complete = true;
           errorMessage.value += error.message + '<br>';
-          systemError.value = true
-        })
+          systemError.value = true;
+        });
     //console.log(response)
     if (!hasError(response) && response?.data && response.data.data_request_log) {
       const today = new Date();
       updateTime.value = zeropad(today.getHours()) + ":" + zeropad(today.getMinutes()) + ":" +
           zeropad(today.getSeconds());
       //if (response?.data) {
-      dataRequestLog.value = response.data.data_request_log
+      dataRequestLog.value = response.data.data_request_log;
       //console.log("count " + count)
       cancelled.value = (response.data.request_status.message == 'cancel')
       const failed = (response.data.request_status.message.indexOf('fail') !== -1)
@@ -625,19 +625,20 @@ const asyncPollStatus = async() => {
           complete = complete && (dataRequestLog.value[formName].complete ||
               dataRequestLog.value[formName].fail)
           if (dataRequestLog.value[formName].fail) {
-            failMessages += "Unable to update " + formLabel(formName)
-                + ":" + queryMessage(dataRequestLog.value[formName]['last_message'].substr(5))
+            failMessages += "Data Retrieval Error: Unable to complete query '"
+                + queryMessage(dataRequestLog.value[formName]['last_message'].substr(5))
+                + "' for '" + formLabel(formName) + "'. ";
             if (dataRequestLog.value[formName].num_queries > 1 && dataRequestLog.value[formName].num_complete > 1) {
-              failMessages += ". Completed queries for this collection window saved"
+              failMessages += "Data was still saved from completed queries for this collection window.";
             }
-            failMessages += '.<br>'
+            failMessages += '<br>'
           }
         }
         //complete = (response.data.num_queries > 0 && response.data.num_queries == response.data.num_complete)
         totalProgress.value = 100 * response.data.num_complete / response.data.num_queries
       }
       if (failMessages.length > 0) {
-        errorMessage.value = failMessages
+          errorMessage.value = failMessages
       }
       //}
     } else {
@@ -647,28 +648,29 @@ const asyncPollStatus = async() => {
 
     if (!complete && count > asyncPollLimit.value) {
       //console.log("Hit async poll limit.");
-      complete = true
+      complete = true;
       // TODO add option to resume status updates
       errorMessage.value =
-          "The max number of status updates has been reached.  Click 'Duster: Get Data' link to continue to monitor this background request."
+          "The max number of status updates has been reached. Click 'DUSTER: Get Data' link to continue to monitor this background request.";
     }
     if (!complete) {
       //console.log('not complete. sleep ' + asyncPollInterval.value + ' seconds')
-      await sleepWithCountDown(asyncPollInterval.value * 1000)
+      await sleepWithCountDown(asyncPollInterval.value * 1000);
       //console.log('stop sleep')
     }
   }
-  countDownUpdate.value = ""
+  countDownUpdate.value = "";
   if (totalProgress.value < 100) {
     totalProgress.value = 100
     saveMessage.value = ""
     errorMessage.value =
-        "Data save incomplete.  An email regarding the following query failures will be sent to Duster support.<br><br>" +
-        errorMessage.value
-  } else if (cancelled.value) {
-    saveMessage.value = "Data Request Cancelled."
+        "Data retrieval was incomplete. An email regarding the following query failures will be sent to the DUSTER team.<br><br>"
+        + errorMessage.value;
+  }
+  if (cancelled.value) {
+    saveMessage.value = "Data Retrieval Request Cancelled."
   } else {
-    saveMessage.value = 'Data Request Complete.'
+    saveMessage.value = 'Data Retrieval Request Completed.'
   }
   //console.log("async complete")
 }

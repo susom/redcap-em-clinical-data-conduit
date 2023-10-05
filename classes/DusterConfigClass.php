@@ -92,9 +92,10 @@ class DusterConfigClass
                     // add rp_dates
                     $date_obj = [];
                     foreach ($this->duster_config['rp_info']['rp_dates'] as $rp_dates) {
+                        $date_obj['label'] = $rp_dates['label'];
                         $date_obj['redcap_field_name'] = $rp_dates['redcap_field_name'];
                         $date_obj['value'] = $record[$rp_dates['redcap_field_name']];
-                        $date_obj['type'] = $rp_dates['format'];
+                        $date_obj['type'] = $rp_dates['value_type'];
                         $request_record['dates'][] = $date_obj;
                         $has_missing = $has_missing || empty($date_obj['value']);
                     }
@@ -107,9 +108,9 @@ class DusterConfigClass
             }
             return $rp_data;
         } else {
-            $this->module->emDebug("PID ". $this->module->getProjectId() . ' Unable to retrieve Duster config from starr-api');
+            $this->module->emDebug("PID ". $this->module->getProjectId() . ' Unable to retrieve DUSTER config from starr-api');
             $return_obj['status'] = 500;
-            $return_obj['message'] = 'Unable to retrieve Duster config.';
+            $return_obj['message'] = 'Unable to retrieve DUSTER config.';
             return $return_obj;
         }
 
