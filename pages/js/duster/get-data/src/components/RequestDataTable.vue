@@ -74,12 +74,12 @@ const tableHeaders:any = computed(()=>{
         return;
       }
       let colHeaders = [
-        {"text": "REDCap Record id", "value": "redcap_record_id"},
+        {"text": "REDCap Record ID", "value": "redcap_record_id"},
         {"text": "MRN", "value": "mrn"}];
       for (let dateIndex in dataObj.dates) {
         colHeaders.push(
             {
-              "text": dataObj.dates[dateIndex].redcap_field_name,
+              "text": dataObj.dates[dateIndex].label,
               "value": dataObj.dates[dateIndex].redcap_field_name
             });
       }
