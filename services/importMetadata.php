@@ -1,6 +1,6 @@
 <?php
 namespace Stanford\Duster;
-/** @var \Stanford\Duster\Duster $module */
+/** @var \Stanford\Duster $module */
 
 use RedCapDB;
 

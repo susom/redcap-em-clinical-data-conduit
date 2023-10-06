@@ -20,19 +20,37 @@ class RedcapToStarrLinkConfig
         $this->module = $module;
     }
 
-    /*enable RtoS Link EM in the project*/
-    public function enableRedcapToStarrLink() {
-        $this->module->emDebug('Enabling REDCap to STARR Link on project.');
-        $external_module_id = $this->module->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = ?', ['redcap_to_starr_link']);
+  /**
+   * enables REDCap to STARR Link EM on the REDCap project via REDCap DB queries
+   * returns true if successful, else returns false
+   * @return bool
+   */
+  public function enableRedcapToStarrLink() {
+    $this->module->emDebug("PID: $this->project_id | Enabling REDCap to STARR Link.");
+    try {
+      $external_module_id = $this->module->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = ?', ['redcap_to_starr_link']);
+      $external_module_id = $external_module_id->fetch_assoc()['external_module_id'];
+      if (is_numeric($external_module_id) === true) {
         $this->module->query('INSERT INTO `redcap_external_module_settings`(`external_module_id`, `project_id`, `key`, `type`, `value`) VALUES (?, ?, ?, ?, ?)',
-            [$external_module_id->fetch_assoc()['external_module_id'], $this->project_id, 'enabled', 'boolean', 'true']);
+           [$external_module_id, $this->project_id, 'enabled', 'boolean', 'true']);
+      } else {
+        throw new Exception("REDCap DB query to identify redcap_to_starr_link's external_module_id failed.");
+      }
+    } catch (Exception $ex) {
+      $this->module->handleError(
+        "ERROR: Exception in enableRedcapToStarrLink() for pid $this->project_id",
+        "REDCap DB queries to enable REDCap to STARR Link EM failed.",
+        $ex);
+      return false;
     }
+    return true;
+  }
 
     /*takes JsonObject returned from starr-api to configure project level RtoS Link EM settings*/
     public function configureRedcapToStarrLink($em_config) {
         // there's no api for this so just saving settings directly to database
         $data_sync_settings = $em_config['rcToStarrLinkConfig']['dataSync'];
-        $this->module->emDebug('data_sync_settings: ' . print_r($data_sync_settings, true));
+        //$this->module->emDebug('data_sync_settings: ' . print_r($data_sync_settings, true));
 
         foreach ($data_sync_settings as $key=>$setting) {
             $this->saveSetting($key, $this->transformSetting($key, $setting));
@@ -40,7 +58,7 @@ class RedcapToStarrLinkConfig
 
         // these settings are for the data queries
         $data_queries = $em_config['rcToStarrLinkConfig']['queries'];
-        $this->module->emDebug("data queries: ".print_r($data_queries, true));
+        //$this->module->emDebug("data queries: ".print_r($data_queries, true));
 
         $query_settings = [];
         foreach($data_queries as $data_query) {
@@ -61,15 +79,15 @@ class RedcapToStarrLinkConfig
     @return "1" if successful*/
     private function invokeRedcapToStarrLink($action, $query) {
         $url = APP_PATH_WEBROOT_FULL .
-            'api/?type=module&prefix=redcap_to_starr_link&page=src%2FRedcapProjectToStarrLink&NOAUTH' .
-            '&action=' . $action . // should be either data or records
-            '&pid=' . $this->project_id;
-        try {
+            'api/?type=module&prefix=redcap_to_starr_link&page=src%2FRedcapProjectToStarrLink&NOAUTH'
+            . '&action=' . $action // should be either data or records
+            . '&pid=' . $this->project_id;
+        //try {
           $url .= '&user=' . $this->module->getUser()->getUserName();
-        } catch(Exception $e) {
-          $this->module->emError($e);
-          return 0;
-        }
+        //} catch(Exception $e) {
+        //  $this->module->emError($e);
+        //  return 0;
+        //}
         if ($query) {
             $url = $url . '&query='.$query;
         }
@@ -82,13 +100,9 @@ class RedcapToStarrLinkConfig
             "Content-Type: text/html"
         );
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        $resp = curl_exec($curl);
-        if (!json_encode($resp)) {
-            $curl_error = curl_error($curl);
-            //TODO
-        }
-        curl_close($curl);
-        $this->module->emLog("$url response = " . json_encode($resp));
+        $this->module->emDebug("PID ". $this->module->getProjectId()
+            . " DEBUG: RedcapToStarrLinkConfig invokeRedcapToStarrLink $url");
+        $resp = $this->module->handleStarrApiRequest($curl);
         return $resp;
     }
 
@@ -118,7 +132,6 @@ class RedcapToStarrLinkConfig
         if ($result->num_rows > 0) {
             $query_names = json_decode($result->fetch_assoc()['value'], true);
         }
-        $this->module->emDebug('query_names: ' . $query_names);
         return $query_names;
     }
 
@@ -181,7 +194,7 @@ class RedcapToStarrLinkConfig
         if ($ex_mod_result->num_rows > 0) {
             $rts_ex_mod_id = $ex_mod_result->fetch_assoc()['external_module_id'];
         }
-        $this->module->emDebug('external module id: ' . $rts_ex_mod_id);
+        //$this->module->emDebug('external module id: ' . $rts_ex_mod_id);
         return $rts_ex_mod_id;
     }
 
@@ -189,7 +202,7 @@ class RedcapToStarrLinkConfig
     @return double quoted strings or "null" string*/
     private function transformSetting($key, $setting)
     {
-        $this->module->emDebug("key: ".$key.", pre-setting: ".$setting);
+        //$this->module->emDebug("key: ".$key.", pre-setting: ".$setting);
         $event_id = strval($this->module->getEventId());
         return ($setting == null || $setting=='null') ? 'null' :
             ((strpos($key, 'event') > -1) ? '"'.$event_id .'"':

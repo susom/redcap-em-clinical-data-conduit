@@ -5,7 +5,7 @@
 
 	"description": "A self-service tool for researchers to automatically import clinical data into REDCap projects",
 
-    "framework-version": 9,
+	"framework-version": 9,
 
 	"documentation": "README.md",
 
@@ -18,7 +18,7 @@
 	],
 
 	"permissions": [
-    "redcap_every_page_top"
+		"redcap_every_page_top"
 	],
 
 	"enable-every-page-hooks-on-system-pages": true,
@@ -34,12 +34,19 @@
 			}
 		],
 		"control-center": [
-
+			{
+				"name": "DUSTER: Refresh Server side metadata",
+				"key": "metadata-refresh",
+				"icon": "fas fa-receipt",
+				"url": "services/refreshMetadata.php",
+				"show-header-and-footer": true
+			}
 		]
 	},
 
 	"no-auth-pages": [
-
+		"services/getData",
+		"services/refreshMetadata"
 	],
 
 	"project-settings": [
@@ -58,39 +65,39 @@
 			"required": false,
 			"type": "checkbox"
 		},
-        {
-            "key": "starrapi-metadata-url",
-            "name": "STARR-API Metadata Webservice URL",
-            "required": true,
-            "type": "text"
-        },
-        {
-            "key": "starrapi-config-url",
-            "name": "STARR-API Config Webservice URL",
-            "required": true,
-            "type": "text"
-        },
-        {
-            "key": "starrapi-data-url",
-            "name": "STARR-API Data Webservice URL",
-            "required": true,
-            "type": "text"
-        },
-        {
-            "key": "allowlist",
-            "name": "SUNet Allowlist",
-            "required": true,
-            "type": "sub_settings",
-            "sub_settings": [
-                {
-                    "key": "sunet",
-                    "name": "SUNet",
-                    "required": true,
-                    "type": "text",
-                    "repeatable": true
-                }
-            ]
-        },
+		{
+			"key": "starrapi-metadata-url",
+			"name": "STARR-API Metadata Webservice URL",
+			"required": true,
+			"type": "text"
+		},
+		{
+			"key": "starrapi-config-url",
+			"name": "STARR-API Config Webservice URL",
+			"required": true,
+			"type": "text"
+		},
+		{
+			"key": "starrapi-data-url",
+			"name": "STARR-API Data Webservice URL",
+			"required": true,
+			"type": "text"
+		},
+		{
+			"key": "allowlist",
+			"name": "SUNet Allowlist",
+			"required": true,
+			"type": "sub_settings",
+			"sub_settings": [
+				{
+					"key": "sunet",
+					"name": "SUNet",
+					"required": true,
+					"type": "text",
+					"repeatable": true
+				}
+			]
+		},
 		{
 			"key": "duster-email",
 			"name": "Error notification email",
