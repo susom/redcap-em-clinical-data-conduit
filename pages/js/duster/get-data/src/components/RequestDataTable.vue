@@ -3,10 +3,16 @@
     <div class="col-10">
 
       <div :class="'text-lg p-2 mb-1 font-italic mr-5 ' + alertTextStyle">{{alertText}}</div>
-      <!--<Message :severity="alertType" v-if="alertType != 'info'"> {{ alertContent }}</Message>-->
 
-      <DataTable :value="tableRows" paginator :rows="10" :rowsPerPageOptions="[10, 20, 50]"
-                 tableStyle="min-width: 50rem" class="p-datatable-sm">
+      <DataTable v-model:selection="selectedRows" :value="tableRows" paginator :rows="10" :rowsPerPageOptions="[10, 20,
+      50]"
+                 tableStyle="min-width: 50rem" class="p-datatable-sm"
+                 @update:selection="$emit('update:selectedRecords', selectedRows)"
+      >
+        <Column selectionMode="multiple" headerStyle="width: 3rem" v-if="selectable"></Column>
+        <!-- redcap_record_id hidden column is for easier selection -->
+        <Column field="redcap_record_id" header="Record Id" :hidden=true></Column>
+
         <Column
             v-for="col of tableHeaders"
             :key="col.value"
@@ -22,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed} from "vue";
+import {ref, computed} from "vue";
 import type {PropType} from "vue";
 
 const props = defineProps({
@@ -45,8 +51,20 @@ const props = defineProps({
   tableData: {
     type: Array as PropType<Array<any>>,
     required: true
+  },
+  selectable: {
+    type: Boolean
+  },
+  selectMin: {
+    type: Number
+  },
+  selectMax: {
+    type: Number
   }
 })
+
+const emit = defineEmits(['update:selectedRecords'])
+
 
 const alertTextStyle = computed( () => {
   if (props.alertType == 'error')
@@ -74,7 +92,7 @@ const tableHeaders:any = computed(()=>{
         return;
       }
       let colHeaders = [
-        {"text": "REDCap Record ID", "value": "redcap_record_id"},
+        {"text": "REDCap Record ID", "value": "redcap_record_id_url"},
         {"text": "MRN", "value": "mrn"}];
       for (let dateIndex in dataObj.dates) {
         colHeaders.push(
@@ -85,13 +103,17 @@ const tableHeaders:any = computed(()=>{
       }
       return colHeaders;
 })
+const selectedRows = ref()
+const metaKey = ref(true)
+
 
 const tableRows:any = computed(()=>{
   let tablesRows = []
   if (props.tableData != null && props.tableData.length > 0) {
     for (let index in props.tableData) {
       let row:any = {};
-      row["redcap_record_id"] =
+      row["redcap_record_id"] = props.tableData[index].redcap_record_id
+      row["redcap_record_id_url"] =
           '<a href="' +props.recordBaseUrl+'&arm=1&id=' +
           props.tableData[index].redcap_record_id  +'">' +
           props.tableData[index].redcap_record_id + '</a>';
@@ -108,5 +130,8 @@ const tableRows:any = computed(()=>{
 </script>
 
 <style scoped>
-
+:deep(.p-datatable .p-datatable-tbody > tr.p-highlight) {
+  color: #006CB8;
+  background: #FFFFFF;
+}
 </style>

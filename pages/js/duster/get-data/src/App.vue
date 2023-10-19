@@ -53,6 +53,7 @@
                       alert-content="The following records are missing required Researcher-Provided Data.  You may continue, but DUSTER may not retrieve all possible data for these records."
                       :record-base-url="record_base_url"
                       :table-data="dusterData.missing_data"
+                      @update-selected-records="(selected:any) => selectedRecords = selected"
                   >
                   </RequestDataTable>
                 </div>
@@ -78,12 +79,37 @@
               </Message>
               <div v-if="dusterData.rp_data">
                 <div>
+                <div class="formgroup-inline">
+                  <div class="field">
+                  <label class="font-bold block mb-2">Retrieve Data for</label>
+                  <SelectButton v-model="selectedRecordsOption" :options="selectedRecordsOptions" aria-labelledby="basic" />
+                  </div>
+                  <div class="field" v-if="selectedRecordsOption == 'Subset'">
+                    <label for="minRecordId" class="font-bold block mb-2"> Minimum Record Id </label>
+                    <InputNumber v-model="selectedRecordsMin"
+                                 inputId="minRecordId"
+                                  :min="dusterData.rp_data[0].redcap_record_id"
+                                  :max="selectedRecordsMax"/>
+                  </div>
+                  <div class="field" v-if="selectedRecordsOption == 'Subset'">
+                    <label for="maxRecordId" class="font-bold block mb-2"> Maximum Record Id </label>
+                    <InputNumber v-model="selectedRecordsMax"
+                                 inputId="maxRecordId"
+                                 :min="selectedRecordsMin"
+                                 :max="dusterData.rp_data[dusterData.rp_data.length - 1].redcap_record_id"/>
+                  </div>
+                  </div>
+                  <!--set selectable to false for now.  Too complicated with multiple
+                  inputs
+                  :selectable="selectedRecordsOption == 'Subset'"-->
                   <RequestDataTable
                       title='Data Records'
                       alert-type="info"
-                      alert-content="DUSTER will attempt to get data for the following records:"
+                      alert-content="Select records to retrieve from Duster: "
                       :record-base-url="record_base_url"
                       :table-data="dusterData.rp_data"
+                      :selectable="false"
+                      @update:selected-records="(records) => selectedRecords = records"
                   >
                   </RequestDataTable>
                 </div>
@@ -340,6 +366,13 @@ const asyncNotifyMessage = ref<string>("Enter an email address to get notified w
 const countDownUpdate = ref<string>("")
 const updateTime = ref<string>("")
 
+const selectedRecordsOption = ref<string>('All');
+const selectedRecordsOptions = ref(['All', 'Subset'])
+const selectedRecordsMin = ref<number>()
+const selectedRecordsMax = ref<number>()
+// this is for table select which is currently disabled
+const selectedRecords = ref<any>([])
+
 onMounted(async () => {
   // bypass the production status check for now
   // in future bypass the production status check if the server is localhost or contains "-dev" (i.e., a dev server)
@@ -379,9 +412,13 @@ watch (isProduction, async(prodStatus) => {
         })
     if (!hasError(response)) {
       //console.log(response)
+      const previousCohort = (response?.data?.cohortRange == 'All') ? 'all record ids'
+          : 'record ids ' + response?.data.cohortRange;
       if (response?.data?.dataRequestStatus == 'sync') {
         isLoading.value = false;
-        errorMessage.value = '<p>A request to fetch data in real time data was submitted by ' + response?.data.redcapUserName
+        errorMessage.value = '<p>A request to fetch data for '
+            + previousCohort + ' in real time was submitted by '
+            + response?.data.redcapUserName
           + ' and is in progress. Please wait for this request to complete before submitting a new request.';
       } else if (response?.data?.dataRequestStatus == 'async') {
         //console.log("dataRequestStatus async")
@@ -389,18 +426,21 @@ watch (isProduction, async(prodStatus) => {
         isLoaded.value = true;
         isAsyncRequest.value = true;
         step.value = 4;
-        saveMessage.value = '<p>A request to fetch data in the background was submitted by ' + response?.data.redcapUserName
+
+        saveMessage.value = '<p>A request to fetch data for '
+            + previousCohort + ' in the background was submitted by '
+            + response?.data.redcapUserName
           + ' and is already in progress.</p><p>This page will check its status every '
           + asyncPollInterval.value +' seconds.</p>';
-        asyncPollStatus();
+        asyncPollStatus(previousCohort);
       } else {
         if (response?.data?.dataRequestStatus && response?.data?.dataRequestStatus != 'no status') {
-          let date = new Date( Date.parse(response?.data?.dataRequestTimestamp) );
-
-          previousRequestStatus.value = 'Previous request status: ' + response?.data.dataRequestStatus
-              + ' at ' + date.toLocaleString('en-us');
+          const date = new Date( Date.parse(response?.data?.dataRequestTimestamp) );
+          previousRequestStatus.value = 'Previous request status for ' + previousCohort + ': ' +
+              response?.data.dataRequestStatus
+              + ' at ' + date.toLocaleString('en-us')
         }
-        startLoad.value = true;
+        startLoad.value = true
       }
     }
   }
@@ -476,16 +516,58 @@ const cancel = () => {
   goToUrl(record_base_url.value)
 }
 
+const cohortStr = computed(() => {
+  let str = 'all records'
+    if (!isNaN((selectedRecordsMin.value === undefined) ? NaN : selectedRecordsMin.value)) {
+      if (!isNaN((selectedRecordsMax.value === undefined) ? NaN : selectedRecordsMax.value)) {
+      str = 'record ids ' + selectedRecordsMin.value + ' - ' +  selectedRecordsMax.value;
+    } else {
+        str = 'record ids >= ' + selectedRecordsMin.value;
+      }
+    } else if (!isNaN((selectedRecordsMax.value === undefined) ? NaN : selectedRecordsMax.value)) {
+      str = 'record ids <= ' + selectedRecordsMax.value;
+
+    }
+  return str;
+})
+
+const selectedFilter = computed(() => {
+  let filter = ""
+  if (selectedRecordsOption.value == 'Subset') {
+    /* this is for selecting from the table. disabled for now
+    if (selectedRecords.value.length > 0 && selectedRecords.value.length < dusterData.value.rp_data.length) {
+      let selected = "";
+      console.log(selectedRecords.value)
+
+      for (const record of selectedRecords.value) {
+        console.log(record)
+        //@ts-ignore
+        selected += record.redcap_record_id + ","
+      }
+      selected = selected.slice(0, -1);
+      filter = '&selected=' + selected;
+    }*/
+    if (!isNaN((selectedRecordsMin.value === undefined) ? NaN : selectedRecordsMin.value)) {
+        filter += '&min=' + selectedRecordsMin.value
+    }
+    if (!isNaN((selectedRecordsMax.value === undefined) ? NaN : selectedRecordsMax.value)) {
+      filter += '&max=' + selectedRecordsMax.value
+    }
+  }
+  return filter;
+});
+
 const syncCohort = async() => {
   step.value = 4;
   showSync.value = false ;
   try {
-    const cohortSync = await axios.get(get_data_url.value + "&action=realTimeSyncCohort");
+    const cohortSync = await axios.get(get_data_url.value + "&action=realTimeSyncCohort" + selectedFilter.value);
 
     if (!hasError(cohortSync)) {
       cohortProgress.value = 100;
       totalProgress.value = saveSize.value;
-      saveMessage.value = "Researcher-Provided Information update complete.";
+      saveMessage.value = "Researcher-Provided Information update for "
+          + cohortStr.value + " complete.";
       cohortMessage.value = "Complete";
     } else {
       cohortMessage.value = "Error";
@@ -533,12 +615,13 @@ const updateProgress = (dataSync:any) => {
     if (!hasError(dataSync)) {
       if (failures.value.length > 0) {
         errorMessage.value =
-          "Data retrieval was incomplete. Some queries had failures. An email regarding this issue was sent to the DUSTER team.<br><br>"
+          "Data retrieval for " + cohortStr.value +
+            " was incomplete. Some queries had failures. An email regarding this issue was sent to the DUSTER team.<br><br>"
           + failures.value.join('<br>');
         saveMessage.value = "";
         axios.get(get_data_url.value + "&action=logStatus&status=fail");
       } else {
-        saveMessage.value = "Data retrieval complete";
+        saveMessage.value = "Data retrieval complete for " + cohortStr.value;
         axios.get(get_data_url.value + "&action=logStatus&status=complete");
       }
     }  // else {hasError should handle error message}
@@ -559,11 +642,13 @@ const asyncRequestData = async() => {
     isAsyncRequest.value = true;
     showAsyncNotify.value = false;
     step.value = 4;
-    axios.get(get_data_url.value + "&action=asyncDataRequest" + emailParam);
-    saveMessage.value = "<p>A request to fetch data in the background was submitted.  An email will be sent to " + email.value +
-        " when it is completed.</p><p>This page will check its status every " + asyncPollInterval.value + " seconds.</p>";
+    axios.get(get_data_url.value + "&action=asyncDataRequest" + emailParam + selectedFilter.value);
+    saveMessage.value = "<p>A request to fetch data for " +  cohortStr.value
+        + " in the background was submitted.  An email will be sent to "
+        + email.value
+        + " when it is completed.</p><p>This page will check its status every " + asyncPollInterval.value + " seconds.</p>";
     await sleep(10000); // this is a hack because there is some lag in updating the requestId
-    asyncPollStatus();
+    asyncPollStatus(cohortStr.value);
   }
 }
 
@@ -588,7 +673,7 @@ const zeropad = (num:number) => {
 
 const dataRequestLog = ref<any>()
 const failures = ref<string[]>([])
-const asyncPollStatus = async() => {
+const asyncPollStatus = async(cohortDesc:string) => {
   let complete = false;
   let count = 0; // count the number of status requests.  Used to set limit on number of requests.
   while (!complete) {
@@ -610,7 +695,6 @@ const asyncPollStatus = async() => {
       //console.log("count " + count)
       cancelled.value = (response.data.request_status.message == 'cancel')
       const failed = (response.data.request_status.message.indexOf('fail') !== -1)
-      //console.log("failed " + failed)
       let failMessages = ""
 
       //if (dataRequestLog.value) {
@@ -638,7 +722,7 @@ const asyncPollStatus = async() => {
         totalProgress.value = 100 * response.data.num_complete / response.data.num_queries
       }
       if (failMessages.length > 0) {
-          errorMessage.value = failMessages
+        errorMessage.value = failMessages
       }
       //}
     } else {
@@ -664,13 +748,16 @@ const asyncPollStatus = async() => {
     totalProgress.value = 100
     saveMessage.value = ""
     errorMessage.value =
-        "Data retrieval was incomplete. An email regarding the following query failures will be sent to the DUSTER team.<br><br>"
+        "Data retrieval for " +  cohortDesc
+        + " was incomplete. An email regarding the following query failures will be sent to the DUSTER team.<br><br>"
         + errorMessage.value;
   }
   if (cancelled.value) {
-    saveMessage.value = "Data Retrieval Request Cancelled."
+    saveMessage.value = "Data Retrieval Request for " +  cohortDesc
+        + " Cancelled."
   } else {
-    saveMessage.value = 'Data Retrieval Request Completed.'
+    saveMessage.value = "Data Retrieval Request for " +  cohortDesc
+        + " Completed."
   }
   //console.log("async complete")
 }
