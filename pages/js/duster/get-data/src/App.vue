@@ -84,14 +84,14 @@
                   <label class="font-bold block mb-2">Retrieve Data for</label>
                   <SelectButton v-model="selectedRecordsOption" :options="selectedRecordsOptions" aria-labelledby="basic" />
                   </div>
-                  <div class="field" v-if="selectedRecordsOption == 'Subset'">
+                  <div class="field" v-if="selectedRecordsOption == 'Subcohort'">
                     <label for="minRecordId" class="font-bold block mb-2"> Minimum Record Id </label>
                     <InputNumber v-model="selectedRecordsMin"
                                  inputId="minRecordId"
                                   :min="dusterData.rp_data[0].redcap_record_id"
                                   :max="selectedRecordsMax"/>
                   </div>
-                  <div class="field" v-if="selectedRecordsOption == 'Subset'">
+                  <div class="field" v-if="selectedRecordsOption == 'Subcohort'">
                     <label for="maxRecordId" class="font-bold block mb-2"> Maximum Record Id </label>
                     <InputNumber v-model="selectedRecordsMax"
                                  inputId="maxRecordId"
@@ -367,7 +367,7 @@ const countDownUpdate = ref<string>("")
 const updateTime = ref<string>("")
 
 const selectedRecordsOption = ref<string>('All');
-const selectedRecordsOptions = ref(['All', 'Subset'])
+const selectedRecordsOptions = ref(['All', 'Subcohort'])
 const selectedRecordsMin = ref<number>()
 const selectedRecordsMax = ref<number>()
 // this is for table select which is currently disabled
@@ -412,7 +412,7 @@ watch (isProduction, async(prodStatus) => {
         })
     if (!hasError(response)) {
       //console.log(response)
-      const previousCohort = (response?.data?.cohortRange == 'All') ? 'all record ids'
+      const previousCohort = (response?.data?.cohortRange == 'All') ? 'all records'
           : 'record ids ' + response?.data.cohortRange;
       if (response?.data?.dataRequestStatus == 'sync') {
         isLoading.value = false;
@@ -533,7 +533,7 @@ const cohortStr = computed(() => {
 
 const selectedFilter = computed(() => {
   let filter = ""
-  if (selectedRecordsOption.value == 'Subset') {
+  if (selectedRecordsOption.value == 'Subcohort') {
     /* this is for selecting from the table. disabled for now
     if (selectedRecords.value.length > 0 && selectedRecords.value.length < dusterData.value.rp_data.length) {
       let selected = "";
