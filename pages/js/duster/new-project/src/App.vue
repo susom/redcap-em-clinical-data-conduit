@@ -27,7 +27,7 @@
           <div class="grid">
             <div class="col-6">
               <ResearcherProvidedPanel
-                  v-model:rp-provided-data="rpProvidedData"
+                  v-model:rp-data="rpData"
                   :reserved-field-names="reservedFieldNames"
               />
             </div>
@@ -143,6 +143,7 @@ setInterval(() => {
       }).catch(function (error) {
     // console.log(error)
   });
+  console.log(JSON.stringify({rpData, demographicsSelects, collectionWindows}));
 },60000);
 
 const dev = ref<boolean>(false)
@@ -150,7 +151,7 @@ const systemError = ref<boolean>(false)
 
 const showSummary = ref<boolean>(false)
 
-const rpProvidedData = ref<BasicConfig[]>([
+const rpData = ref<BasicConfig[]>([
   {
     redcap_field_name: "mrn",
     label:"Medical Record Number (MRN)",
@@ -173,10 +174,10 @@ const rpProvidedData = ref<BasicConfig[]>([
 
 // separating out identifiers and dates for review step
 const rpIdentifiers = computed(() => {
-  return rpProvidedData.value.filter((rpi:BasicConfig) => rpi.value_type?.toLowerCase() === 'identifier')
+  return rpData.value.filter((rpi:BasicConfig) => rpi.value_type?.toLowerCase() === 'identifier')
 })
 const rpDates = computed(() => {
-  return rpProvidedData.value.filter((rpi:BasicConfig) => rpi.value_type?.toLowerCase() !== 'identifier')
+  return rpData.value.filter((rpi:BasicConfig) => rpi.value_type?.toLowerCase() !== 'identifier')
 })
 
 const demographicsOptions = ref<FieldMetadata[]>([])
@@ -202,7 +203,7 @@ onMounted(() => {
 
 watch(irbValid, (irbValidUpdate) => {
   if (irbValidUpdate) {
-    getDusterMetadata(projectConfig.metadata_url)
+    getDusterMetadata(projectConfig.metadata_url);
   }
 })
 
@@ -220,7 +221,7 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
           irbCheckStatus.value = 'checked'
           if (response.data === 1) {
             irbValid.value = true;
-            irbCheckMessage.value = "IRB " + projectIrbNumber + " check success.  Fetching DUSTER metadata.";
+            irbCheckMessage.value = "IRB " + projectIrbNumber + " check success. Fetching DUSTER metadata.";
             projectConfig.project_irb_number = projectIrbNumber;
           } else {
 
@@ -274,7 +275,7 @@ const getDusterMetadata = (metadataUrl:string) => {
     vitalOptions.value = resp.data.vitals;
     outcomeOptions.value = resp.data.outcomes;
     scoreOptions.value = resp.data.scores;
-    clinicalDateOptions.value = resp.data.clinical_dates
+    clinicalDateOptions.value = resp.data.clinical_dates;
   } else {
     axios.get(metadataUrl)
       .then(response => {
@@ -285,6 +286,148 @@ const getDusterMetadata = (metadataUrl:string) => {
         scoreOptions.value = response.data.scores;
         clinicalDateOptions.value = response.data.clinical_dates;
         irbCheckVisible.value = false;
+
+        // TODO nested axios call to fetch auto-saved configuration
+        /*
+        rpData.value = [
+          {
+            redcap_field_name: "mrn",
+            label:"Medical Record Number (MRN)",
+            redcap_field_type:"text",
+            value_type:"Identifier", // this needs to be replace by "text" in review step
+            redcap_field_note:"8-digit number (including leading zeros, e.g., '01234567')",
+            phi:"t",
+            id: "mrn",
+            duster_field_name: undefined
+          },
+          {
+            redcap_field_name: "test_date",
+            redcap_field_type:"text",
+            value_type: "date",
+            label: "Test Enrollment Date",
+            phi: "t",
+            id: "enroll_date",
+            duster_field_name: undefined
+          }];
+        demographicsSelects.value = [
+          {
+            duster_field_name:"race",
+            label:"Race",
+            category:"demographics",
+            value_type:"text",
+            redcap_field_type:"text",
+            redcap_options:"",
+            redcap_field_note:"",
+            phi:""
+//            group:3
+          }
+        ];
+        /*
+        demographicsSelects.value = [
+          {
+            duster_field_name:"birth_date",
+            label: "Birth Date",
+            category:"demographics",
+            value_type:"text",
+            redcap_field_type:"text",
+            redcap_options:"",
+            redcap_field_note:"",
+            phi:"t"
+            // group:1
+          },
+          {
+            duster_field_name:"death_date",
+            label:"Death Date",
+            category:"demographics",
+            value_type:"text",
+            redcap_field_type:"text",
+            redcap_options:"",
+            redcap_field_note:"",
+            phi:"t"
+            //group:1
+          },
+          {
+            duster_field_name:"first_name",
+            label:"First Name",
+            category:"demographics",
+            value_type:"text",
+            redcap_field_type:"text",
+            redcap_options:"",
+            redcap_field_note:"",
+            phi:"t"
+            //group:2
+          },
+          {
+            duster_field_name:"last_name",
+            label:"Last Name",
+            category:"demographics",
+            value_type:"text",
+            redcap_field_type:"text",
+            redcap_options:"",
+            redcap_field_note:"",
+            phi:"t"
+            //group:2
+          }];
+          collectionWindows.value = [
+            {
+              label:"Hospital Presentation to Hospital Discharge",
+              form_name:"",
+              type:"nonrepeating",
+              timing_valid:true,
+              timing:{
+                start:{
+                  type:"datetime",
+                  duster_field_name:"hospital_presentation_datetime",
+                  redcap_field_name:"",
+                  redcap_field_type:"text",
+                  value_type:"datetime",
+                  label:"Hospital Presentation Datetime",
+                  rp_date:"test_date",
+                  interval:{
+                    type:null,
+                    length:null
+                  },
+                  phi:"t"
+                },
+                end:{
+                  type:"datetime",
+                  duster_field_name:"hospital_discharge_datetime",
+                  redcap_field_name:"",
+                  redcap_field_type:"text",
+                  value_type:"datetime",
+                  label:"Hospital Discharge Datetime",
+                  rp_date:"test_date",
+                  interval:{
+                    type:null,
+                    length:null
+                  },
+                  phi:"t"
+                },
+                repeat_interval:{
+
+                }
+              },
+              event:[{
+                label:"",
+                redcap_field_type:"text",
+                value_type:"datetime",
+                interval:{
+                  type: null,
+                  length: null
+                },
+                phi:"t"
+              }],
+              closest_time:"08:00:00",
+              data:{
+                labs:[],
+                vitals:[],
+                outcomes:[],
+                scores:[],
+                valid:true,
+                errors:[]
+              }
+            }];
+         */
       }).catch(function (error) {
         irbCheckMessage.value = "Unable to load DUSTER metadata";
         systemError.value = true ;
@@ -318,7 +461,7 @@ const checkForRpDateChanges = () => {
 }
 
 /*const deleteRpDate = (rpDate:BasicConfig) => {
-  rpProvidedData.value = rpProvidedData.value.filter(item => item.id !== rpDate.id)
+  rpData.value = rpData.value.filter(item => item.id !== rpDate.id)
 }*/
 const toast = useToast();
 
@@ -353,7 +496,25 @@ const checkValidation = () => {
 
   toast.removeAllGroups()
   if (!v$.value.$error) {
-    showSummary.value = true
+    showSummary.value = true;
+
+    // auto-save dataset design
+    let saveDesignForm = new FormData();
+    saveDesignForm.append('redcap_csrf_token', projectConfig.redcap_csrf_token);
+    saveDesignForm.append('title', 'auto-save');
+    const designObj = {
+      rpData: rpData.value,
+      demographicsSelects: demographicsSelects.value,
+      collectionWindows: collectionWindows.value
+    };
+    saveDesignForm.append('design', JSON.stringify(designObj));
+    axios.post(projectConfig.save_dataset_design_url, saveDesignForm)
+      .then(function (response) {
+        console.log(response); // TODO response
+      })
+      .catch(function (error) {
+        console.log(error); // TODO error
+      });
   } else {
     console.log(v$)
     v$.value.$errors.forEach(error => {
