@@ -7,6 +7,8 @@
       <DataTable v-model:selection="selectedRows" :value="tableRows" paginator :rows="10" :rowsPerPageOptions="[10, 20,
       50]"
                  tableStyle="min-width: 50rem" class="p-datatable-sm"
+                 :first="selectedRecordsMin"
+                 :totalRecords="totalRecords"
                  @update:selection="$emit('update:selectedRecords', selectedRows)"
       >
         <Column selectionMode="multiple" headerStyle="width: 3rem" v-if="selectable"></Column>
@@ -60,11 +62,26 @@ const props = defineProps({
   },
   selectMax: {
     type: Number
+  },
+  selectedRecordsMin: {
+    type: Number
+  },
+  selectedRecordsMax: {
+    type:Number
   }
 })
 
 const emit = defineEmits(['update:selectedRecords'])
-
+const totalRecords = computed(() => {
+  if (props.selectedRecordsMax) {
+    if (props.selectedRecordsMin) {
+      return props.selectedRecordsMax - props.selectedRecordsMin
+    } else {
+      props.selectedRecordsMax
+    }
+  }
+  return undefined
+})
 
 const alertTextStyle = computed( () => {
   if (props.alertType == 'error')

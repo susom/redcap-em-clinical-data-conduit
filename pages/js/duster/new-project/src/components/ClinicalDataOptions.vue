@@ -199,7 +199,7 @@ const selected = computed({
   get() {
     return props.selectedOptions
   },
-  set(value) {
+  set(value:Array<FieldMetadata>) {
     emit('update:selectedOptions', value)
   }
 })

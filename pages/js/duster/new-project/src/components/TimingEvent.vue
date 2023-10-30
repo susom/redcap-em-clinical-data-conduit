@@ -165,7 +165,7 @@ const event = computed({
   get() {
     return props.timingObject;
   },
-  set(value) {
+  set(value:TimingConfig) {
     emit('update:timingObject', value)
   }
 });

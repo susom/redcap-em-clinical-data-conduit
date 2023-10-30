@@ -293,7 +293,7 @@ const localClinicalData = computed({
   get() {
     return props.clinicalData;
   },
-  set(value) {
+  set(value:Object) {
     emit('update:clinicalData', value)
   }
 });
@@ -302,7 +302,7 @@ const localAggregateDefaults = computed({
   get() {
     return props.aggregateDefaults;
   },
-  set(value) {
+  set(value:(Array<TextValuePair>|undefined)){
     emit('update:aggregateDefaults', value)
   }
 });
