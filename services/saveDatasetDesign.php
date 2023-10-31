@@ -9,12 +9,11 @@ use RedCapDB;
  */
 
 /**
- * avoiding false-positive Psalm TaintedSSRF on $_POST['data']
+ * avoiding false-positive Psalm TaintedSSRF on $_POST
  * @psalm-taint-escape ssrf
  */
 
 /* validate parameters from request */
-// $data = json_decode($_POST['data'], true);
 if (!array_key_exists('title', $_POST) || $_POST['title'] === "") {
   http_response_code(400);
   $msg = $module->handleError('DUSTER Error: Save/Update Dataset Design',  "Missing 'title' parameter in request to save/update a dataset design.");

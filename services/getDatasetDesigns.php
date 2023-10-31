@@ -8,7 +8,7 @@ use RedCapDB;
  * service page to get all DUSTER dataset designs for a user
  */
 
-/* send STARR-API GET request to get dataset designs from postgres table*/
+/* send STARR-API GET request to get dataset designs from postgres table */
 
 // Retrieve the data URL that is saved in the config file
 $dataset_design_url = $module->getSystemSetting("starrapi-dataset-design-url")
