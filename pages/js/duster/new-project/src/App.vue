@@ -79,6 +79,7 @@
               :collection-windows="collectionWindows"
               :project-info="projectConfig"
               :dev="dev"
+              @delete-auto-save="deleteAutoSaveDesign()"
           />
         </div>
       </div>
@@ -99,6 +100,25 @@
       <Button v-if="!irbValid && irbCheckStatus==='checked'"
               label="Submit" icon="pi pi-refresh" class="p-button-primary" @click="irbRetry" size="small"/>
       <Button label="Cancel" icon="pi pi-times" class="p-button-secondary" @click="irbCheckCancel" size="small" />
+    </template>
+  </Dialog>
+
+  <!-- prompt to ask user if they want to load an auto-saved design from a previous session -->
+  <Dialog
+    v-model:visible="promptRestoreAutoSave"
+    header="Restore last design"
+    :modal="true"
+    :closable="false"
+  >
+    <p>
+      It looks like you were previously in the middle of designing a dataset.
+      <br>
+      <br>
+      Would you like to restore this design?
+    </p>
+    <template #footer>
+      <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="restoreAutoSaveDesign()" size="small"/>
+      <Button label="No" icon="pi pi-times" class="p-button-secondary" @click="promptRestoreAutoSave=false, deleteAutoSaveDesign()" size="small" />
     </template>
   </Dialog>
   <SystemErrorDialog v-if="systemError"/>
@@ -138,12 +158,11 @@ localStorage.removeItem('postObj');
 
 setInterval(() => {
   axios.get(projectConfig.refresh_session_url)
-      .then(response => {
-        // console.log(response);
-      }).catch(function (error) {
-    // console.log(error)
-  });
-  console.log(JSON.stringify({rpData, demographicsSelects, collectionWindows}));
+    .then(function (response) {
+    })
+    .catch(function (error) {
+    });
+  saveDatasetDesign('auto-save');
 },60000);
 
 const dev = ref<boolean>(false)
@@ -196,6 +215,14 @@ const irbCheckStatus = ref<string>("checking")
 const irbCheckMessage = ref<string>("Checking IRB #" + projectIrb.value + " ...")
 const irbCheckVisible = ref<boolean>(false)
 
+// const autoSaveDesign = {rpData: null, demographicsSelects: null, collectionWindows: null};
+// const autoSaveDesign = ref<object>();
+// const autoSaveDesign: {[key: string]:any, [demographicsSelects: string]:any, [collectionWindows: string]:any} = {}; // = ref<object>();
+const autoSaveDesign: {[key: string]:any} = ({}); // = ref<object>();
+// const myObj: {[index: string]:any} = {}
+
+const promptRestoreAutoSave = ref<boolean>(false);
+
 onMounted(() => {
   // check irb
   checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number)
@@ -247,9 +274,9 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
         })
         .catch(function (error) {
           irbValid.value = false;
-          irbCheckMessage.value = "IRB Check Error"
-          systemError.value = true ;
-          console.log(error)
+          irbCheckMessage.value = "IRB Check Error";
+          systemError.value = true;
+          console.log(error);
         });
   }
 }
@@ -278,7 +305,7 @@ const getDusterMetadata = (metadataUrl:string) => {
     clinicalDateOptions.value = resp.data.clinical_dates;
   } else {
     axios.get(metadataUrl)
-      .then(response => {
+      .then(function (response) {
         demographicsOptions.value = response.data.demographics;
         labOptions.value = response.data.labs;
         vitalOptions.value = response.data.vitals;
@@ -287,147 +314,19 @@ const getDusterMetadata = (metadataUrl:string) => {
         clinicalDateOptions.value = response.data.clinical_dates;
         irbCheckVisible.value = false;
 
-        // TODO nested axios call to fetch auto-saved configuration
-        /*
-        rpData.value = [
-          {
-            redcap_field_name: "mrn",
-            label:"Medical Record Number (MRN)",
-            redcap_field_type:"text",
-            value_type:"Identifier", // this needs to be replace by "text" in review step
-            redcap_field_note:"8-digit number (including leading zeros, e.g., '01234567')",
-            phi:"t",
-            id: "mrn",
-            duster_field_name: undefined
-          },
-          {
-            redcap_field_name: "test_date",
-            redcap_field_type:"text",
-            value_type: "date",
-            label: "Test Enrollment Date",
-            phi: "t",
-            id: "enroll_date",
-            duster_field_name: undefined
-          }];
-        demographicsSelects.value = [
-          {
-            duster_field_name:"race",
-            label:"Race",
-            category:"demographics",
-            value_type:"text",
-            redcap_field_type:"text",
-            redcap_options:"",
-            redcap_field_note:"",
-            phi:""
-//            group:3
-          }
-        ];
-        /*
-        demographicsSelects.value = [
-          {
-            duster_field_name:"birth_date",
-            label: "Birth Date",
-            category:"demographics",
-            value_type:"text",
-            redcap_field_type:"text",
-            redcap_options:"",
-            redcap_field_note:"",
-            phi:"t"
-            // group:1
-          },
-          {
-            duster_field_name:"death_date",
-            label:"Death Date",
-            category:"demographics",
-            value_type:"text",
-            redcap_field_type:"text",
-            redcap_options:"",
-            redcap_field_note:"",
-            phi:"t"
-            //group:1
-          },
-          {
-            duster_field_name:"first_name",
-            label:"First Name",
-            category:"demographics",
-            value_type:"text",
-            redcap_field_type:"text",
-            redcap_options:"",
-            redcap_field_note:"",
-            phi:"t"
-            //group:2
-          },
-          {
-            duster_field_name:"last_name",
-            label:"Last Name",
-            category:"demographics",
-            value_type:"text",
-            redcap_field_type:"text",
-            redcap_options:"",
-            redcap_field_note:"",
-            phi:"t"
-            //group:2
-          }];
-          collectionWindows.value = [
-            {
-              label:"Hospital Presentation to Hospital Discharge",
-              form_name:"",
-              type:"nonrepeating",
-              timing_valid:true,
-              timing:{
-                start:{
-                  type:"datetime",
-                  duster_field_name:"hospital_presentation_datetime",
-                  redcap_field_name:"",
-                  redcap_field_type:"text",
-                  value_type:"datetime",
-                  label:"Hospital Presentation Datetime",
-                  rp_date:"test_date",
-                  interval:{
-                    type:null,
-                    length:null
-                  },
-                  phi:"t"
-                },
-                end:{
-                  type:"datetime",
-                  duster_field_name:"hospital_discharge_datetime",
-                  redcap_field_name:"",
-                  redcap_field_type:"text",
-                  value_type:"datetime",
-                  label:"Hospital Discharge Datetime",
-                  rp_date:"test_date",
-                  interval:{
-                    type:null,
-                    length:null
-                  },
-                  phi:"t"
-                },
-                repeat_interval:{
+        //  fetch dataset designs
+        axios.get(projectConfig.get_dataset_designs_url)
+          .then(function (response) {
+            const designs = response.data;
+            // prompt to restore auto-save
+            if (designs.hasOwnProperty('auto-save') === true) {
+              autoSaveDesign.value = JSON.parse(designs['auto-save']);
+              promptRestoreAutoSave.value = true;
+            }
+          })
+          .catch(function (error) {
 
-                }
-              },
-              event:[{
-                label:"",
-                redcap_field_type:"text",
-                value_type:"datetime",
-                interval:{
-                  type: null,
-                  length: null
-                },
-                phi:"t"
-              }],
-              closest_time:"08:00:00",
-              data:{
-                labs:[],
-                vitals:[],
-                outcomes:[],
-                scores:[],
-                valid:true,
-                errors:[]
-              }
-            }];
-         */
+          });
       }).catch(function (error) {
         irbCheckMessage.value = "Unable to load DUSTER metadata";
         systemError.value = true ;
@@ -499,22 +398,7 @@ const checkValidation = () => {
     showSummary.value = true;
 
     // auto-save dataset design
-    let saveDesignForm = new FormData();
-    saveDesignForm.append('redcap_csrf_token', projectConfig.redcap_csrf_token);
-    saveDesignForm.append('title', 'auto-save');
-    const designObj = {
-      rpData: rpData.value,
-      demographicsSelects: demographicsSelects.value,
-      collectionWindows: collectionWindows.value
-    };
-    saveDesignForm.append('design', JSON.stringify(designObj));
-    axios.post(projectConfig.save_dataset_design_url, saveDesignForm)
-      .then(function (response) {
-        console.log(response); // TODO response
-      })
-      .catch(function (error) {
-        console.log(error); // TODO error
-      });
+    saveDatasetDesign('auto-save');
   } else {
     console.log(v$)
     v$.value.$errors.forEach(error => {
@@ -539,11 +423,66 @@ const checkValidation = () => {
         }
     )
   }
-  return false
+  return false;
+}
+
+/**
+ * Saves current dataset design in STARR-API
+ * @param title
+ */
+const saveDatasetDesign = (title:string) => {
+  let saveDesignForm = new FormData();
+  saveDesignForm.append('redcap_csrf_token', projectConfig.redcap_csrf_token);
+  saveDesignForm.append('title', title);
+  const designObj = {
+    rpData: rpData.value,
+    demographicsSelects: demographicsSelects.value,
+    collectionWindows: collectionWindows.value
+  };
+  saveDesignForm.append('design', JSON.stringify(designObj));
+  axios.post(projectConfig.save_dataset_design_url, saveDesignForm)
+    .then(function (response) {
+    })
+    .catch(function (error) {
+    });
+}
+
+/**
+ * Loads the auto-saved dataset design
+ */
+const restoreAutoSaveDesign = () => {
+  rpData.value = autoSaveDesign.value.rpData;
+  demographicsSelects.value = autoSaveDesign.value.demographicsSelects;
+  collectionWindows.value = autoSaveDesign.value.collectionWindows;
+  promptRestoreAutoSave.value = false;
+}
+
+/**
+ * Deletes the auto-saved dataset design in STARR-API
+ */
+const deleteAutoSaveDesign = () => {
+  autoSaveDesign.value = null;
+  deleteDatasetDesign('auto-save');
+}
+
+/**
+ * Deletes a dataset design in STARR-API
+ * @param title
+ */
+const deleteDatasetDesign = (title:string) => {
+  let deleteDesignForm = new FormData();
+  deleteDesignForm.append('redcap_csrf_token', projectConfig.redcap_csrf_token);
+  deleteDesignForm.append('title', title);
+  axios.post(projectConfig.delete_dataset_design_url, deleteDesignForm)
+    .then(function (response) {
+
+    })
+    .catch(function (error) {
+
+    });
 }
 
 </script>
-
 
 <style scoped lang="scss">
 nav {

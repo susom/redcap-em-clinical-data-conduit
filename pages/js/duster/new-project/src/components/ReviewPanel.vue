@@ -155,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import {capitalize, computed, ref, watch} from "vue";
+import {capitalize, computed, getCurrentInstance, ref, watch} from "vue";
 import type {PropType} from "vue";
 import type CollectionWindow from "@/types/CollectionWindow";
 import {INIT_TIMING_CONFIG} from "@/types/TimingConfig";
@@ -199,7 +199,7 @@ const props = defineProps({
 
 })
 
-const emit = defineEmits(['update:showSummary'])
+const emit = defineEmits(['update:showSummary', 'delete-auto-save']);
 
 const visible = computed<boolean>({
   get(){
@@ -701,7 +701,7 @@ const createProject = () => {
           showCreateProjectDialog.value = true;
           */
         } else { // success
-          // showCreateProjectDialog.value = false;
+          emit('delete-auto-save');
           window.location.href = response.data;
         }
       })

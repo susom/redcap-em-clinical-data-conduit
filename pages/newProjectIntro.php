@@ -45,6 +45,12 @@ namespace Stanford\Duster;
   // store URL for services/saveDatasetDesign.php
   postObj['save_dataset_design_url'] = "<?php echo $module->getUrl("services/saveDatasetDesign.php"); ?>";
 
+  // store URL for services/deleteDatasetDesign.php
+  postObj['delete_dataset_design_url'] = "<?php echo $module->getUrl("services/deleteDatasetDesign.php"); ?>";
+
+  // store URL for services/getDatasetDesigns.php
+  postObj['get_dataset_designs_url'] = "<?php echo $module->getUrl("services/getDatasetDesigns.php"); ?>";
+
   // store URL for services/createProject.php
   postObj['create_project_url'] = "<?php echo $module->getUrl("services/createProject.php"); ?>";
 

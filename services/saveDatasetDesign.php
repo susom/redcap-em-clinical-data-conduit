@@ -28,7 +28,7 @@ if (!array_key_exists('design', $_POST) || $_POST['design'] === "") {
   exit();
 }
 
-/* send STARR-API POST request to save/update dataset design in postgres */
+/* send STARR-API POST request to save/update dataset design in postgres table */
 
 // set up the POST body as an array
 $post_body = array(
@@ -39,7 +39,7 @@ $post_body = array(
 );
 
 // Retrieve the data URL that is saved in the config file
-$dataset_design_url = $module->getSystemSetting("starrapi-save-dataset-design-url");
+$dataset_design_url = $module->getSystemSetting("starrapi-dataset-design-url") . '/save';
 
 // send POST request to DUSTER's config route in STARR-API
 $save_design_results = $module->starrApiPostRequest($dataset_design_url, 'ddp', $post_body);
