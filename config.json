@@ -78,10 +78,10 @@
 			"type": "text"
 		},
     {
-        "key": "starrapi-dataset-design-url",
-        "name": "STARR-API Dataset Design URL",
-        "required": true,
-        "type": "text"
+      "key": "starrapi-dataset-design-url",
+      "name": "STARR-API Dataset Design URL",
+      "required": true,
+      "type": "text"
     },
 		{
 			"key": "starrapi-data-url",
