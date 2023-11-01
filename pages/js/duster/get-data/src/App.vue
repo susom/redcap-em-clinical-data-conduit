@@ -128,8 +128,6 @@
                   :selectable="selectedRecordsOption == 'Subset'"-->
                   <RequestDataTable
                       title='Data Records'
-                      alert-type="info"
-                      alert-content="Select records to retrieve from Duster: "
                       :record-base-url="record_base_url"
                       :table-data="dusterData.rp_data"
                       :selectable="false"
@@ -530,13 +528,6 @@ watch(startLoad, async (start) => {
         //console.log(response.data);
         cwQueries.value = response.data.queries;
         numQueries.value = response.data.num_queries + 1;
-        if (dusterData.value.rp_data.length > maxCohortSize.value) {
-          selectedRecordsOptionsDisabled.value = true; // disable 'All'
-          selectedRecordsOption.value = selectedRecordsOptions.value[1]; // select 'Sub-cohort'
-        } else {
-          selectedRecordsOption.value = selectedRecordsOptions.value[0]
-          maxCohortSize.value = dusterData.value.rp_data.length
-        }
         saveSize.value = 100 / numQueries.value;
         if (dusterData.value.missing_fields && dusterData.value.missing_fields.length > 0) {
           step.value = 1;
@@ -544,6 +535,13 @@ watch(startLoad, async (start) => {
             (dusterData.value.missing_data != null && dusterData.value.missing_data.length > 0)) {
           step.value = 2;
         } else {
+          if (dusterData.value.rp_data.length > maxCohortSize.value) {
+            selectedRecordsOptionsDisabled.value = true; // disable 'All'
+            selectedRecordsOption.value = selectedRecordsOptions.value[1]; // select 'Sub-cohort'
+          } else {
+            selectedRecordsOption.value = selectedRecordsOptions.value[0]
+            maxCohortSize.value = dusterData.value.rp_data.length
+          }
           step.value = 3;
         }
       }
@@ -616,10 +614,13 @@ const updateCohortMax = (newMin:number) => {
   console.log('updateCohortMax min:' + newMin + " max:" + selectedRecordsMax.value
   + " maxCohortSize:" + maxCohortSize.value)
   if (newMin !== undefined
-      && !isNaN(newMin)) {
+      && !isNaN(newMin) && selectedRecordsMax.value) {
     const minIndex = findRecordIdIndex(newMin)
-    const calculated = maxCohortSize.value - 1 + parseInt(minIndex)
-    const maxIndex = Math.min(dusterData.value.rp_data.length - 1, calculated)
+    const currentMax = selectedRecordsMax.value ? findRecordIdIndex(selectedRecordsMax.value) :
+        dusterData.value.rp_data.length - 1
+    let calculated = maxCohortSize.value - 1 + parseInt(minIndex)
+    calculated = Math.min(dusterData.value.rp_data.length - 1, calculated)
+    const maxIndex = Math.min(currentMax, calculated)
     console.log('maxIndex' + maxIndex + ' minIndex' + minIndex + " calculated: " + calculated)
     selectedRecordsMax.value = dusterData.value.rp_data[maxIndex].redcap_record_id
   }
@@ -629,11 +630,14 @@ const updateCohortMin = (newMax:number) => {
   console.log('updateCohortMin min:' + selectedRecordsMin.value + " max:" + newMax
       + " maxCohortSize:" + maxCohortSize.value)
   if (newMax != undefined
-      && !isNaN(newMax)) {
+      && !isNaN(newMax) && selectedRecordsMin.value) {
     const maxIndex = findRecordIdIndex(newMax)
-    const calculated = 1 - maxCohortSize.value + parseInt(maxIndex)
+    const currentMin = selectedRecordsMin.value ? findRecordIdIndex(selectedRecordsMin.value) :
+        0
+    let calculated = 1 - maxCohortSize.value + parseInt(maxIndex)
+    calculated = Math.max(0, calculated)
 
-    const minIndex = Math.max(0, calculated)
+    const minIndex = Math.max(currentMin, calculated)
     console.log('minIndex' + minIndex + ' maxIndex' + maxIndex + " calculated: " + calculated)
 
     selectedRecordsMin.value = dusterData.value.rp_data[minIndex].redcap_record_id

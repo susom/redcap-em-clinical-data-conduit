@@ -2,13 +2,12 @@
   <div class="grid">
     <div class="col-10">
 
-      <div :class="'text-lg p-2 mb-1 font-italic mr-5 ' + alertTextStyle">{{alertText}}</div>
-
-      <DataTable v-model:selection="selectedRows" :value="tableRows" paginator :rows="10" :rowsPerPageOptions="[10, 20,
-      50]"
+      <div v-if="alertText" :class="'text-lg p-2 mb-1 font-italic mr-5 ' + alertTextStyle">{{alertText}}</div>
+      <!-- NOTE: DataTable prop :totalRecords="totalRecords" not working -->
+      <DataTable v-model:selection="selectedRows"
+                 :value="tableRows" paginator :rows="10"
+                 :rowsPerPageOptions="[10, 20, 50]"
                  tableStyle="min-width: 50rem" class="p-datatable-sm"
-                 :first="selectedRecordsMin"
-                 :totalRecords="totalRecords"
                  @update:selection="$emit('update:selectedRecords', selectedRows)"
       >
         <Column selectionMode="multiple" headerStyle="width: 3rem" v-if="selectable"></Column>
@@ -40,11 +39,9 @@ const props = defineProps({
   },
   alertType: {
     type: String,
-    required: true
   },
   alertContent: {
     type: String,
-    required: true
   },
   recordBaseUrl: {
     type: String,
@@ -72,13 +69,43 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:selectedRecords'])
-const totalRecords = computed(() => {
+
+const findRecordIdIndex = (recordId: number) => {
+  return props.tableData.findIndex((rpData:any) => rpData.redcap_record_id == recordId)
+}
+
+const minIndex = computed(() => {
+  if (props.selectedRecordsMin) {
+    console.log("first " + findRecordIdIndex(props.selectedRecordsMin))
+    return findRecordIdIndex(props.selectedRecordsMin)
+  }
+  return 0
+})
+
+const maxIndex = computed(() => {
   if (props.selectedRecordsMax) {
-    if (props.selectedRecordsMin) {
-      return props.selectedRecordsMax - props.selectedRecordsMin
+    console.log("max " + findRecordIdIndex(props.selectedRecordsMax))
+    return findRecordIdIndex(props.selectedRecordsMax)
+  }
+  return props.tableData.length - 1
+})
+
+const totalRecords = computed(() => {
+  console.log('totalRecords compute')
+  if (props.selectedRecordsMax) {
+    const maxIndex = findRecordIdIndex(props.selectedRecordsMax)
+    console.log('maxIndex ' + maxIndex)
+
+    if (minIndex.value) {
+      const total = maxIndex - minIndex.value + 1
+      console.log('result ' + total)
+      return total
     } else {
-      props.selectedRecordsMax
+      console.log('result ' + maxIndex)
+      return maxIndex + 1
     }
+  } else if (minIndex.value) {
+    return props.tableData.length - minIndex.value
   }
   return undefined
 })
@@ -128,18 +155,20 @@ const tableRows:any = computed(()=>{
   let tablesRows = []
   if (props.tableData != null && props.tableData.length > 0) {
     for (let index in props.tableData) {
-      let row:any = {};
-      row["redcap_record_id"] = props.tableData[index].redcap_record_id
-      row["redcap_record_id_url"] =
-          '<a href="' +props.recordBaseUrl+'&arm=1&id=' +
-          props.tableData[index].redcap_record_id  +'">' +
-          props.tableData[index].redcap_record_id + '</a>';
-      row["mrn"] = props.tableData[index].mrn;
-      for (let dateIndex in props.tableData[index].dates) {
-        row[props.tableData[index].dates[dateIndex].redcap_field_name]
-            = props.tableData[index].dates[dateIndex].value;
+      if (parseInt(index) >= minIndex.value && parseInt(index) <= maxIndex.value) {
+        let row: any = {};
+        row["redcap_record_id"] = props.tableData[index].redcap_record_id
+        row["redcap_record_id_url"] =
+            '<a href="' + props.recordBaseUrl + '&arm=1&id=' +
+            props.tableData[index].redcap_record_id + '">' +
+            props.tableData[index].redcap_record_id + '</a>';
+        row["mrn"] = props.tableData[index].mrn;
+        for (let dateIndex in props.tableData[index].dates) {
+          row[props.tableData[index].dates[dateIndex].redcap_field_name]
+              = props.tableData[index].dates[dateIndex].value;
+        }
+        tablesRows.push(row);
       }
-      tablesRows.push(row);
     }
   }
   return tablesRows
