@@ -27,7 +27,7 @@
           <div class="grid">
             <div class="col-6">
               <ResearcherProvidedPanel
-                  v-model:rp-provided-data="rpProvidedData"
+                  v-model:rp-data="rpData"
                   :reserved-field-names="reservedFieldNames"
               />
             </div>
@@ -79,6 +79,7 @@
               :collection-windows="collectionWindows"
               :project-info="projectConfig"
               :dev="dev"
+              @delete-auto-save="deleteAutoSaveDesign()"
           />
         </div>
       </div>
@@ -99,6 +100,25 @@
       <Button v-if="!irbValid && irbCheckStatus==='checked'"
               label="Submit" icon="pi pi-refresh" class="p-button-primary" @click="irbRetry" size="small"/>
       <Button label="Cancel" icon="pi pi-times" class="p-button-secondary" @click="irbCheckCancel" size="small" />
+    </template>
+  </Dialog>
+
+  <!-- prompt to ask user if they want to load an auto-saved design from a previous session -->
+  <Dialog
+    v-model:visible="promptRestoreAutoSave"
+    header="Restore last design"
+    :modal="true"
+    :closable="false"
+  >
+    <p>
+      It looks like you were previously in the middle of designing a dataset.
+      <br>
+      <br>
+      Would you like to restore this design?
+    </p>
+    <template #footer>
+      <Button label="Yes" icon="pi pi-check" class="p-button-primary" @click="restoreAutoSaveDesign()" size="small"/>
+      <Button label="No" icon="pi pi-times" class="p-button-secondary" @click="promptRestoreAutoSave=false, deleteAutoSaveDesign()" size="small" />
     </template>
   </Dialog>
   <SystemErrorDialog v-if="systemError"/>
@@ -138,11 +158,11 @@ localStorage.removeItem('postObj');
 
 setInterval(() => {
   axios.get(projectConfig.refresh_session_url)
-      .then(response => {
-        // console.log(response);
-      }).catch(function (error) {
-    // console.log(error)
-  });
+    .then(function (response) {
+    })
+    .catch(function (error) {
+    });
+  saveDatasetDesign('auto-save');
 },60000);
 
 const dev = ref<boolean>(false)
@@ -150,7 +170,7 @@ const systemError = ref<boolean>(false)
 
 const showSummary = ref<boolean>(false)
 
-const rpProvidedData = ref<BasicConfig[]>([
+const rpData = ref<BasicConfig[]>([
   {
     redcap_field_name: "mrn",
     label:"Medical Record Number (MRN)",
@@ -173,10 +193,10 @@ const rpProvidedData = ref<BasicConfig[]>([
 
 // separating out identifiers and dates for review step
 const rpIdentifiers = computed(() => {
-  return rpProvidedData.value.filter((rpi:BasicConfig) => rpi.value_type?.toLowerCase() === 'identifier')
+  return rpData.value.filter((rpi:BasicConfig) => rpi.value_type?.toLowerCase() === 'identifier')
 })
 const rpDates = computed(() => {
-  return rpProvidedData.value.filter((rpi:BasicConfig) => rpi.value_type?.toLowerCase() !== 'identifier')
+  return rpData.value.filter((rpi:BasicConfig) => rpi.value_type?.toLowerCase() !== 'identifier')
 })
 
 const demographicsOptions = ref<FieldMetadata[]>([])
@@ -195,6 +215,14 @@ const irbCheckStatus = ref<string>("checking")
 const irbCheckMessage = ref<string>("Checking IRB #" + projectIrb.value + " ...")
 const irbCheckVisible = ref<boolean>(false)
 
+// const autoSaveDesign = {rpData: null, demographicsSelects: null, collectionWindows: null};
+// const autoSaveDesign = ref<object>();
+// const autoSaveDesign: {[key: string]:any, [demographicsSelects: string]:any, [collectionWindows: string]:any} = {}; // = ref<object>();
+const autoSaveDesign: {[key: string]:any} = ({}); // = ref<object>();
+// const myObj: {[index: string]:any} = {}
+
+const promptRestoreAutoSave = ref<boolean>(false);
+
 onMounted(() => {
   // check irb
   checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number)
@@ -202,7 +230,7 @@ onMounted(() => {
 
 watch(irbValid, (irbValidUpdate) => {
   if (irbValidUpdate) {
-    getDusterMetadata(projectConfig.metadata_url)
+    getDusterMetadata(projectConfig.metadata_url);
   }
 })
 
@@ -220,7 +248,7 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
           irbCheckStatus.value = 'checked'
           if (response.data === 1) {
             irbValid.value = true;
-            irbCheckMessage.value = "IRB " + projectIrbNumber + " check success.  Fetching DUSTER metadata.";
+            irbCheckMessage.value = "IRB " + projectIrbNumber + " check success. Fetching DUSTER metadata.";
             projectConfig.project_irb_number = projectIrbNumber;
           } else {
 
@@ -246,9 +274,9 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
         })
         .catch(function (error) {
           irbValid.value = false;
-          irbCheckMessage.value = "IRB Check Error"
-          systemError.value = true ;
-          console.log(error)
+          irbCheckMessage.value = "IRB Check Error";
+          systemError.value = true;
+          console.log(error);
         });
   }
 }
@@ -274,10 +302,10 @@ const getDusterMetadata = (metadataUrl:string) => {
     vitalOptions.value = resp.data.vitals;
     outcomeOptions.value = resp.data.outcomes;
     scoreOptions.value = resp.data.scores;
-    clinicalDateOptions.value = resp.data.clinical_dates
+    clinicalDateOptions.value = resp.data.clinical_dates;
   } else {
     axios.get(metadataUrl)
-      .then(response => {
+      .then(function (response) {
         demographicsOptions.value = response.data.demographics;
         labOptions.value = response.data.labs;
         vitalOptions.value = response.data.vitals;
@@ -285,6 +313,20 @@ const getDusterMetadata = (metadataUrl:string) => {
         scoreOptions.value = response.data.scores;
         clinicalDateOptions.value = response.data.clinical_dates;
         irbCheckVisible.value = false;
+
+        //  fetch dataset designs
+        axios.get(projectConfig.get_dataset_designs_url)
+          .then(function (response) {
+            const designs = response.data;
+            // prompt to restore auto-save
+            if (designs.hasOwnProperty('auto-save') === true) {
+              autoSaveDesign.value = JSON.parse(designs['auto-save']);
+              promptRestoreAutoSave.value = true;
+            }
+          })
+          .catch(function (error) {
+
+          });
       }).catch(function (error) {
         irbCheckMessage.value = "Unable to load DUSTER metadata";
         systemError.value = true ;
@@ -318,7 +360,7 @@ const checkForRpDateChanges = () => {
 }
 
 /*const deleteRpDate = (rpDate:BasicConfig) => {
-  rpProvidedData.value = rpProvidedData.value.filter(item => item.id !== rpDate.id)
+  rpData.value = rpData.value.filter(item => item.id !== rpDate.id)
 }*/
 const toast = useToast();
 
@@ -353,7 +395,10 @@ const checkValidation = () => {
 
   toast.removeAllGroups()
   if (!v$.value.$error) {
-    showSummary.value = true
+    showSummary.value = true;
+
+    // auto-save dataset design
+    saveDatasetDesign('auto-save');
   } else {
     console.log(v$)
     v$.value.$errors.forEach(error => {
@@ -378,11 +423,66 @@ const checkValidation = () => {
         }
     )
   }
-  return false
+  return false;
+}
+
+/**
+ * Saves current dataset design in STARR-API
+ * @param title
+ */
+const saveDatasetDesign = (title:string) => {
+  let saveDesignForm = new FormData();
+  saveDesignForm.append('redcap_csrf_token', projectConfig.redcap_csrf_token);
+  saveDesignForm.append('title', title);
+  const designObj = {
+    rpData: rpData.value,
+    demographicsSelects: demographicsSelects.value,
+    collectionWindows: collectionWindows.value
+  };
+  saveDesignForm.append('design', JSON.stringify(designObj));
+  axios.post(projectConfig.save_dataset_design_url, saveDesignForm)
+    .then(function (response) {
+    })
+    .catch(function (error) {
+    });
+}
+
+/**
+ * Loads the auto-saved dataset design
+ */
+const restoreAutoSaveDesign = () => {
+  rpData.value = autoSaveDesign.value.rpData;
+  demographicsSelects.value = autoSaveDesign.value.demographicsSelects;
+  collectionWindows.value = autoSaveDesign.value.collectionWindows;
+  promptRestoreAutoSave.value = false;
+}
+
+/**
+ * Deletes the auto-saved dataset design in STARR-API
+ */
+const deleteAutoSaveDesign = () => {
+  autoSaveDesign.value = null;
+  deleteDatasetDesign('auto-save');
+}
+
+/**
+ * Deletes a dataset design in STARR-API
+ * @param title
+ */
+const deleteDatasetDesign = (title:string) => {
+  let deleteDesignForm = new FormData();
+  deleteDesignForm.append('redcap_csrf_token', projectConfig.redcap_csrf_token);
+  deleteDesignForm.append('title', title);
+  axios.post(projectConfig.delete_dataset_design_url, deleteDesignForm)
+    .then(function (response) {
+
+    })
+    .catch(function (error) {
+
+    });
 }
 
 </script>
-
 
 <style scoped lang="scss">
 nav {

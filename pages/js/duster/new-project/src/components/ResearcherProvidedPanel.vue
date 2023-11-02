@@ -12,7 +12,7 @@
     </template>
     <div class="col-12">
     <DataTable
-            :value="localRpProvidedData"
+            :value="localRpData"
             class="p-datatable-sm"
             data-key="id">
           <Column
@@ -21,7 +21,7 @@
               header="Type">
             <template #body="slotProps">
               <div
-                   v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'">
+                   v-if="localRpData[slotProps.index].value_type != 'Identifier'">
               <Dropdown
                   v-model="slotProps.data[slotProps.field]"
                     :options="dateTypes"
@@ -45,7 +45,7 @@
             <template
                 #body="slotProps">
               <div
-                v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'">
+                v-if="localRpData[slotProps.index].value_type != 'Identifier'">
                 <InputText
                   v-model="slotProps.data[slotProps.field]"
                   :class="['w-full', {'p-invalid': rpFieldInvalid('label', slotProps.index)}]">
@@ -66,7 +66,7 @@
             <template
                 #body="slotProps">
               <div
-                   v-if="localRpProvidedData[slotProps.index].value_type != 'Identifier'">
+                   v-if="localRpData[slotProps.index].value_type != 'Identifier'">
               <InputText
                     v-model="slotProps.data[slotProps.field]"
                     :class="['w-full', {'p-invalid': rpFieldInvalid('redcap_field_name', slotProps.index)}]">
@@ -99,7 +99,7 @@
                   rounded
                   size="small"
                   severity="success"
-                  :class="((slotProps.index == (localRpProvidedData.length -1)) && slotProps.index < 5  )? '': 'hidden'"
+                  :class="((slotProps.index == (localRpData.length -1)) && slotProps.index < 5  )? '': 'hidden'"
                   @click="addRpDate" >
               </Button>
 
@@ -164,7 +164,7 @@ import {useVuelidate} from "@vuelidate/core";
 
 
 const props = defineProps({
-  rpProvidedData: {
+  rpData: {
     type: Object as PropType<BasicConfig[]>,
     required: true
   },
@@ -174,7 +174,7 @@ const props = defineProps({
     }
 })
 const emit = defineEmits(
-    ['update:rpProvidedData']
+    ['update:rpData']
 )
 
 const dateTypes = ref([
@@ -182,12 +182,12 @@ const dateTypes = ref([
   {text: 'Datetime', dtValue: 'datetime'}
 ]);
 
-const localRpProvidedData = computed({
+const localRpData = computed({
   get(){
-    return props.rpProvidedData;
+    return props.rpData;
   },
   set(value) {
-    emit('update:rpProvidedData', value)
+    emit('update:rpData', value)
   }
 });
 const localRpDatesEditing = ref<BasicConfig[]>([]);
@@ -203,8 +203,8 @@ const addRpDate = () => {
   rpDate.value = newRpDate()
   rpDate.value.id = (rpDate.value.redcap_field_name || "") + new Date().getTime()
 
-  if (localRpProvidedData.value)
-    localRpProvidedData.value.push(rpDate.value)
+  if (localRpData.value)
+    localRpData.value.push(rpDate.value)
 }
 
 const confirmDeleteRpDate = (rpDateToDelete:BasicConfig) => {
@@ -213,8 +213,8 @@ const confirmDeleteRpDate = (rpDateToDelete:BasicConfig) => {
 };
 
 const deleteRpDate = () => {
-  if (localRpProvidedData.value) {
-    localRpProvidedData.value = localRpProvidedData.value.filter((val: BasicConfig) => val.id !==
+  if (localRpData.value) {
+    localRpData.value = localRpData.value.filter((val: BasicConfig) => val.id !==
         rpDate.value.id);
   }
   deleteRpDateDialog.value = false;
@@ -224,7 +224,7 @@ const deleteRpDate = () => {
 // returns array of field names not including current field
 // includes reserved redcap_field_names of demographics
 const otherFieldNames = (id:string) => {
-  return localRpProvidedData.value
+  return localRpData.value
       .filter((data) => data.id != id)
       .map(data => data.redcap_field_name)
       .concat(props.reservedFieldNames)
@@ -245,7 +245,7 @@ const rpFieldInvalid = (field:string, index: number) =>{
 }
 
 const uniqueLabel = (value:string, siblings:any, vm: any) => {
-  return (localRpProvidedData.value.findIndex(rp => rp.id != siblings.id && rp.label == value) == -1)
+  return (localRpData.value.findIndex(rp => rp.id != siblings.id && rp.label == value) == -1)
 }
 
 const uniqueRedcapFieldName = (value:string, siblings:any, vm: any) => {
@@ -256,7 +256,7 @@ const isRedcapFieldName = helpers.regex(/^[a-z][a-z0-9_]*$/)
 
 const state = computed(() => {
   return {
-    rpData: localRpProvidedData.value
+    rpData: localRpData.value
   }
 })
 const rules = {
