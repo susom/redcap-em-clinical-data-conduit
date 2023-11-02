@@ -19,6 +19,8 @@ $project_setup_url = APP_PATH_WEBROOT_FULL
     . 'redcap_' . $redcap_version . 'ProjectSetup/index.php?pid=' . PROJECT_ID;
 $data_api_url = $module->getUrl("services/getData.php?pid=" . PROJECT_ID);
 $user_email = $module->getUser()->getEmail();
+$max_cohort_size = $module->getSystemSetting("get-data-limit") ?: 600;
+
 ?>
 
 <Script>
@@ -40,6 +42,7 @@ $user_email = $module->getUser()->getEmail();
   // store URL fore services/refreshSession.php
   getDataObj['refresh_session_url'] = "<?php echo $module->getUrl("services/refreshSession.php"); ?>";
   getDataObj['exit_url'] = "<?php echo $exit_url; ?>" ;
+  getDataObj['max_cohort_size'] = "<?php echo $max_cohort_size; ?>" ;
 
   localStorage.setItem('getDataObj', JSON.stringify(getDataObj));
 

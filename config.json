@@ -109,6 +109,13 @@
 			"name": "Error notification email",
 			"required": false,
 			"type": "text"
+		},
+		{
+			"key": "get-data-limit",
+			"name": "Maximum number of records for Get Data (default is 600)",
+			"required": false,
+			"type": "text",
+			"validation" : "number"
 		}
 	],
 

@@ -122,6 +122,7 @@ import type {PropType} from "vue";
 import type CollectionWindow from "@/types/CollectionWindow";
 import type FieldConfig from "@/types/FieldConfig";
 import type TimingConfig from "@/types/TimingConfig";
+import type {INTERVAL_TYPE} from "@/types/TimingConfig";
 import {START_TIME_TYPE_OPTIONS, END_TIME_TYPE_OPTIONS, INTERVAL_OPTIONS, INIT_TIMING_INTERVAL, INIT_TIMING_CONFIG} from
       "@/types/TimingConfig";
 import TimingEvent from "./TimingEvent.vue"
@@ -193,7 +194,7 @@ const repeatIntervalType = computed({
   get() {
     return cwCopy.value.timing.repeat_interval?.type ?? undefined
   },
-  set(value) {
+  set(value:INTERVAL_TYPE) {
     if (!cwCopy.value.timing.repeat_interval) {
       cwCopy.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
     }
@@ -205,7 +206,7 @@ const repeatIntervalLength = computed({
   get() {
     return cwCopy.value.timing.repeat_interval?.length ?? undefined
   },
-  set(value) {
+  set(value:number|undefined) {
     if (!cwCopy.value.timing.repeat_interval) {
       cwCopy.value.timing.repeat_interval = {...INIT_TIMING_INTERVAL}
     }
@@ -226,7 +227,7 @@ const hasRepeatIntervals = computed({
   get() {
     return (cwCopy.value.type === 'repeating')
   },
-  set(value) {
+  set(value:boolean) {
     cwCopy.value.type = (value) ? 'repeating':'nonrepeating'
   }
 })

@@ -278,6 +278,42 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     }
   }
 
+    /**
+     *  This function performs the IRB check to make sure it is valid and active
+     *
+     * @param $pid
+     * @return bool
+     */
+    public function checkIRBStatus($pid) {
+        return true; # for testing. Remove before checkin
+        $status = true;
+        try {
+            $IRBL = \ExternalModules\ExternalModules::getModuleInstance('irb_lookup');
+            $irb_num = $IRBL->findIRBNumber($pid);
+            // $this->emDebug("Returned IRB number for $pid");
+            if (is_null($irb_num) or empty($irb_num)) {
+                $this->emError("No IRB number is entered into project " . $pid);
+                $status = false;
+            }
+
+            // Check to see if the IRB is valid
+            if ($status) {
+                $valid = $IRBL->isIRBValid($irb_num, $pid);
+                if ($valid == false) {
+                    $this->emError("Could not verify IRB number is valid and current: " . $irb_num);
+                    $status = $valid;
+                }
+            }
+
+        } catch (Exception $ex) {
+            $this->emError("Could not check the IRB to make sure it is still valid.");
+            $status = false;
+        }
+
+        return $status;
+
+    }
+
   /**
    * @param $subject
    * @param $message
