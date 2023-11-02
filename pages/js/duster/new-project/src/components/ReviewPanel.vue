@@ -155,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import {capitalize, computed, getCurrentInstance, ref, watch} from "vue";
+import {capitalize, computed, ref, watch} from "vue";
 import type {PropType} from "vue";
 import type CollectionWindow from "@/types/CollectionWindow";
 import {INIT_TIMING_CONFIG} from "@/types/TimingConfig";
