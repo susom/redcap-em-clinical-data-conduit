@@ -3,11 +3,17 @@
     <div class="grid">
       <div class="col-10">
         <div class="projhdr">DUSTER: Get Data</div>
+        <Message severity="info" v-if="previousRequestStatus">
+          {{ previousRequestStatus }}
+        </Message>
         <div>You have two options to request data.
           <ul>
             <li>Real time - Data will fetch in real time. This browser tab must be kept open and closing it will stop the process.</li>
             <li>Background - Data will fetch in the background. You may safely close your browser and the process will still continue. An email notification will send upon completion.</li>
           </ul>
+          Note that a single data request is limited to a maximum of {{ maxCohortSize }} records at a time. Requesting data for more than {{ maxCohortSize }} records requires multiple data requests.
+          <br>
+          <br>
         </div>
         <div v-if="errorMessage">
           <Message :closable="false" severity="error"><span v-html="errorMessage"></span></Message>
@@ -73,14 +79,11 @@
             </div>
 
             <div v-if="step == 3">
-              <Message severity="info" v-if="previousRequestStatus">
-                {{ previousRequestStatus }}
-              </Message>
               <div v-if="dusterData.rp_data">
                 <div>
                 <div class="formgroup-inline">
                   <div class="field">
-                  <label class="font-bold block mb-2">Retrieve Data for</label>
+                  <label class="font-bold block mb-2">Request data for</label>
                   <SelectButton v-model="selectedRecordsOption"
                                 :options="selectedRecordsOptions"
                                 :disabled="selectedRecordsOptionsDisabled"
@@ -88,12 +91,13 @@
                                 aria-labelledby="basic" />
                     <small v-if="selectedRecordsOptionsDisabled"
                            class="flex p-error mb-3">
-                      'All' option is disabled. Number of records <br>
-                      is limited to {{ maxCohortSize }} for data retrieval.
+                      'All' option is disabled.
+                      <br>
+                      Your project contains over {{ maxCohortSize }} records.
                     </small>
                   </div>
                   <div class="field" v-if="selectedRecordsOption.name == 'Sub-cohort'">
-                    <label for="minRecordId" class="font-bold block mb-2"> Minimum Record Id </label>
+                    <label for="minRecordId" class="font-bold block mb-2"> Minimum Record ID </label>
                     <InputNumber v-model="selectedRecordsMin"
                                  inputId="minRecordId"
                                   :min="dusterData.rp_data[0].redcap_record_id"
@@ -108,7 +112,7 @@
                   </div>
 
                   <div class="field" v-if="selectedRecordsOption.name == 'Sub-cohort'">
-                    <label for="maxRecordId" class="font-bold block mb-2"> Maximum Record Id </label>
+                    <label for="maxRecordId" class="font-bold block mb-2"> Maximum Record ID </label>
                     <InputNumber v-model="selectedRecordsMax"
                                  inputId="maxRecordId"
                                  :min="selectedRecordsMin"
@@ -430,14 +434,14 @@ const v$ = useVuelidate(rules, validationState)
 const runInRealtime = () => {
   v$.value.$touch()
   if (!v$.value.$error) {
-    showSync.value = true
+    showSync.value = true;
   }
 }
 
 const runInBackground = () => {
   v$.value.$touch()
   if (!v$.value.$error) {
-    showAsyncNotify.value = true
+    showAsyncNotify.value = true;
   }
 }
 
@@ -481,7 +485,7 @@ watch (isProduction, async(prodStatus) => {
     if (!hasError(response)) {
       //console.log(response)
       const previousCohort = (response?.data?.cohortRange == 'All') ? 'all records'
-          : 'record ids ' + response?.data.cohortRange;
+          : 'record IDs ' + response?.data.cohortRange;
       if (response?.data?.dataRequestStatus == 'sync') {
         isLoading.value = false;
         errorMessage.value = '<p>A request to fetch data for '
@@ -539,8 +543,8 @@ watch(startLoad, async (start) => {
             selectedRecordsOptionsDisabled.value = true; // disable 'All'
             selectedRecordsOption.value = selectedRecordsOptions.value[1]; // select 'Sub-cohort'
           } else {
-            selectedRecordsOption.value = selectedRecordsOptions.value[0]
-            maxCohortSize.value = dusterData.value.rp_data.length
+            selectedRecordsOption.value = selectedRecordsOptions.value[0];
+            maxCohortSize.value = dusterData.value.rp_data.length;
           }
           step.value = 3;
         }
@@ -574,8 +578,8 @@ const hasError = (response:any) => {
         data_str.indexOf('syntax error') !== -1 ||
         data_str.indexOf('fatal error') !== -1) {
       // this is usually a redcap or php level error
-      console.log('hasError data.stringify contains error')
-      console.log(data_str)
+      console.log('hasError data.stringify contains error');
+      console.log(data_str);
       errorMessage.value += data_str;
       systemError.value = true;
       axios.get(get_data_url.value + "&action=error&message=" + errorMessage.value);
@@ -587,8 +591,8 @@ const hasError = (response:any) => {
 }
 
 const cancel = () => {
-  axios.get(get_data_url.value + "&action=logStatus&status=cancel")
-  goToUrl(record_base_url.value)
+  axios.get(get_data_url.value + "&action=logStatus&status=cancel");
+  goToUrl(record_base_url.value);
 }
 
 const cohortStr = computed(() => {
@@ -601,7 +605,6 @@ const cohortStr = computed(() => {
       }
     } else if (!isNaN((selectedRecordsMax.value === undefined) ? NaN : selectedRecordsMax.value)) {
       str = 'record ids <= ' + selectedRecordsMax.value;
-
     }
   return str;
 })
@@ -612,17 +615,17 @@ const findRecordIdIndex = (recordId: number) => {
 
 const updateCohortMax = (newMin:number) => {
   console.log('updateCohortMax min:' + newMin + " max:" + selectedRecordsMax.value
-  + " maxCohortSize:" + maxCohortSize.value)
+  + " maxCohortSize:" + maxCohortSize.value);
   if (newMin !== undefined
       && !isNaN(newMin) && selectedRecordsMax.value) {
-    const minIndex = findRecordIdIndex(newMin)
+    const minIndex = findRecordIdIndex(newMin);
     const currentMax = selectedRecordsMax.value ? findRecordIdIndex(selectedRecordsMax.value) :
-        dusterData.value.rp_data.length - 1
-    let calculated = maxCohortSize.value - 1 + parseInt(minIndex)
-    calculated = Math.min(dusterData.value.rp_data.length - 1, calculated)
-    const maxIndex = Math.min(currentMax, calculated)
-    console.log('maxIndex' + maxIndex + ' minIndex' + minIndex + " calculated: " + calculated)
-    selectedRecordsMax.value = dusterData.value.rp_data[maxIndex].redcap_record_id
+        dusterData.value.rp_data.length - 1;
+    let calculated = maxCohortSize.value - 1 + parseInt(minIndex);
+    calculated = Math.min(dusterData.value.rp_data.length - 1, calculated);
+    const maxIndex = Math.min(currentMax, calculated);
+    console.log('maxIndex' + maxIndex + ' minIndex' + minIndex + " calculated: " + calculated);
+    selectedRecordsMax.value = dusterData.value.rp_data[maxIndex].redcap_record_id;
   }
 }
 
@@ -689,7 +692,7 @@ const syncCohort = async() => {
       }
     } catch (error: any) {
       errorMessage.value += error.message + '<br>';
-      systemError.value = true
+      systemError.value = true;
     }
 }
 
@@ -782,12 +785,12 @@ const sleepWithCountDown = async (milliseconds:number) => {
 const sleep = async (milliseconds:number) => {
   //console.log('start sleep')
   await new Promise(resolve => {
-    return setTimeout(resolve, milliseconds)
+    return setTimeout(resolve, milliseconds);
   });
 };
 
 const zeropad = (num:number) => {
-  return ("00" + num).slice(-2)
+  return ("00" + num).slice(-2);
 }
 
 const dataRequestLog = ref<any>()
