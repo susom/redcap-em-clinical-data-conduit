@@ -178,6 +178,8 @@ curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
 
 $redcap_api_response = curl_exec($ch);
+$redcap_api_response_code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+$redcap_api_response_error = curl_error($ch);
 curl_close($ch);
 
 // delete the super token if needed
@@ -191,7 +193,10 @@ if ($redcap_api_response !== false && strlen($redcap_api_response) === 32) {
 } else { // failure: cURL returned false or string JSON containing error
   http_response_code(500);
   $msg = $module->handleError('DUSTER Error: Project Create',
-    "Create Project POST Request to REDCap API failed. Response from REDCap API: $redcap_api_response");
+    "Create Project POST Request to REDCap API failed.\n"
+    . "REDCap API Response: $redcap_api_response\n"
+    . "REDCap API Response Code: $redcap_api_response_code\n"
+    . "REDCap API Response Error: $redcap_api_response_error\n");
   echo "fail_project";
   // print "Error: Failed to create project. " . $msg;
   exit();
