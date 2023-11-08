@@ -11,7 +11,11 @@
             <li>Real time - Data will fetch in real time. This browser tab must be kept open and closing it will stop the process.</li>
             <li>Background - Data will fetch in the background. You may safely close your browser and the process will still continue. An email notification will send upon completion.</li>
           </ul>
-          Note that a single data request is limited to a maximum of {{ maxCohortSize }} records at a time. Requesting data for more than {{ maxCohortSize }} records requires multiple data requests.
+          <span v-if="maxCohortSize === defaultMaxCohortSize">
+            Note that a single data request is limited to a maximum
+            of {{ defaultMaxCohortSize }} records at a time. Requesting data for more than {{ defaultMaxCohortSize }}
+            records requires multiple data requests.
+          </span>
           <br>
           <br>
         </div>
@@ -383,7 +387,8 @@ const cancelled = ref<boolean>(false) // used in case async request cancels
 const cohortProgress = ref<number>(0)
 const totalProgress = ref<number>(0)
 const saveSize = ref<number>(0)
-const maxCohortSize = ref<number>(projectConfig.max_cohort_size)
+const defaultMaxCohortSize = ref<number>(projectConfig.max_cohort_size)
+const maxCohortSize = ref<number>()
 const numQueries = ref<number>(0)
 const dusterData = ref<any>()
 const cwQueries = ref<Object>()
@@ -539,9 +544,10 @@ watch(startLoad, async (start) => {
             (dusterData.value.missing_data != null && dusterData.value.missing_data.length > 0)) {
           step.value = 2;
         } else {
-          if (dusterData.value.rp_data.length > maxCohortSize.value) {
+          if (dusterData.value.rp_data.length > defaultMaxCohortSize.value) {
             selectedRecordsOptionsDisabled.value = true; // disable 'All'
             selectedRecordsOption.value = selectedRecordsOptions.value[1]; // select 'Sub-cohort'
+            maxCohortSize.value = defaultMaxCohortSize.value;
           } else {
             selectedRecordsOption.value = selectedRecordsOptions.value[0];
             maxCohortSize.value = dusterData.value.rp_data.length;
@@ -614,26 +620,25 @@ const findRecordIdIndex = (recordId: number) => {
 }
 
 const updateCohortMax = (newMin:number) => {
-  console.log('updateCohortMax min:' + newMin + " max:" + selectedRecordsMax.value
-  + " maxCohortSize:" + maxCohortSize.value);
-  if (newMin !== undefined
-      && !isNaN(newMin) && selectedRecordsMax.value) {
+  //console.log('updateCohortMax min:' + newMin + " max:" + selectedRecordsMax.value
+  //+ " maxCohortSize:" + maxCohortSize.value);
+  if (newMin !== undefined && !isNaN(newMin) && selectedRecordsMax.value && maxCohortSize.value) {
     const minIndex = findRecordIdIndex(newMin);
     const currentMax = selectedRecordsMax.value ? findRecordIdIndex(selectedRecordsMax.value) :
         dusterData.value.rp_data.length - 1;
     let calculated = maxCohortSize.value - 1 + parseInt(minIndex);
     calculated = Math.min(dusterData.value.rp_data.length - 1, calculated);
     const maxIndex = Math.min(currentMax, calculated);
-    console.log('maxIndex' + maxIndex + ' minIndex' + minIndex + " calculated: " + calculated);
+    //console.log('maxIndex' + maxIndex + ' minIndex' + minIndex + " calculated: " + calculated);
     selectedRecordsMax.value = dusterData.value.rp_data[maxIndex].redcap_record_id;
   }
 }
 
 const updateCohortMin = (newMax:number) => {
-  console.log('updateCohortMin min:' + selectedRecordsMin.value + " max:" + newMax
-      + " maxCohortSize:" + maxCohortSize.value)
+  //console.log('updateCohortMin min:' + selectedRecordsMin.value + " max:" + newMax
+  //    + " maxCohortSize:" + maxCohortSize.value)
   if (newMax != undefined
-      && !isNaN(newMax) && selectedRecordsMin.value) {
+      && !isNaN(newMax) && selectedRecordsMin.value && maxCohortSize.value) {
     const maxIndex = findRecordIdIndex(newMax)
     const currentMin = selectedRecordsMin.value ? findRecordIdIndex(selectedRecordsMin.value) :
         0
@@ -641,7 +646,7 @@ const updateCohortMin = (newMax:number) => {
     calculated = Math.max(0, calculated)
 
     const minIndex = Math.max(currentMin, calculated)
-    console.log('minIndex' + minIndex + ' maxIndex' + maxIndex + " calculated: " + calculated)
+    //console.log('minIndex' + minIndex + ' maxIndex' + maxIndex + " calculated: " + calculated)
 
     selectedRecordsMin.value = dusterData.value.rp_data[minIndex].redcap_record_id
   }
