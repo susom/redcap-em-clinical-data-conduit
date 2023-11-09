@@ -77,12 +77,12 @@
 			"required": true,
 			"type": "text"
 		},
-    {
-      "key": "starrapi-dataset-design-url",
-      "name": "STARR-API Dataset Design URL",
-      "required": true,
-      "type": "text"
-    },
+    	{
+      		"key": "starrapi-dataset-design-url",
+      		"name": "STARR-API Dataset Design URL",
+      		"required": true,
+      		"type": "text"
+    	},
 		{
 			"key": "starrapi-data-url",
 			"name": "STARR-API Data Webservice URL",
@@ -90,33 +90,46 @@
 			"type": "text"
 		},
 		{
-			"key": "allowlist",
-			"name": "SUNet Allowlist",
-			"required": true,
-			"type": "sub_settings",
-			"sub_settings": [
-				{
-					"key": "sunet",
-					"name": "SUNet",
-					"required": true,
-					"type": "text",
-					"repeatable": true
-				}
-			]
-		},
-		{
 			"key": "duster-email",
-			"name": "Error notification email",
+			"name": "<b>Error notification email</b>",
 			"required": false,
 			"type": "text"
 		},
 		{
 			"key": "get-data-limit",
-			"name": "Maximum number of records for Get Data (default is 600)",
+			"name": "<b>Maximum number of records for Get Data (default is 600)</b>",
 			"required": false,
 			"type": "text",
 			"validation" : "number"
+		},
+		{
+			"key": "enable-allowlist",
+			"name": "<b>Enable Allow List</b>",
+			"required": false,
+			"type": "checkbox"
+		},
+		{
+			"key": "allowlist",
+			"name": "SUNet Allowlist",
+			"required": false,
+			"type": "sub_settings",
+			"branchingLogic" : {
+				"field": "enable-allowlist",
+				"op": "=",
+				"value" : true
+			},
+			"sub_settings": [
+				{
+					"key": "sunet",
+					"name": "SUNet",
+					"required": false,
+					"type": "text",
+					"repeatable": true
+
+				}
+			]
 		}
+
 	],
 
 	"compatibility": {
