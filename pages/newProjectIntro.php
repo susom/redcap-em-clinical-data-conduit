@@ -37,10 +37,19 @@ namespace Stanford\Duster;
   postObj['redcap_new_project_url'] = "<?php echo APP_PATH_WEBROOT_FULL . "index.php?action=create"; ?>";
 
   // store URL for services/reportFatalError.php
-  postObj['report_fatal_error_url'] = "<?php echo $module->getUrl("services/reportFatalError.php"); ?>" ;
+  postObj['report_fatal_error_url'] = "<?php echo $module->getUrl("services/reportFatalError.php"); ?>";
 
   // store URL for services/checkIRB.php
-  postObj['check_irb_url'] = "<?php echo $module->getUrl("services/checkIRB.php"); ?>" ;
+  postObj['check_irb_url'] = "<?php echo $module->getUrl("services/checkIRB.php"); ?>";
+
+  // store URL for services/saveDatasetDesign.php
+  postObj['save_dataset_design_url'] = "<?php echo $module->getUrl("services/saveDatasetDesign.php"); ?>";
+
+  // store URL for services/deleteDatasetDesign.php
+  postObj['delete_dataset_design_url'] = "<?php echo $module->getUrl("services/deleteDatasetDesign.php"); ?>";
+
+  // store URL for services/getDatasetDesigns.php
+  postObj['get_dataset_designs_url'] = "<?php echo $module->getUrl("services/getDatasetDesigns.php"); ?>";
 
   // store URL for services/createProject.php
   postObj['create_project_url'] = "<?php echo $module->getUrl("services/createProject.php"); ?>";
@@ -48,7 +57,7 @@ namespace Stanford\Duster;
   // store URL for services/callMetadata.php
   postObj['metadata_url'] = "<?php echo $module->getUrl("services/callMetadata.php"); ?>";
 
-  // store URL fore services/refreshSession.php
+  // store URL for services/refreshSession.php
   postObj['refresh_session_url'] = "<?php echo $module->getUrl("services/refreshSession.php"); ?>";
 
   // store URL for pages/newProjectIntro.php

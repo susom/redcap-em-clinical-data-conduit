@@ -3,11 +3,21 @@
     <div class="grid">
       <div class="col-10">
         <div class="projhdr">DUSTER: Get Data</div>
+        <Message severity="info" v-if="previousRequestStatus">
+          {{ previousRequestStatus }}
+        </Message>
         <div>You have two options to request data.
           <ul>
             <li>Real time - Data will fetch in real time. This browser tab must be kept open and closing it will stop the process.</li>
             <li>Background - Data will fetch in the background. You may safely close your browser and the process will still continue. An email notification will send upon completion.</li>
           </ul>
+          <span v-if="maxCohortSize === defaultMaxCohortSize">
+            Note that a single data request is limited to a maximum
+            of {{ defaultMaxCohortSize }} records at a time. Requesting data for more than {{ defaultMaxCohortSize }}
+            records requires multiple data requests.
+          </span>
+          <br>
+          <br>
         </div>
         <div v-if="errorMessage">
           <Message :closable="false" severity="error"><span v-html="errorMessage"></span></Message>
@@ -73,17 +83,65 @@
             </div>
 
             <div v-if="step == 3">
-              <Message severity="info" v-if="previousRequestStatus">
-                {{ previousRequestStatus }}
-              </Message>
               <div v-if="dusterData.rp_data">
                 <div>
+                <div class="formgroup-inline">
+                  <div class="field">
+                  <label class="font-bold block mb-2">Request data for</label>
+                  <SelectButton v-model="selectedRecordsOption"
+                                :options="selectedRecordsOptions"
+                                :disabled="selectedRecordsOptionsDisabled"
+                                optionLabel="name"
+                                aria-labelledby="basic" />
+                    <small v-if="selectedRecordsOptionsDisabled"
+                           class="flex p-error mb-3">
+                      'All' option is disabled.
+                      <br>
+                      Your project contains over {{ maxCohortSize }} records.
+                    </small>
+                  </div>
+                  <div class="field" v-if="selectedRecordsOption.name == 'Sub-cohort'">
+                    <label for="minRecordId" class="font-bold block mb-2"> Minimum Record ID </label>
+                    <InputNumber v-model="selectedRecordsMin"
+                                 inputId="minRecordId"
+                                  :min="dusterData.rp_data[0].redcap_record_id"
+                                  :max="selectedRecordsMax"
+                                 :class="{ 'p-invalid': v$.selectedRecordsMin.$error }"
+                                 @update:model-value="updateCohortMax"
+                    />
+                    <small v-if="v$.selectedRecordsMin.$error"
+                           class="flex p-error mb-3">
+                      {{ v$.selectedRecordsMin.$errors[0].$message }}
+                    </small>
+                  </div>
+
+                  <div class="field" v-if="selectedRecordsOption.name == 'Sub-cohort'">
+                    <label for="maxRecordId" class="font-bold block mb-2"> Maximum Record ID </label>
+                    <InputNumber v-model="selectedRecordsMax"
+                                 inputId="maxRecordId"
+                                 :min="selectedRecordsMin"
+                                 :max="dusterData.rp_data[dusterData.rp_data.length - 1].redcap_record_id"
+                                 :class="{ 'p-invalid': v$.selectedRecordsMax.$error }"
+                                 @update:model-value="updateCohortMin"
+
+                    />
+                    <small v-if="v$.selectedRecordsMax.$error"
+                           class="flex p-error mb-3">
+                      {{ v$.selectedRecordsMax.$errors[0].$message }}
+                    </small>
+                  </div>
+                  </div>
+                  <!--set selectable to false for now.  Too complicated with multiple
+                  inputs
+                  :selectable="selectedRecordsOption == 'Subset'"-->
                   <RequestDataTable
                       title='Data Records'
-                      alert-type="info"
-                      alert-content="DUSTER will attempt to get data for the following records:"
                       :record-base-url="record_base_url"
                       :table-data="dusterData.rp_data"
+                      :selectable="false"
+                      :selected-records-min = "selectedRecordsMin"
+                      :selected-records-max = "selectedRecordsMax"
+                      @update:selected-records="(records) => selectedRecords = records"
                   >
                   </RequestDataTable>
                 </div>
@@ -91,12 +149,12 @@
                   <Button
                       class="p-button-primary" size="small" icon="pi pi-caret-right"
                       label="Run in real time"
-                      @click="showSync = true"
+                      @click="runInRealtime()"
                   />
                   <Button
                       class="mx-2 p-button-primary" size="small" icon="pi pi-forward"
                       label="Run in background"
-                      @click="showAsyncNotify = true"
+                      @click="runInBackground()"
                   />
                   <!--
                   <Button
@@ -286,6 +344,8 @@ import RcProgressBar from "@/components/RcProgressBar.vue";
 import AsyncFormProgressBar from "@/components/AsyncFormProgressBar.vue";
 import SystemErrorDialog from '@shared/components/SystemErrorDialog.vue'
 import {queryMessage, toTitleCase, formLabel} from "@/utils/helpers.js"
+import {requiredIf, helpers} from "@vuelidate/validators";
+import {useVuelidate} from "@vuelidate/core";
 
 const projectConfig = JSON.parse(localStorage.getItem('getDataObj') || '{}');
 //console.log("getDataObj " + localStorage.getItem('getDataObj'))
@@ -327,6 +387,8 @@ const cancelled = ref<boolean>(false) // used in case async request cancels
 const cohortProgress = ref<number>(0)
 const totalProgress = ref<number>(0)
 const saveSize = ref<number>(0)
+const defaultMaxCohortSize = ref<number>(projectConfig.max_cohort_size)
+const maxCohortSize = ref<number>()
 const numQueries = ref<number>(0)
 const dusterData = ref<any>()
 const cwQueries = ref<Object>()
@@ -339,6 +401,54 @@ const email = ref<string>(projectConfig.user_email)
 const asyncNotifyMessage = ref<string>("Enter an email address to get notified when the data retrieval request is complete.")
 const countDownUpdate = ref<string>("")
 const updateTime = ref<string>("")
+
+const selectedRecordsOptions = computed(() => {
+  return [
+    {name: 'All', disabled: false},
+    {name: 'Sub-cohort', disabled: false}
+  ]
+});
+const selectedRecordsOptionsDisabled = ref<boolean>(false)
+const selectedRecordsOption = ref<any>();
+const selectedRecordsMin = ref<number>()
+const selectedRecordsMax = ref<number>()
+// this is for table select which is currently disabled
+const selectedRecords = ref<any>([])
+
+const validationState = computed(() => {
+  return {
+    selectedRecordsMax: selectedRecordsMax.value,
+    selectedRecordsMin: selectedRecordsMin.value
+  }
+})
+
+const rules = computed(() => ({
+  selectedRecordsMax: {
+    requiredIf: helpers.withMessage('Required', requiredIf(selectedRecordsOption.value &&
+    selectedRecordsOption.value.name == 'Sub-cohort'))
+  },
+  selectedRecordsMin: {
+    requiredIf: helpers.withMessage('Required',
+        requiredIf(selectedRecordsOption.value &&
+    selectedRecordsOption.value.name == 'Sub-cohort'))
+  }
+}))
+
+const v$ = useVuelidate(rules, validationState)
+
+const runInRealtime = () => {
+  v$.value.$touch()
+  if (!v$.value.$error) {
+    showSync.value = true;
+  }
+}
+
+const runInBackground = () => {
+  v$.value.$touch()
+  if (!v$.value.$error) {
+    showAsyncNotify.value = true;
+  }
+}
 
 onMounted(async () => {
   // bypass the production status check for now
@@ -379,9 +489,13 @@ watch (isProduction, async(prodStatus) => {
         })
     if (!hasError(response)) {
       //console.log(response)
+      const previousCohort = (response?.data?.cohortRange == 'All') ? 'all records'
+          : 'record IDs ' + response?.data.cohortRange;
       if (response?.data?.dataRequestStatus == 'sync') {
         isLoading.value = false;
-        errorMessage.value = '<p>A request to fetch data in real time data was submitted by ' + response?.data.redcapUserName
+        errorMessage.value = '<p>A request to fetch data for '
+            + previousCohort + ' in real time was submitted by '
+            + response?.data.redcapUserName
           + ' and is in progress. Please wait for this request to complete before submitting a new request.';
       } else if (response?.data?.dataRequestStatus == 'async') {
         //console.log("dataRequestStatus async")
@@ -389,18 +503,21 @@ watch (isProduction, async(prodStatus) => {
         isLoaded.value = true;
         isAsyncRequest.value = true;
         step.value = 4;
-        saveMessage.value = '<p>A request to fetch data in the background was submitted by ' + response?.data.redcapUserName
+
+        saveMessage.value = '<p>A request to fetch data for '
+            + previousCohort + ' in the background was submitted by '
+            + response?.data.redcapUserName
           + ' and is already in progress.</p><p>This page will check its status every '
           + asyncPollInterval.value +' seconds.</p>';
-        asyncPollStatus();
+        asyncPollStatus(previousCohort);
       } else {
         if (response?.data?.dataRequestStatus && response?.data?.dataRequestStatus != 'no status') {
-          let date = new Date( Date.parse(response?.data?.dataRequestTimestamp) );
-
-          previousRequestStatus.value = 'Previous request status: ' + response?.data.dataRequestStatus
-              + ' at ' + date.toLocaleString('en-us');
+          const date = new Date( Date.parse(response?.data?.dataRequestTimestamp) );
+          previousRequestStatus.value = 'Previous request status for ' + previousCohort + ': ' +
+              response?.data.dataRequestStatus
+              + ' at ' + date.toLocaleString('en-us')
         }
-        startLoad.value = true;
+        startLoad.value = true
       }
     }
   }
@@ -427,6 +544,14 @@ watch(startLoad, async (start) => {
             (dusterData.value.missing_data != null && dusterData.value.missing_data.length > 0)) {
           step.value = 2;
         } else {
+          if (dusterData.value.rp_data.length > defaultMaxCohortSize.value) {
+            selectedRecordsOptionsDisabled.value = true; // disable 'All'
+            selectedRecordsOption.value = selectedRecordsOptions.value[1]; // select 'Sub-cohort'
+            maxCohortSize.value = defaultMaxCohortSize.value;
+          } else {
+            selectedRecordsOption.value = selectedRecordsOptions.value[0];
+            maxCohortSize.value = dusterData.value.rp_data.length;
+          }
           step.value = 3;
         }
       }
@@ -459,8 +584,8 @@ const hasError = (response:any) => {
         data_str.indexOf('syntax error') !== -1 ||
         data_str.indexOf('fatal error') !== -1) {
       // this is usually a redcap or php level error
-      console.log('hasError data.stringify contains error')
-      console.log(data_str)
+      console.log('hasError data.stringify contains error');
+      console.log(data_str);
       errorMessage.value += data_str;
       systemError.value = true;
       axios.get(get_data_url.value + "&action=error&message=" + errorMessage.value);
@@ -472,28 +597,108 @@ const hasError = (response:any) => {
 }
 
 const cancel = () => {
-  axios.get(get_data_url.value + "&action=logStatus&status=cancel")
-  goToUrl(record_base_url.value)
+  axios.get(get_data_url.value + "&action=logStatus&status=cancel");
+  goToUrl(record_base_url.value);
 }
 
-const syncCohort = async() => {
-  step.value = 4;
-  showSync.value = false ;
-  try {
-    const cohortSync = await axios.get(get_data_url.value + "&action=realTimeSyncCohort");
-
-    if (!hasError(cohortSync)) {
-      cohortProgress.value = 100;
-      totalProgress.value = saveSize.value;
-      saveMessage.value = "Researcher-Provided Information update complete.";
-      cohortMessage.value = "Complete";
+const cohortStr = computed(() => {
+  let str = 'all records'
+    if (!isNaN((selectedRecordsMin.value === undefined) ? NaN : selectedRecordsMin.value)) {
+      if (!isNaN((selectedRecordsMax.value === undefined) ? NaN : selectedRecordsMax.value)) {
+      str = 'record ids ' + selectedRecordsMin.value + ' - ' +  selectedRecordsMax.value;
     } else {
-      cohortMessage.value = "Error";
+        str = 'record ids >= ' + selectedRecordsMin.value;
+      }
+    } else if (!isNaN((selectedRecordsMax.value === undefined) ? NaN : selectedRecordsMax.value)) {
+      str = 'record ids <= ' + selectedRecordsMax.value;
     }
-  } catch (error:any) {
-    errorMessage.value += error.message + '<br>';
-    systemError.value = true
+  return str;
+})
+
+const findRecordIdIndex = (recordId: number) => {
+  return dusterData.value.rp_data.findIndex((rpData:any) => rpData.redcap_record_id == recordId)
+}
+
+const updateCohortMax = (newMin:number) => {
+  //console.log('updateCohortMax min:' + newMin + " max:" + selectedRecordsMax.value
+  //+ " maxCohortSize:" + maxCohortSize.value);
+  if (newMin !== undefined && !isNaN(newMin) && selectedRecordsMax.value && maxCohortSize.value) {
+    const minIndex = findRecordIdIndex(newMin);
+    const currentMax = selectedRecordsMax.value ? findRecordIdIndex(selectedRecordsMax.value) :
+        dusterData.value.rp_data.length - 1;
+    let calculated = maxCohortSize.value - 1 + parseInt(minIndex);
+    calculated = Math.min(dusterData.value.rp_data.length - 1, calculated);
+    const maxIndex = Math.min(currentMax, calculated);
+    //console.log('maxIndex' + maxIndex + ' minIndex' + minIndex + " calculated: " + calculated);
+    selectedRecordsMax.value = dusterData.value.rp_data[maxIndex].redcap_record_id;
   }
+}
+
+const updateCohortMin = (newMax:number) => {
+  //console.log('updateCohortMin min:' + selectedRecordsMin.value + " max:" + newMax
+  //    + " maxCohortSize:" + maxCohortSize.value)
+  if (newMax != undefined
+      && !isNaN(newMax) && selectedRecordsMin.value && maxCohortSize.value) {
+    const maxIndex = findRecordIdIndex(newMax)
+    const currentMin = selectedRecordsMin.value ? findRecordIdIndex(selectedRecordsMin.value) :
+        0
+    let calculated = 1 - maxCohortSize.value + parseInt(maxIndex)
+    calculated = Math.max(0, calculated)
+
+    const minIndex = Math.max(currentMin, calculated)
+    //console.log('minIndex' + minIndex + ' maxIndex' + maxIndex + " calculated: " + calculated)
+
+    selectedRecordsMin.value = dusterData.value.rp_data[minIndex].redcap_record_id
+  }
+}
+
+const selectedFilter = computed(() => {
+  let filter = ""
+  if (selectedRecordsOption.value.name == 'Sub-cohort') {
+    /* this is for selecting from the table. disabled for now
+    if (selectedRecords.value.length > 0 && selectedRecords.value.length < dusterData.value.rp_data.length) {
+      let selected = "";
+      console.log(selectedRecords.value)
+
+      for (const record of selectedRecords.value) {
+        console.log(record)
+        //@ts-ignore
+        selected += record.redcap_record_id + ","
+      }
+      selected = selected.slice(0, -1);
+      filter = '&selected=' + selected;
+    }*/
+    if (!isNaN((selectedRecordsMin.value === undefined) ? NaN : selectedRecordsMin.value)) {
+        filter += '&min=' + selectedRecordsMin.value
+    }
+    if (!isNaN((selectedRecordsMax.value === undefined) ? NaN : selectedRecordsMax.value)) {
+      filter += '&max=' + selectedRecordsMax.value
+    }
+  }
+  return filter;
+});
+
+const syncCohort = async() => {
+
+
+    step.value = 4;
+    showSync.value = false;
+    try {
+      const cohortSync = await axios.get(get_data_url.value + "&action=realTimeSyncCohort" + selectedFilter.value);
+
+      if (!hasError(cohortSync)) {
+        cohortProgress.value = 100;
+        totalProgress.value = saveSize.value;
+        saveMessage.value = "Researcher-Provided Information update for "
+            + cohortStr.value + " complete.";
+        cohortMessage.value = "Complete";
+      } else {
+        cohortMessage.value = "Error";
+      }
+    } catch (error: any) {
+      errorMessage.value += error.message + '<br>';
+      systemError.value = true;
+    }
 }
 
 const nextAsyncUpdateMessage = computed(()=> {
@@ -517,7 +722,7 @@ const updateProgress = (dataSync:any) => {
   totalProgress.value += saveSize.value;
   if (dataSync.data.message.indexOf('Get Data Error') > -1) {
     let msg = 'Failed: ' + queryMessage(dataSync.data.query_name) + " request for " + dataSync.data.form
-    if (dataSync.data.num_queries > 1 &&  (dataSync.data.num_complete) > 1) {
+    if (dataSync.data.num_queries > 1 && (dataSync.data.num_complete) > 1) {
       msg += ". Some data has already been saved."
     }
     failures.value.push(msg)
@@ -533,37 +738,44 @@ const updateProgress = (dataSync:any) => {
     if (!hasError(dataSync)) {
       if (failures.value.length > 0) {
         errorMessage.value =
-          "Data retrieval was incomplete. Some queries had failures. An email regarding this issue was sent to the DUSTER team.<br><br>"
-          + failures.value.join('<br>');
+            "Data retrieval for " + cohortStr.value +
+            " was incomplete. Some queries had failures. An email regarding this issue was sent to the DUSTER team.<br><br>"
+            + failures.value.join('<br>');
         saveMessage.value = "";
         axios.get(get_data_url.value + "&action=logStatus&status=fail");
       } else {
-        saveMessage.value = "Data retrieval complete";
+        saveMessage.value = "Data retrieval complete for " + cohortStr.value;
         axios.get(get_data_url.value + "&action=logStatus&status=complete");
       }
     }  // else {hasError should handle error message}
   } else {
-      saveMessage.value = toTitleCase(dataSync.data.message);
-      if (failures.value.length > 0) {
-        errorMessage.value = failures.value.join("<br>");
-      }
+    saveMessage.value = toTitleCase(dataSync.data.message);
+    if (failures.value.length > 0) {
+      errorMessage.value = failures.value.join("<br>");
+    }
   }
+
 }
 
 const asyncRequestData = async() => {
-  const emailParam = (email.value) ? '&email=' + email.value : false;
-  if (!emailParam) {
-    asyncNotifyMessage.value = "No email was entered. " + asyncNotifyMessage.value;
-    showAsyncNotify.value = true;
-  } else {
-    isAsyncRequest.value = true;
-    showAsyncNotify.value = false;
-    step.value = 4;
-    axios.get(get_data_url.value + "&action=asyncDataRequest" + emailParam);
-    saveMessage.value = "<p>A request to fetch data in the background was submitted.  An email will be sent to " + email.value +
-        " when it is completed.</p><p>This page will check its status every " + asyncPollInterval.value + " seconds.</p>";
-    await sleep(10000); // this is a hack because there is some lag in updating the requestId
-    asyncPollStatus();
+  v$.value.$touch()
+  if (!v$.value.$error) {
+    const emailParam = (email.value) ? '&email=' + email.value : false;
+    if (!emailParam) {
+      asyncNotifyMessage.value = "No email was entered. " + asyncNotifyMessage.value;
+      showAsyncNotify.value = true;
+    } else {
+      isAsyncRequest.value = true;
+      showAsyncNotify.value = false;
+      step.value = 4;
+      axios.get(get_data_url.value + "&action=asyncDataRequest" + emailParam + selectedFilter.value);
+      saveMessage.value = "<p>A request to fetch data for " + cohortStr.value
+          + " in the background was submitted.  An email will be sent to "
+          + email.value
+          + " when it is completed.</p><p>This page will check its status every " + asyncPollInterval.value + " seconds.</p>";
+      await sleep(10000); // this is a hack because there is some lag in updating the requestId
+      asyncPollStatus(cohortStr.value);
+    }
   }
 }
 
@@ -578,17 +790,17 @@ const sleepWithCountDown = async (milliseconds:number) => {
 const sleep = async (milliseconds:number) => {
   //console.log('start sleep')
   await new Promise(resolve => {
-    return setTimeout(resolve, milliseconds)
+    return setTimeout(resolve, milliseconds);
   });
 };
 
 const zeropad = (num:number) => {
-  return ("00" + num).slice(-2)
+  return ("00" + num).slice(-2);
 }
 
 const dataRequestLog = ref<any>()
 const failures = ref<string[]>([])
-const asyncPollStatus = async() => {
+const asyncPollStatus = async(cohortDesc:string) => {
   let complete = false;
   let count = 0; // count the number of status requests.  Used to set limit on number of requests.
   while (!complete) {
@@ -610,7 +822,6 @@ const asyncPollStatus = async() => {
       //console.log("count " + count)
       cancelled.value = (response.data.request_status.message == 'cancel')
       const failed = (response.data.request_status.message.indexOf('fail') !== -1)
-      //console.log("failed " + failed)
       let failMessages = ""
 
       //if (dataRequestLog.value) {
@@ -638,7 +849,7 @@ const asyncPollStatus = async() => {
         totalProgress.value = 100 * response.data.num_complete / response.data.num_queries
       }
       if (failMessages.length > 0) {
-          errorMessage.value = failMessages
+        errorMessage.value = failMessages
       }
       //}
     } else {
@@ -664,15 +875,19 @@ const asyncPollStatus = async() => {
     totalProgress.value = 100
     saveMessage.value = ""
     errorMessage.value =
-        "Data retrieval was incomplete. An email regarding the following query failures will be sent to the DUSTER team.<br><br>"
+        "Data retrieval for " +  cohortDesc
+        + " was incomplete. An email regarding the following query failures will be sent to the DUSTER team.<br><br>"
         + errorMessage.value;
   }
   if (cancelled.value) {
-    saveMessage.value = "Data Retrieval Request Cancelled."
+    saveMessage.value = "Data Retrieval Request for " +  cohortDesc
+        + " Cancelled."
   } else {
-    saveMessage.value = 'Data Retrieval Request Completed.'
+    saveMessage.value = "Data Retrieval Request for " +  cohortDesc
+        + " Completed."
   }
   //console.log("async complete")
 }
+
 
 </script>

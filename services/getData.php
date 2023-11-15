@@ -7,10 +7,15 @@ use REDCap;
 require_once $module->getModulePath() . "classes/DusterConfigClass.php";
 require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
 
+$action = isset($_GET['action']) && !empty($_GET['action']) ? $_GET['action'] : null;
 $pid = isset($_GET['pid']) && !empty($_GET['pid']) ? $_GET['pid'] : null;
+$rtoslink_config = new RedcapToStarrLinkConfig($pid, $module);
+$return_obj = array();
 // ensure the data url has a '/' at the end
 $data_url = $module->getSystemSetting("starrapi-data-url")
     . ((substr($module->getSystemSetting("starrapi-data-url"), -1) === '/') ? "" : "/");
+$duster_email = (!empty($module->getSystemSetting("duster-email")))
+    ? $module->getSystemSetting("duster-email") : $GLOBALS['homepage_contact_email'];
 
 function syncCohort($rtoslink_config) {
     REDCap::logEvent("DUSTER: Sync Cohort");
@@ -25,7 +30,7 @@ function syncCohort($rtoslink_config) {
     return $return_obj;
 }
 
-function setRequestId($request_id, $pid) {
+/*function setRequestId($request_id, $pid) {
     global $module;
     $module->emDebug("PID $pid setRequestId =$request_id");
     //$module->db_query("SET AUTOCOMMIT=0");
@@ -34,8 +39,68 @@ function setRequestId($request_id, $pid) {
     //$module->setProjectSetting('requestId', $request_id, $pid);
     //$module->db_query("COMMIT");
     //$module->db_query("SET AUTOCOMMIT=1");
-    //$module->emDebug("PID $pid response $response");
+    $module->emDebug("PID $pid response $response");
+    $module->emDebug("PID $pid setRequestId get = ". getRequestId($pid));
+}*/
+
+function setRequestId($request_id, $pid) {
+    global $module;
+    $module->emDebug("PID $pid setRequestId =$request_id");
     //$module->emDebug("PID $pid setRequestId get = ". getRequestId($pid));
+    return dbSetProjectSetting('requestId', $request_id, $pid);
+}
+
+function resetCohortFilter($pid) {
+    return dbSetProjectSetting('include-logic', '[]', $pid);
+}
+
+function setCohortFilter($min, $max, $pid) {
+    global $module;
+    //$module->emDebug("PID $pid setRequestId get = ". getRequestId($pid));
+    $filters = [];
+    $min = (isset($min) && !empty($min)) ? $min : null;
+    $max = (isset($max) && !empty($max)) ? $max : null;
+    if (isset($min)) {
+        $filters[] ='[redcap_record_id] >= ' . $min;
+    }
+    if (isset($max)) {
+        $filters[] ='[redcap_record_id] <= ' . $max;
+    }
+
+    $module->setProjectSetting('cohort-range', cohortRangeStr($min, $max), $pid);
+    $filter_str = implode(' and ', $filters);
+    $module->emDebug("PID $pid setCohortFilter =$filter_str");
+    return dbSetProjectSetting('include-logic', '["'  . $filter_str . '"]', $pid);
+
+}
+
+function cohortRangeStr($min, $max) {
+    $range = "All";
+    $min = (isset($min) && !empty($min)) ? $min : null;
+    $max = (isset($max) && !empty($max)) ? $max : null;
+
+    if (isset($min)) {
+        if (isset($max)) {
+            $range = "$min - $max";
+        } else {
+            $range = ">= $min";
+        }
+    } else if (isset($max)) {
+            $range = "<= $max";
+    }
+    return $range;
+}
+
+function dbSetProjectSetting($key, $value, $pid) {
+    global $module;
+    //$module->db_query("SET AUTOCOMMIT=0");
+    //$module->db_query("BEGIN");
+    $response = $module->query('UPDATE redcap_external_module_settings set `value`=? where `project_id`=? and `key`=?',[$value, $pid, $key]);
+    //$module->setProjectSetting('requestId', $request_id, $pid);
+    //$module->db_query("COMMIT");
+    //$module->db_query("SET AUTOCOMMIT=1");
+    $module->emDebug("PID $pid response $response");
+    return $response;
 }
 
 function getRequestId($pid){
@@ -83,7 +148,12 @@ function requestIsDone($pid) {
 }
 
 function responseHasError($response) {
-    return (isset($response['status']) &&  $response['status'] !== 200);
+    global $module;
+    if (isset($response['status']) &&  $response['status'] !== 200) {
+        $module->emDebug("DUSTER responseHasError: " . print_r($response, true));
+        return true;
+    }
+    return false;
 }
 
 function logToStarrApi($pid, $query_name, $message) {
@@ -127,6 +197,8 @@ function getRequestStatus($pid) {
         $request_status['status'] = 500;
         $request_status['message'] = 'Unable to process request. No response from server. DUSTER administrators have been notified of this problem.';
         $module->handleError('Unable to retrieve request status',"Starr-api server returned a request status of 'null' for Request ID $request_id.   Please check if Starr-api server online.");
+    } else {
+        $request_status['cohortRange'] = $module->getProjectSetting('cohort-range', $pid);
     }
     $module->emDebug("get request status log_url = $log_url");
     $module->emDebug("PID $pid DEBUG getRequestStatus request_id = $request_id; request_status = " . json_encode($request_status));
@@ -187,11 +259,6 @@ function toQueryLabel($queryLabel) {
     return ucwords(implode(' ', $label));
 }
 
-$action = isset($_GET['action']) && !empty($_GET['action']) ? $_GET['action'] : null;
-
-$rtoslink_config = new RedcapToStarrLinkConfig($pid, $module);
-$return_obj = array();
-
 if ($action === 'productionStatus') {
     // check that redcap project is in production status
     $result = $module->query(
@@ -236,21 +303,26 @@ if ($action === 'productionStatus') {
     $request_id = getRequestId($pid);
     if (requestIsDone($pid)) {
         $request_id = $request_id + 1;
+        setCohortFilter($_GET['min'], $_GET['max'], $pid);
+        $cohort_str = cohortRangeStr($_GET['min'], $_GET['max']);
         setRequestId($request_id, $pid);
         //$module->setProjectSetting('requestId', $request_id, $pid);
-        REDCap::logEvent("DUSTER: getData Real Time Cohort Sync Request ID " . $request_id);
+        REDCap::logEvent("DUSTER: getData Real Time Cohort Sync Request ID "
+            . "$request_id for $cohort_str");
         $return_obj = logToStarrApi($pid, $request_id . "::status", 'sync');
         if (!responseHasError($return_obj)) {
             // response should be '1'
+            logToStarrApi($pid, $request_id . "::cohort", $module->getProjectSetting('cohort-range', $pid));
             $return_obj = syncCohort($rtoslink_config);
-            $module->emDebug("PID $pid DEBUG: 'realTimeSyncCohort' response " . print_r($return_obj, true));
+            $module->emDebug("PID $pid DEBUG: 'realTimeSyncCohort' $cohort_str response " . print_r($return_obj, true));
             if (responseHasError($return_obj)) {
                 logToStarrApi($pid, $request_id . "::status", 'fail: ' . $return_obj['message']);
                 $module->handleError('DUSTER getData: Real time cohort sync',
-                    'Real time Error: ' . $return_obj['message']);
+                    'Real time Error: ' . $return_obj['message'] . "<br>Cohort: $cohort_str");
             }
         }
     }
+    resetCohortFilter($pid);
 } else if ($action === 'realTimeDataRequest') {
     // real time rtos data request
     $query = isset($_GET['query']) && !empty($_GET['query']) ? json_decode($_GET['query'], true) : null;
@@ -267,11 +339,12 @@ if ($action === 'productionStatus') {
         $request_id = $request_id + 1;
         //$module->setProjectSetting('requestId', $request_id, $pid);
         setRequestId($request_id, $pid);
-        REDCap::logEvent("DUSTER: getData Background Request Started. Request ID " . $request_id);
+        $return_obj = setCohortFilter($_GET['min'], $_GET['max'], $pid);
+        $cohort_str = cohortRangeStr($_GET['min'], $_GET['max']);
 
-        //$module->emDebug(' IN ASYNC requestId=' . getRequestId($pid) . ' ' . $request_id);
-        //$module->emDebug('$email = ' . $_GET['email']);
+        REDCap::logEvent("DUSTER: getData Background Request Started for $cohort_str. Request ID " . $request_id);
 
+        // email is required in UI so this check shouldn't be necessary
         $email = (isset($_GET['email']) && !empty($_GET['email']))
             ? $_GET['email'] : null;
         $module->setProjectSetting('dataUpdateNotify', $email, $pid);
@@ -280,13 +353,26 @@ if ($action === 'productionStatus') {
         $post_fields['email'] = $email;
         $post_fields['pid'] = $pid;
         $post_fields['request_id'] = $request_id;
+        $post_fields['cohort_range'] = $module->getProjectSetting('cohort-range', $pid);
         $post_fields['queries'] = $rtoslink_config->getQueries();
         $return_obj = $module->starrApiPostRequest($data_url, 'ddp', $post_fields);
+        $module->emDebug(' IN ASYNC requestId=' . getRequestId($pid) . ' ' . $request_id . ' return=' .
+            print_r($return_obj, true));
+
         if (responseHasError($return_obj)) {
             $return_obj['status'] = 500;
             $module->emError("PID $pid ERROR: asyncDataRequest unable to post async requests.");
             logToStarrApi($pid, $request_id . "::status", 'fail');
-        }
+        } else {
+            $redcap_version = explode('_',APP_PATH_WEBROOT)[1];
+            $get_data_url = APP_PATH_WEBROOT_FULL
+                . 'redcap_' . $redcap_version
+                . 'ExternalModules/?prefix=duster&page=pages%2FpopulateData&pid='
+                . $pid;
+            $project_title = $module->getProject($pid)->getTitle();
+            $email_status = REDCap::email($email, $duster_email, "Redcap Project \"$project_title\" PID $pid DUSTER Request submitted",
+                "DUSTER data retrieval request $request_id for pid $pid has been submitted for $cohort_str.  An email will be sent to you when retrieval is complete. <br><a href=\"$get_data_url\">View request status in redcap.</a>");
+          }
         // post errors logged in starrApiPostRequest
     }
 } else if ($action === 'asyncDataLog') {
@@ -340,6 +426,7 @@ if ($action === 'productionStatus') {
         $return_obj['data_request_log'] = $request_log;
         $return_obj['num_queries'] = $num_queries;
         $return_obj['num_complete'] = $num_complete;
+        $return_obj['cohortRange'] = urlencode($module->getProjectSetting('cohort-range', $pid));
     }
     $module->emDebug("PID $pid DEBUG: asyncDataLog return_obj = ". print_r($return_obj, true));
     //$return_obj['status'] = $return_obj['status'];
@@ -357,8 +444,12 @@ if ($action === 'productionStatus') {
         $return_obj['message'] = $module->handleError('DUSTER logStatus: status is not set', 'No status set in logStatus.');
     }
 } else if ($action === 'emailComplete') {
+    $cohort_str = ($module->getProjectSetting('cohort-range', $pid) == 'All')
+        ? 'all records'
+        : 'records ' . $module->getProjectSetting('cohort-range', $pid);
     // called by starr api server to send email at the end of async request
-    REDCap::logEvent("DUSTER: Async Get Data Complete", null, null, null, null, $pid);
+    REDCap::logEvent("DUSTER: Async Get Data Complete for $cohort_str", null, null, null, null, $pid);
+    $return_obj = resetCohortFilter($pid);
     // This is a NOAUTH request from the duster server, so it can not access any part of the EM that
     // requires authentication (i.e. status)
     $email = isset($_GET['email']) && !empty($_GET['email']) ? $_GET['email'] : null;
@@ -368,12 +459,13 @@ if ($action === 'productionStatus') {
     $request_id = $_GET['request_id'];
     if (isset($email)) {
         if ($request_status == 'success') {
-            $message = "DUSTER data retrieval request $request_id for pid $pid completed successfully.<br>";
+            $message = "DUSTER data retrieval request $request_id for pid $pid $cohort_str completed successfully.<br>";
         } else {
-            $message = "DUSTER data request $request_id for pid $pid completed with status " . $request_status . ".<br>";
+            $message = "DUSTER data request $request_id for pid $pid $cohort_str completed with status " .
+                $request_status . ".<br>";
             if ($request_status === 'fail') {
                 $admin_subject = "PID $pid DUSTER Async Request $request_status";
-                $admin_message = "Request Id $request_id async queries failed. ";
+                $admin_message = "Request Id $request_id async queries failed for $cohort_str. ";
                 if (isset($failed_instruments)) {
                     $failed_instruments = ucwords(preg_replace('/_|(cw\d+_)/', ' ', $failed_instruments));
                     //$module->emDebug("failed instruments: $failed_instruments");
@@ -418,16 +510,23 @@ if ($action === 'productionStatus') {
     }
     $module->emDebug("PID $pid end emailComplete");
 } else if ($action === 'error') {
+    $return_obj = resetCohortFilter($pid);
     // log to redcap log and send error email
     REDCap::logEvent("DUSTER: Get Data Error", null, null, null, null, $pid);
     $message = isset($_GET['message']) && !empty($_GET['message']) ? $_GET['message'] : null;
-    $module->handleError('Uncaught Error', $message);
+    $request_id = getRequestId($pid);
+    $module->handleError("PID $pid Request ID $request_id Uncaught Error", $message);
 } else if ($action === 'complete') {
-    // log complete to redcap log
-    REDCap::logEvent("DUSTER: Real Time Get Data Complete", null, null, null, null, $pid);
+    $cohort_str = ($module->getProjectSetting('cohort-range', $pid) == 'All')
+        ? 'all records'
+        : 'records ' . $module->getProjectSetting('cohort-range', $pid) ;    // log complete to redcap log
+    REDCap::logEvent("DUSTER: Real Time Get Data for $cohort_str Complete", null, null, null, null, $pid);
+    $return_obj = resetCohortFilter($pid);
     $return_obj['status'] = 200;
 } else {
     $return_obj['status'] = 500;
-    $return_obj['message'] = $module->handleError('DUSTER getData: Unrecognized action', "Unrecognized action: $action");
+    $request_id = getRequestId($pid);
+    $return_obj['message'] = $module->handleError("PID $pid Request ID $request_id DUSTER getData: Unrecognized action",
+        "Unrecognized action: $action");
 }
 echo json_encode($return_obj);

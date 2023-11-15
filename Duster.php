@@ -80,16 +80,20 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    * @return bool
    */
   private function isUserAllowed(): bool {
-    $allowlist = $this->getSystemSetting('sunet')[0];
-    try {
-      $sunet = $this->getUser()->getUsername();
-      return in_array($sunet, $allowlist);
-    } catch(Exception $e) {
-      $username = $this->getUser()->getUsername();
-      $this->handleError("ERROR: isUserAllowed Exception",
-        "Checking user $username on allowlist" . print_r($allowlist, true), $e);
-    }
-    return false;
+      $enabled = $this->getSystemSetting('enable-allowlist');
+      if ($enabled) {
+          $allowlist = $this->getSystemSetting('sunet')[0];
+          try {
+              $sunet = $this->getUser()->getUsername();
+              return in_array($sunet, $allowlist);
+          } catch (Exception $e) {
+              $username = $this->getUser()->getUsername();
+              $this->handleError("ERROR: isUserAllowed Exception",
+                  "Checking user $username on allowlist" . print_r($allowlist, true), $e);
+              return false;
+          }
+      }
+    return true;
   }
 
   /**
