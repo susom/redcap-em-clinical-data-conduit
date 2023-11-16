@@ -415,8 +415,6 @@ const selectedRecords = ref<any>([])
 
 watch(selectedRecordsOption, (newOption) => {
   if (newOption.name == 'All') {
-    console.log('selectedRecordsOption = All')
-    console.log(newOption)
     selectedRecordsMin.value = undefined;
     selectedRecordsMax.value = undefined
   }
