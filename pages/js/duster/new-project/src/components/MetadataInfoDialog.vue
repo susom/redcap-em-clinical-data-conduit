@@ -1,27 +1,11 @@
 <script setup lang="ts">
-import { reactive } from 'vue';
-import { computed } from 'vue';
-import { ref } from 'vue';
-import type { PropType } from 'vue';
+import { computed, inject, reactive, ref } from 'vue';
+import type { ComputedRef } from "vue";
 import type FieldMetadata from "@/types/FieldMetadata";
-import { inject } from 'vue';
-//import { InjectionKey } from 'vue';
-import { toRaw } from 'vue';
-import type DusterMetadata from "@/types/DusterMetadata";
 
-// const key = Symbol() as InjectionKey<FieldMetadata[]>;
-// const metadata = ref<FieldMetadata[] | undefined>(inject('metadata'));
-const metadata = inject('metadata') as FieldMetadata[];
-// const metadata = inject('metadata');
+const metadata = inject('metadata') as ComputedRef<FieldMetadata[]>;
 
-// console.log("inject: " + metadata.value);
 const props = defineProps({
-  /*
-  dusterFieldNameProp: {
-    type: String,
-    required: true
-  },
-   */
   initialFieldNameProp: {
     type: String,
     required: true
@@ -40,20 +24,12 @@ const fieldMeta = computed<FieldMetadata>(() => {
     duster_field_name: '',
     category: ''
   };
-  console.log('dusterFieldName: ' + dusterFieldName.value);
-// @ts-expect-error
   if (metadata.value) {
-    console.log('line 45');
-// @ts-expect-error
-    let fieldMetaObj = metadata.value.find((field: { duster_field_name: string; }) => field.duster_field_name === dusterFieldName.value);
-    // console.log('found');
+    let fieldMetaObj = metadata.value.find((field:FieldMetadata) => field.duster_field_name === dusterFieldName.value);
     if (fieldMetaObj) {
-      // console.log('returning found metadata');
-      console.log(fieldMetaObj);
       return fieldMetaObj;
     }
   }
-  // console.log("{}");
   return fieldMetaObj;
 });
 
@@ -102,8 +78,7 @@ const getRelated = (relatedMetadataStr: string) => {
   let relatedFieldsArr:string[] = relatedMetadataStr.split(",");
   let relatedFieldsObjArr: Object[] = [];
   for (let relatedField of relatedFieldsArr) {
-    // @ts-expect-error
-    let fieldMetaObj = metadata.value.find((field:any) => field.duster_field_name === relatedField);
+    let fieldMetaObj = metadata.value.find((field:FieldMetadata) => field.duster_field_name === relatedField);
     if (fieldMetaObj) {
       relatedFieldsObjArr.push(fieldMetaObj);
     }
@@ -118,8 +93,7 @@ const scoreDependencies = computed<Array<Object>>(() => {
       if (subscore.dependencies) {
         for (let dependency of subscore.dependencies) {
           if (dependency) {
-            // @ts-expect-error
-            let fieldMetaObj = metadata.value.find((field:any) => field.duster_field_name === dependency.duster_field_name);
+            let fieldMetaObj = metadata.value.find((field:FieldMetadata) => field.duster_field_name === dependency.duster_field_name);
             if (fieldMetaObj) {
               dependenciesArr.push({
                 duster_field_name: dependency.duster_field_name,
@@ -129,7 +103,8 @@ const scoreDependencies = computed<Array<Object>>(() => {
             } else {
               dependenciesArr.push({
                 duster_field_name: dependency.duster_field_name,
-                label: dependency.label + ' (* see Note)',
+                // label: dependency.label + ' (* see Note)',
+                label: dependency.label,
                 linkable: false
               });
             }
@@ -252,7 +227,7 @@ const subscoresArr = computed<Object>(() => {
     <p v-if="fieldMeta.unit && fieldMeta.unit!=''">
       <strong>Unit of measurement: </strong>{{ fieldMeta.unit }}
     </p>
-    <p v-if="fieldMeta.category=='labs'">
+    <p v-if="fieldMeta.category=='labs' && fieldMeta.loinc_code!=''">
       <strong>LOINC code: </strong>{{ fieldMeta.loinc_code }}
     </p>
     <p v-if="fieldMeta.note && fieldMeta.note!=''">
@@ -272,25 +247,26 @@ const subscoresArr = computed<Object>(() => {
       <a
         href=""
         target="_blank"
-      >See more</a>
+      >
+        See more
+      </a>
       {{ fieldMeta.category=='scores' ? ' | ': '' }}
       -->
       <a
         :href="fieldMeta.mdcalc"
         target="_blank"
-        v-if="fieldMeta.category=='scores'"
+        v-if="fieldMeta.category=='scores' && fieldMeta.mdcalc!=''"
       >
         MDCalc
       </a>
-      {{ fieldMeta.category=='scores' ? ' | ': '' }}
+      {{ fieldMeta.category=='scores' && fieldMeta.mdcalc!='' ? ' | ': '' }}
       <a
         :href="fieldMeta.pubmed"
         target="_blank"
-        v-if="fieldMeta.category=='scores'"
+        v-if="fieldMeta.category=='scores' && fieldMeta.pubmed!=''"
       >
         PubMed
       </a>
-
     </p>
   </Dialog>
 </template>
