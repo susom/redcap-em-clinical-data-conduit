@@ -133,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, onMounted, watch} from 'vue'
+import { computed, ref, onMounted, watch, provide } from 'vue'
 import SystemErrorDialog from '@shared/components/SystemErrorDialog.vue'
 import { useConfirm } from "primevue/useconfirm";
 
@@ -141,6 +141,7 @@ import axios from 'axios'
 import type FieldMetadata from "@/types/FieldMetadata";
 import type {BasicConfig} from "@/types/FieldConfig";
 import type CollectionWindow from "@/types/CollectionWindow";
+import type DusterMetadata from "@/types/DusterMetadata";
 
 import ResearcherProvidedPanel from "@/components/ResearcherProvidedPanel.vue";
 import DemographicsPanel from '@/components/DemographicsPanel.vue'
@@ -205,6 +206,16 @@ const vitalOptions = ref<FieldMetadata[]>([])
 const outcomeOptions = ref<FieldMetadata[]>([])
 const scoreOptions = ref<FieldMetadata[]>([])
 const clinicalDateOptions = ref<FieldMetadata[]>([])
+
+const metadataArr = computed<Array<FieldMetadata>>(() => {
+  let arr:FieldMetadata[] = [];
+  return arr.concat(demographicsOptions.value)
+    .concat(labOptions.value)
+    .concat(vitalOptions.value)
+    .concat(outcomeOptions.value)
+    .concat(scoreOptions.value);
+});
+provide('metadata', metadataArr);
 
 const demographicsSelects = ref<FieldMetadata[]>([])
 const collectionWindows = ref<CollectionWindow[]>([])

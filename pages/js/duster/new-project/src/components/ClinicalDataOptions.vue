@@ -16,6 +16,7 @@
                     :value="field"
           />
           <label :for="field.duster_field_name" class="ml-2">{{ field.label }}</label>
+          <MetadataInfoDialog :initial-field-name-prop="field.duster_field_name"/>
         </div>
         <div
             v-if="hasAggregates" class="mr-3">
@@ -148,6 +149,7 @@ import {computed, ref} from "vue";
 import type {PropType} from "vue";
 import {AGGREGATE_OPTIONS} from "@/types/FieldConfig";
 import type FieldMetadata from "@/types/FieldMetadata";
+import MetadataInfoDialog from "@/components/MetadataInfoDialog.vue";
 
 const hide = ref<string>("display:none !important")
 const props = defineProps({
