@@ -1,6 +1,7 @@
 <template>
     <Dialog v-model:visible="visible"
             :modal="true"
+            :close-on-escape="false"
             :style="{ width: '75vw' }"
             header="Select Clinical Values"
     >
