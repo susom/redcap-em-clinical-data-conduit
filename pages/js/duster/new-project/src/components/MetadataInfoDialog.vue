@@ -170,6 +170,7 @@ const subscoresArr = computed<Object>(() => {
 
 <template>
   <Button
+    v-if="fieldMeta.info_status === 'A'"
     icon="pi pi-info-circle"
     text rounded
     aria-label="Info"
