@@ -16,6 +16,7 @@ interface FieldMetadata {
     aggregates?: Array<TextValuePair>
     selected?: boolean
     visible?: boolean
+    info_status?: string
     description?: string
     description_short?: string
     loinc_code?: string
