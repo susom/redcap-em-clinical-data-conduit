@@ -247,7 +247,13 @@ $project_info_sql_result = $module->query(
     $project_id // project_id
   ]
 );
+
+// put DUSTER into project-level context of the newly created project
+// for sake of non-admin user permissions and access to the Project object
+$_GET['pid'] = $project_id;
+
 if($project_info_sql_result !== true) {
+  $module->removeUser(USERID);
   http_response_code(500);
   $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to add project info in services/createProject.php. Db insert failed with data=".print_r($data, true));
   echo "fail_project_post";
@@ -259,15 +265,12 @@ $data_arr['redcap_server_name'] = SERVER_NAME;
 $data_arr['project_irb_number'] = $data['project_irb_number'];
 $data_arr['project_pi_name'] = $data['project_pi_firstname'] . ' ' . $data['project_pi_lastname'];
 
-// put DUSTER into project-level context of the newly created project
-// for sake of non-admin user permissions
-$_GET['pid'] = $project_id;
-
 // enable DUSTER EM on the newly created project
 $external_module_id = $module->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = ?', ['duster']);
 $em_module_sql_result = $module->query('INSERT INTO `redcap_external_module_settings`(`external_module_id`, `project_id`, `key`, `type`, `value`) VALUES (?, ?, ?, ?, ?)',
   [$external_module_id->fetch_assoc()['external_module_id'], $project_id, 'enabled', 'boolean', 'true']);
 if (!$em_module_sql_result) {
+  $module->removeUser(USERID);
   http_response_code(500);
   $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to enable DUSTER EM on new project $project_id. Db insert failed with following values: external_module_id" .  $external_module_id->fetch_assoc()['external_module_id'] . ", project_id: $project_id, key: enabled, type: boolean, value: true");
   echo "fail_project_post";
@@ -297,10 +300,12 @@ $config_url = $module->getSystemSetting("starrapi-config-url");
 // send POST request to DUSTER's config route in STARR-API
 $save_config_results = $module->starrApiPostRequest($config_url, 'ddp', $config_data);
 if ($save_config_results === null) {
+  $module->removeUser(USERID);
   http_response_code(500);
   echo "fail_project_post";
   exit();
 } else if (array_key_exists('status', $save_config_results)) {
+  $module->removeUser(USERID);
   http_response_code($save_config_results['status']);
   echo "fail_project_post";
   exit();
@@ -312,6 +317,7 @@ $module->emLog("Enabling and configuring REDCap to STARR Link EM on pid $project
 if ($save_config_results['success'] && !empty($save_config_results['rcToStarrLinkConfig'])) {
   $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module);
   if ($rctostarr_config->enableRedcapToStarrLink() !== true) {
+    $module->removeUser(USERID);
     http_response_code(500);
     echo "fail_project_post";
     exit();
@@ -322,6 +328,7 @@ if ($save_config_results['success'] && !empty($save_config_results['rcToStarrLin
   echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
   exit();
 } else {
+  $module->removeUser(USERID);
   http_response_code(500);
   $msg = $module->handleError("Duster Error: Project Create",  "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $save_config_results['error']);
   echo "fail_project_post";

@@ -9,7 +9,15 @@
         "redcap_field_type": "text",
         "redcap_options": "",
         "redcap_field_note": "assigned at birth",
-        "phi": ""
+        "phi": "",
+        "description": "Biological sex assigned at birth.",
+        "description_short": "Biological sex assigned at birth.",
+        "loinc_code": "",
+        "unit": "",
+        "note": "",
+        "related": "",
+        "mdcalc": "",
+        "pubmed": ""
       },
       {
         "duster_field_name": "race",
@@ -19,7 +27,15 @@
         "redcap_field_type": "text",
         "redcap_options": "",
         "redcap_field_note": "",
-        "phi": ""
+        "phi": "",
+        "description": "",
+        "description_short": "",
+        "loinc_code": "",
+        "unit": "",
+        "note": "",
+        "related": "",
+        "mdcalc": "",
+        "pubmed": ""
       },
       {
         "duster_field_name": "ethnicity",
@@ -29,7 +45,15 @@
         "redcap_field_type": "text",
         "redcap_options": "",
         "redcap_field_note": "",
-        "phi": ""
+        "phi": "",
+        "description": "",
+        "description_short": "",
+        "loinc_code": "",
+        "unit": "",
+        "note": "",
+        "related": "",
+        "mdcalc": "",
+        "pubmed": ""
       },
       {
         "duster_field_name": "first_name",
@@ -39,7 +63,15 @@
         "redcap_field_type": "text",
         "redcap_options": "",
         "redcap_field_note": "",
-        "phi": "t"
+        "phi": "t",
+        "description": "",
+        "description_short": "",
+        "loinc_code": "",
+        "unit": "",
+        "note": "",
+        "related": "",
+        "mdcalc": "",
+        "pubmed": ""
       },
       {
         "duster_field_name": "last_name",
@@ -49,7 +81,15 @@
         "redcap_field_type": "text",
         "redcap_options": "",
         "redcap_field_note": "",
-        "phi": "t"
+        "phi": "t",
+        "description": "",
+        "description_short": "",
+        "loinc_code": "",
+        "unit": "",
+        "note": "",
+        "related": "",
+        "mdcalc": "",
+        "pubmed": ""
       },
       {
         "duster_field_name": "birth_date",
@@ -59,7 +99,15 @@
         "redcap_field_type": "date",
         "redcap_options": "",
         "redcap_field_note": "",
-        "phi": "t"
+        "phi": "t",
+        "description": "",
+        "description_short": "",
+        "loinc_code": "",
+        "unit": "",
+        "note": "",
+        "related": "",
+        "mdcalc": "",
+        "pubmed": ""
       },
       {
         "duster_field_name": "death_date",
@@ -69,7 +117,15 @@
         "redcap_field_type": "date",
         "redcap_options": "",
         "redcap_field_note": "",
-        "phi": "t"
+        "phi": "t",
+        "description": "",
+        "description_short": "",
+        "loinc_code": "",
+        "unit": "",
+        "note": "",
+        "related": "",
+        "mdcalc": "",
+        "pubmed": ""
       }
     ],
     "labs": [
@@ -111,7 +167,15 @@
         "redcap_field_type": "text",
         "redcap_options": "",
         "redcap_field_note": "(1x10^3 cells)/(mm^3)",
-        "phi": ""
+        "phi": "",
+        "description": "This clinical lab measures the number of white blood cells in a patient's blood.",
+        "description_short": "This clinical lab measures the number of white blood cells in a patient's blood.",
+        "loinc_code": "6690-2",
+        "unit": "1 x 10^3 cells/uL",
+        "note": "",
+        "related": "rbc,hgb,hct,plt,apache2_score",
+        "mdcalc": "",
+        "pubmed": ""
       },
       {
         "duster_field_name": "pha",
@@ -850,11 +914,19 @@
             ],
             "redcap_field_type": "calc"
           }
-        ]
+        ],
+        "description": "Predicts ICU mortality based on lab results and clinical data.",
+        "description_short": "Predicts ICU mortality based on lab results and clinical data.",
+        "loinc_code": "",
+        "unit": "",
+        "note": "",
+        "related": "apache2_score",
+        "mdcalc": "https://www.mdcalc.com/calc/691/sequential-organ-failure-assessment-sofa-score",
+        "pubmed": "https://pubmed.ncbi.nlm.nih.gov/8844239/"
       },
       {
         "duster_field_name": "apache2_score",
-        "label": "Apache II Score",
+        "label": "APACHE II Score",
         "category": "scores",
         "value_type": "text",
         "redcap_field_type": "calc",
@@ -1210,7 +1282,15 @@
             ],
             "redcap_field_type": "calc"
           }
-        ]
+        ],
+        "description": "Estimates ICU mortality.",
+        "description_short": "Estimates ICU mortality.",
+        "loinc_code": "",
+        "unit": "",
+        "note": "\"History of severe organ insufficiency or immunocompromised\", \"Patient Operative Status\", \"Acute Renal Failure\", and \"Chronic Renal Failure\" will have provided REDCap fields. However, these clinical variables cannot be automated by DUSTER and require manual phenotyping by the researcher.",
+        "related": "sofa_score",
+        "mdcalc": "https://www.mdcalc.com/calc/1868/apache-ii-score",
+        "pubmed": "https://pubmed.ncbi.nlm.nih.gov/3928249/"
       }
     ]
   },
@@ -1263,3 +1343,4 @@
   },
   "request": {}
 }
+

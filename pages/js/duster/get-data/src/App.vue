@@ -402,18 +402,23 @@ const asyncNotifyMessage = ref<string>("Enter an email address to get notified w
 const countDownUpdate = ref<string>("")
 const updateTime = ref<string>("")
 
-const selectedRecordsOptions = computed(() => {
-  return [
+const selectedRecordsOptions = ref([
     {name: 'All', disabled: false},
     {name: 'Sub-cohort', disabled: false}
-  ]
-});
+  ]);
 const selectedRecordsOptionsDisabled = ref<boolean>(false)
 const selectedRecordsOption = ref<any>();
 const selectedRecordsMin = ref<number>()
 const selectedRecordsMax = ref<number>()
 // this is for table select which is currently disabled
 const selectedRecords = ref<any>([])
+
+watch(selectedRecordsOption, (newOption) => {
+  if (newOption.name == 'All') {
+    selectedRecordsMin.value = undefined;
+    selectedRecordsMax.value = undefined
+  }
+})
 
 const validationState = computed(() => {
   return {
@@ -489,7 +494,9 @@ watch (isProduction, async(prodStatus) => {
         })
     if (!hasError(response)) {
       //console.log(response)
-      const previousCohort = (response?.data?.cohortRange == 'All') ? 'all records'
+      const previousCohort = (response?.data?.cohortRange == 'All'
+          || response?.data.cohortRange == null) ?
+          'all records'
           : 'record IDs ' + response?.data.cohortRange;
       if (response?.data?.dataRequestStatus == 'sync') {
         isLoading.value = false;
@@ -601,15 +608,19 @@ const cancel = () => {
   goToUrl(record_base_url.value);
 }
 
+const isValidNumber = (val:any) => {
+  return (val != null && val !== undefined && !isNaN(val))
+}
+
 const cohortStr = computed(() => {
   let str = 'all records'
-    if (!isNaN((selectedRecordsMin.value === undefined) ? NaN : selectedRecordsMin.value)) {
-      if (!isNaN((selectedRecordsMax.value === undefined) ? NaN : selectedRecordsMax.value)) {
+    if (isValidNumber(selectedRecordsMin.value)) {
+      if (isValidNumber(selectedRecordsMax.value)) {
       str = 'record ids ' + selectedRecordsMin.value + ' - ' +  selectedRecordsMax.value;
     } else {
         str = 'record ids >= ' + selectedRecordsMin.value;
       }
-    } else if (!isNaN((selectedRecordsMax.value === undefined) ? NaN : selectedRecordsMax.value)) {
+    } else if (isValidNumber(selectedRecordsMax.value)) {
       str = 'record ids <= ' + selectedRecordsMax.value;
     }
   return str;
@@ -622,7 +633,8 @@ const findRecordIdIndex = (recordId: number) => {
 const updateCohortMax = (newMin:number) => {
   //console.log('updateCohortMax min:' + newMin + " max:" + selectedRecordsMax.value
   //+ " maxCohortSize:" + maxCohortSize.value);
-  if (newMin !== undefined && !isNaN(newMin) && selectedRecordsMax.value && maxCohortSize.value) {
+  if (isValidNumber(newMin)
+      && isValidNumber(selectedRecordsMax.value) && maxCohortSize.value) {
     const minIndex = findRecordIdIndex(newMin);
     const currentMax = selectedRecordsMax.value ? findRecordIdIndex(selectedRecordsMax.value) :
         dusterData.value.rp_data.length - 1;
@@ -637,11 +649,10 @@ const updateCohortMax = (newMin:number) => {
 const updateCohortMin = (newMax:number) => {
   //console.log('updateCohortMin min:' + selectedRecordsMin.value + " max:" + newMax
   //    + " maxCohortSize:" + maxCohortSize.value)
-  if (newMax != undefined
-      && !isNaN(newMax) && selectedRecordsMin.value && maxCohortSize.value) {
+  if (isValidNumber(newMax) && isValidNumber(selectedRecordsMin.value) && maxCohortSize.value) {
     const maxIndex = findRecordIdIndex(newMax)
-    const currentMin = selectedRecordsMin.value ? findRecordIdIndex(selectedRecordsMin.value) :
-        0
+    const currentMin = selectedRecordsMin.value
+        ? findRecordIdIndex(selectedRecordsMin.value) : 0
     let calculated = 1 - maxCohortSize.value + parseInt(maxIndex)
     calculated = Math.max(0, calculated)
 
@@ -668,10 +679,10 @@ const selectedFilter = computed(() => {
       selected = selected.slice(0, -1);
       filter = '&selected=' + selected;
     }*/
-    if (!isNaN((selectedRecordsMin.value === undefined) ? NaN : selectedRecordsMin.value)) {
+    if (isValidNumber(selectedRecordsMin.value)) {
         filter += '&min=' + selectedRecordsMin.value
     }
-    if (!isNaN((selectedRecordsMax.value === undefined) ? NaN : selectedRecordsMax.value)) {
+    if (isValidNumber(selectedRecordsMax.value)) {
       filter += '&max=' + selectedRecordsMax.value
     }
   }
@@ -679,8 +690,6 @@ const selectedFilter = computed(() => {
 });
 
 const syncCohort = async() => {
-
-
     step.value = 4;
     showSync.value = false;
     try {

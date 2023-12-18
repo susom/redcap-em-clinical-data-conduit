@@ -14,15 +14,23 @@ interface FieldMetadata {
     subscores?: Array<Subscore> | null
     aggregate_type?: AGGREGATE_TYPE
     aggregates?: Array<TextValuePair>
-    selected?: boolean,
+    selected?: boolean
     visible?: boolean
+    info_status?: string
+    description?: string
+    description_short?: string
+    loinc_code?: string
+    unit?: string
+    note?: string
+    related?: string
+    mdcalc?: string
+    pubmed?: string
 }
 
 export type AGGREGATE_TYPE = "default" | "custom"
-export type VALUE_TYPE = "numeric" | "text" | "date" | "datetime" | "boolean"
-export type REDCAP_FIELD_TYPE = "text"
+export type VALUE_TYPE = "numeric" | "text" | "date" | "datetime" | "boolean" | "coded_value"
+export type REDCAP_FIELD_TYPE = "text" | "calc" | "radio"
 export type PHI = "t" | "f" | ""
 export type CATEGORY = "demographics" | "labs" | "vitals" | "scores" | "outcomes" | "clinical_dates"
-
 
 export default FieldMetadata;
