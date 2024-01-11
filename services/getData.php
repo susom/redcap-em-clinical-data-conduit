@@ -509,7 +509,6 @@ if ($action === 'productionStatus') {
         $module->emError("PID $pid email parameter is not set.");
     }
     $module->emDebug("PID $pid end emailComplete");
-} else if ($action === 'compliance') {
 } else if ($action === 'error') {
     $return_obj = resetCohortFilter($pid);
     // log to redcap log and send error email
