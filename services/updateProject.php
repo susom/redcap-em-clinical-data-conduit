@@ -10,13 +10,23 @@ require_once $module->getModulePath() . "classes/OdmXmlString.php";
 require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
 
 /**
- * service page to create REDCap via DUSTER's new project UI
+ * service page to update a DUSTER project based on user edits
  */
 
 /**
  * avoiding false-positive Psalm TaintedSSRF on $_POST['data']
  * @psalm-taint-escape ssrf
  */
+
+/**
+ * TODO
+ * update REDCap project's fields and instruments
+ * update DUSTER config in STARR-API
+ * update REDCap to STARR Link queries
+ * update REDCap to STARR Link config on REDCap side
+ */
+
+
 
 /* get JSON from POST request */
 $data = json_decode($_POST['data'], true);
@@ -279,7 +289,7 @@ if (!$em_module_sql_result) {
 }
 
 /* send POST request to DUSTER's config route in STARR-API
-   saves config to postgres and generates REDCap to STARR Link queries
+   updates config in postgres and generates new REDCap to STARR Link queries
 */
 
 /**
@@ -312,17 +322,12 @@ if ($save_config_results === null) {
   exit();
 }
 
-/* Enable and configure REDCap to STARR Link EM on REDCap project */
+/* Re-configure REDCap to STARR Link EM on REDCap project */
 $module->emLog("Enabling and configuring REDCap to STARR Link EM on pid $project_id.");
 
 if ($save_config_results['success'] && !empty($save_config_results['rcToStarrLinkConfig'])) {
   $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module);
-  if ($rctostarr_config->enableRedcapToStarrLink() !== true) {
-    $module->removeUser(USERID);
-    http_response_code(500);
-    echo "fail_project_post";
-    exit();
-  }
+  $rctostarr_config->removeRedcapToStarrLinkEmSettings($project_id, $save_config_results);
   $rctostarr_config->configureRedcapToStarrLink($save_config_results);
   $module->emDebug(APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject");
   http_response_code(200);

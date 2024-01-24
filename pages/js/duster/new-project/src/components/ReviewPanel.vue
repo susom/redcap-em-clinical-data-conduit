@@ -15,7 +15,7 @@
     <DataTable :value="rpDates"  tableStyle="min-width: 50rem mt-2">
       <template #header>
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-          <span class="text-sm text-900 font-bold">Timing</span>
+          <span class="text-sm text-900 font-bold">Dates and Datetimes</span>
         </div>
       </template>
       <Column field="label" header="Label"></Column>
@@ -32,9 +32,17 @@
     </DataTable>
   </Panel>
 
-  <Panel v-for="cw in cwConfigs" :key="cw.form_name" :header="cw.label" class="mt-2">
-    <DataTable :value="getTimingCols(cw.timing, cw.event)"  class="mt-2"
-               tableStyle="min-width: 50rem">
+  <Panel
+    v-for="cw in cwConfigs"
+    :key="cw.form_name"
+    :header="cw.label"
+    class="mt-2"
+  >
+    <DataTable
+      :value="getTimingCols(cw.timing, cw.event)"
+      class="mt-2"
+      tableStyle="min-width: 50rem"
+    >
       <template #header>
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
           <span class="text-0 text-900 font-bold">Timing</span>
@@ -118,40 +126,57 @@
 <!-- separate tables for each score -->
     <!--this version uses row grouping w/ Jonasel's score fields-->
 
-<div v-for="(score,index) in cw.data.scores" :key="score.duster_field_name">
-  <ScoreSummaryTablePerScore
-    :score="getScoreFields(score)"
-    :score-label="cw.data.scores[index].label"
-    class="mt-2"
-  />
-
-</div>
-
-
+  <div
+    v-for="(score,index) in cw.data.scores"
+    :key="score.duster_field_name"
+  >
+    <ScoreSummaryTablePerScore
+      :score="getScoreFields(score)"
+      :score-label="cw.data.scores[index].label"
+      class="mt-2"
+    />
+  </div>
 
   </Panel>
     <Toolbar>
       <template #start>
-        <Button label="Back" icon="pi pi-angle-left"  @click="visible=false"/>
+        <Button
+          label="Back"
+          icon="pi pi-angle-left"
+          @click="visible=false"
+        />
       </template>
       <template #end>
-      <Button label="Create Project" icon="pi pi-check" severity="success" @click="createProject"/>
+        <Button
+          :label="editMode ? 'Update Project' : 'Create Project'"
+          icon="pi pi-check"
+          severity="success"
+          @click="editMode ? updateProject() : createProject()"
+        />
       </template>
     </Toolbar>
   </Panel>
-  <Dialog v-model:visible="showCreateProjectDialog"
-          modal :style="{ width: '50vw' }"
-          header="Create Project">
-      <div :class="['my-3',{'p-error': createProjectError}]">
-      {{createProjectMessage}}
-      </div>
+  <Dialog
+    v-model:visible="showCreateProjectDialog"
+    modal
+    :style="{ width: '50vw' }"
+    header="Create Project"
+  >
+    <div :class="['my-3',{'p-error': createProjectError}]">
+    {{createProjectMessage}}
+    </div>
     <template #footer>
-      <Button label="Close" icon="pi pi-times"  @click="showCreateProjectDialog=false"/>
+      <Button
+        label="Close"
+        icon="pi pi-times"
+        @click="showCreateProjectDialog=false"
+      />
     </template>
   </Dialog>
   <SystemErrorDialog
     v-model:error-message="systemErrorMessage"
-    v-if="systemErrorFlag===true"/>
+    v-if="systemErrorFlag===true"
+  />
 </template>
 
 <script setup lang="ts">
@@ -171,9 +196,15 @@ import axios from "axios";
 import SystemErrorDialog from "@shared/components/SystemErrorDialog.vue";
 
 const props = defineProps({
-  dev: Boolean,
+  dev: {
+    type: Boolean
+  },
   showSummary: {
     type: Boolean,
+    required: true
+  },
+  rpData: {
+    type: Array as PropType<Array<FieldConfig>>,
     required: true
   },
   rpIdentifiers: {
@@ -196,7 +227,6 @@ const props = defineProps({
     type: Object,
     required: true
   }
-
 })
 
 const emit = defineEmits(['update:showSummary', 'delete-auto-save']);
@@ -206,7 +236,7 @@ const visible = computed<boolean>({
   return props.showSummary
   },
   set(value){
-    emit("update:showSummary", value)
+    emit("update:showSummary", value);
   }
 })
 
@@ -221,6 +251,14 @@ watch(visible, (isVisible) => {
     cwsCopy.value = JSON.parse(JSON.stringify(props.collectionWindows))
   }
 })
+
+const editMode = computed<Boolean> (() => {
+  return props.projectInfo.edit_mode;
+  /*
+  return typeof props.projectInfo.edit_mode === 'boolean'
+    ? props.projectInfo.edit_mode : false;
+   */
+});
 
 const rpDataConfigs = computed<any> (()=>{
   const rpInfo:any = {rp_identifiers:{}, rp_dates:{}}
@@ -628,12 +666,20 @@ const createProjectError = ref<boolean>(false);
 const systemErrorMessage = ref<string>("");
 const systemErrorFlag = ref<boolean>(false);
 
-const getDusterConfig = () =>{
+const getDusterConfig = () => {
   return JSON.parse(JSON.stringify({
     rp_info: rpDataConfigs.value,
     demographics: demographicsConfigs.value,
     collection_windows: cwConfigs.value
-  }))
+  }));
+}
+
+const getDesignConfig = () => {
+  return JSON.parse(JSON.stringify({
+    rpData: props.rpData,
+    demographicsSelects: props.demographics,
+    collectionWindows: props.collectionWindows
+  }));
 }
 
 const showSystemError = (message:string) => {
@@ -664,7 +710,8 @@ const createProject = () => {
       projecttype: props.projectInfo.projecttype,
       repeatforms_chk: props.projectInfo.repeatforms_chk,
       project_template_radio: props.projectInfo.project_template_radio,
-      config: getDusterConfig()
+      config: getDusterConfig(),
+      design_config: getDesignConfig()
     }
     let formData = new FormData()
     formData.append('redcap_csrf_token', props.projectInfo.redcap_csrf_token);
@@ -682,7 +729,6 @@ const createProject = () => {
 
           // send a report of the fatal error
           let errorFormData = new FormData();
-          errorFormData.append('fatal_error', response.data);
           errorFormData.append('redcap_csrf_token', props.projectInfo.redcap_csrf_token);
           errorFormData.append('fatal_error', response.data);
           axios.post(props.projectInfo.report_fatal_error_url, errorFormData)
@@ -735,6 +781,10 @@ const createProject = () => {
         */
       });
   }
+}
+
+const updateProject = () => {
+
 }
 
 </script>
