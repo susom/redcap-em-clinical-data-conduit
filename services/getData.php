@@ -160,7 +160,7 @@ function logToStarrApi($pid, $query_name, $message) {
     global $module, $data_url;
     $log_url = $data_url
         . "log";
-    $post_fields['user'] = $module->getUser()->getUserName();
+    $post_fields['user'] = $module->getUser()->getUsername();
     $post_fields['pid'] = $pid;
     $post_fields['query_name'] = $query_name;
     $post_fields['message'] = $message;
@@ -182,7 +182,7 @@ function getRequestStatus($pid) {
     // TODO: need to add request status to synchronized requests
     $request_id = getRequestId($pid); // returns integer
     $log_url = $data_url . "log/" . SERVER_NAME
-        . "/$pid/$request_id/status?user=" . $module->getUser()->getUserName();
+        . "/$pid/$request_id/status?user=" . $module->getUser()->getUsername();
     $request_status = $module->starrApiGetRequest($log_url, 'ddp');
     if (responseHasError($request_status)) {
         $module->handleError('Unable to retrieve request status',"Starr-api server returned with status "
@@ -349,7 +349,7 @@ if ($action === 'productionStatus') {
             ? $_GET['email'] : null;
         $module->setProjectSetting('dataUpdateNotify', $email, $pid);
         $post_fields['redcap_url'] = APP_PATH_WEBROOT_FULL;
-        $post_fields['user'] = $module->getUser()->getUserName();
+        $post_fields['user'] = $module->getUser()->getUsername();
         $post_fields['email'] = $email;
         $post_fields['pid'] = $pid;
         $post_fields['request_id'] = $request_id;
@@ -386,7 +386,7 @@ if ($action === 'productionStatus') {
     // now actually get the request status from the server
     $log_url = $data_url . "log/"
         . SERVER_NAME . "/$pid/$request_id?user="
-        . $module->getUser()->getUserName();
+        . $module->getUser()->getUsername();
     $logs = $module->starrApiGetRequest($log_url, 'ddp');
     //REDCap::logEvent("DUSTER: getData Background Get Status. Request ID " . $request_id);
 
@@ -477,14 +477,14 @@ if ($action === 'productionStatus') {
                 if (!empty($duster_email)) {
                     //$module->emDebug("homepage_contact_email " . $GLOBALS['homepage_contact_email']);
                     $email_status = REDCap::email($duster_email, $GLOBALS['homepage_contact_email'], $admin_subject,
-                            $admin_message);
+                        $admin_message);
                 }
             }
         }
         // Add a link to the redcap project
-        $redcap_version = explode('_',APP_PATH_WEBROOT)[1];
+        $redcap_version = explode('_', APP_PATH_WEBROOT)[1];
         $data_exports_url = APP_PATH_WEBROOT_FULL
-            . 'redcap_' . $redcap_version .'DataExport/index.php?pid=' . $pid;
+            . 'redcap_' . $redcap_version . 'DataExport/index.php?pid=' . $pid;
         $message .= "<br><a href=\"$data_exports_url\">View data in redcap.</a>";
         $message .= '</body></html>';
         $module->emDebug("PID $pid message = $message");
@@ -494,7 +494,7 @@ if ($action === 'productionStatus') {
 
         if (!empty($email)) {
             $subject = "Redcap Project \"$project_title \" PID $pid DUSTER Request $request_status";
-            $email_status = REDCap::email($email, $duster_email, $subject , $message);
+            $email_status = REDCap::email($email, $duster_email, $subject, $message);
             if (!$email_status) {
                 $return_obj['status'] = 400;
                 // pid is added to message as part of handleError function

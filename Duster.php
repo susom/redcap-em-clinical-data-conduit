@@ -283,6 +283,33 @@ class Duster extends \ExternalModules\AbstractExternalModule {
   }
 
   /**
+   * Mark REDCap project for deletion by 'DeleteProject' REDCap cron
+   * @param $pid
+   * @return true
+   * @throws Exception
+   */
+  public function deleteRedcapProject($pid)
+  {
+    $sql = "
+            UPDATE redcap_projects
+            SET date_deleted = NOW()
+            WHERE project_id = ?
+            ";
+    $q = $this->createQuery();
+    $q->add($sql, [$pid]);
+    $q->execute();
+    $num_results = $q->affected_rows;
+    if ($num_results === 1) {
+      $this->emLog("REDCap pid $pid marked for deletion.");
+      return true;
+    } else {
+      $this->handleError("ERROR: Unexpected SQL results in deleteRedcapProject()", "Returned $num_results in " .
+        __METHOD__ . " from pid '$pid'");
+      throw new Exception ("Returned $num_results in " . __METHOD__ . " from project_id '$pid'");
+    }
+  }
+
+  /**
    * @param $subject
    * @param $message
    * @param $throwable
