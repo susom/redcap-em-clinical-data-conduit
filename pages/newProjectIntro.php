@@ -6,6 +6,8 @@ namespace Stanford\Duster;
  * entrypoint to DUSTER's new project creation UI (Vue app)
  * stores POST form data in REDCap's new project creation page and URLs in local storage and redirects to Vue app
  */
+
+
 ?>
 
 <Script>
@@ -41,6 +43,7 @@ namespace Stanford\Duster;
 
   // store URL for services/checkIRB.php
   postObj['check_irb_url'] = "<?php echo $module->getUrl("services/checkIRB.php"); ?>";
+  postObj['redcap_user'] = "<?php echo $module->getUser()->getUserName(); ?>";
 
   // store URL for services/saveDatasetDesign.php
   postObj['save_dataset_design_url'] = "<?php echo $module->getUrl("services/saveDatasetDesign.php"); ?>";

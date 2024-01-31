@@ -1,3 +1,7 @@
+function irbOrDpaStr(str) {
+  return str.startsWith('DPA-') ? str : 'IRB ' + str
+}
+
 function toTitleCase(str) {
     str = str.replace(/_/g,' ')
     return str.replace(
@@ -28,4 +32,4 @@ function formLabel(str) {
   return toTitleCase(label);
 }
 
-export { toTitleCase, queryLabel, queryMessage, formLabel }
+export { toTitleCase, queryLabel, queryMessage, formLabel, irbOrDpaStr }

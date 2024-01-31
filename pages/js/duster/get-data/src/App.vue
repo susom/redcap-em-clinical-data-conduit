@@ -26,7 +26,7 @@
               v-if="!isProduction"
               class="p-button-primary" size="small" icon="pi pi-cog"
               label="Project Setup"
-              @click="goToUrl(project_setup_url)"
+              @click="goToUrl(projectConfig.project_setup_url)"
           />
         </div>
 
@@ -46,7 +46,7 @@
                 <Button
                     class="p-button-primary" size="small" icon="pi pi-cog"
                     label="Project Setup"
-                    @click="goToUrl(designer_url)"/>
+                    @click="goToUrl(projectConfig.designer_url)"/>
               </div>
             </div>
             <div v-if="step==2">
@@ -61,7 +61,7 @@
                       title='Missing Researcher-Provided Information'
                       alert-type="warn"
                       alert-content="The following records are missing required Researcher-Provided Data.  You may continue, but DUSTER may not retrieve all possible data for these records."
-                      :record-base-url="record_base_url"
+                      :record-base-url="projectConfig.record_base_url"
                       :table-data="dusterData.missing_data"
                   >
                   </RequestDataTable>
@@ -72,12 +72,7 @@
                           class="p-button-primary" size="small" icon="pi pi-caret-right"
                           @click="step = 3"
                   />
-                  <!--
-                  <Button text outlined @click="goToUrl(record_base_url)"
-                          class="p-button-secondary" size="small" icon="pi pi-times"
-                          label="Cancel"
-                  />
-                  -->
+
                 </div>
               </div>
             </div>
@@ -136,7 +131,7 @@
                   :selectable="selectedRecordsOption == 'Subset'"-->
                   <RequestDataTable
                       title='Data Records'
-                      :record-base-url="record_base_url"
+                      :record-base-url="projectConfig.record_base_url"
                       :table-data="dusterData.rp_data"
                       :selectable="false"
                       :selected-records-min = "selectedRecordsMin"
@@ -156,13 +151,6 @@
                       label="Run in background"
                       @click="runInBackground()"
                   />
-                  <!--
-                  <Button
-                      class="p-button-secondary" size="small" icon="pi pi-times"
-                      label="Cancel"
-                      @click="goToUrl(project_setup_url)"
-                  />
-                  -->
                 </div>
               </div>
             </div>
@@ -209,10 +197,9 @@
                     :form-queries="value"
                 >
                 </AsyncFormProgressBar>
-
               </div>
 
-              <Dialog
+              <!--Dialog--
                   v-model:visible="confirmCancel"
                   max-width="500px"
                   modal
@@ -236,26 +223,21 @@
                       @click="cancel()"
                   />
                 </template>
-              </Dialog>
+              </Dialog-->
 
               <Divider></Divider>
-              <!--Button v-if="isAsyncRequest"
-                      label="Project Home"
-                      class="p-button-primary mr-2" size="small" icon="pi pi-home"
-                      @click="goToUrl(project_setup_url)"
-              /-->
               <Button v-if="totalProgress < 100 && !cancelled"
                       class="p-button-secondary" size="small" icon="pi pi-times"
                       label="Cancel Data Retrieval"
-                      @click="confirmCancel = true"/>
+                      @click="showCancel()"/>
               <Button v-else
                       label="Export Data Page"
                       class="p-button-primary" size="small" icon="pi pi-download"
-                      @click="goToUrl(data_exports_url)"
+                      @click="goToUrl(projectConfig.data_exports_url)"
               />
             </div>
 
-            <Dialog
+            <!--Dialog
                 v-model:visible="showSync"
                 max-width="500px"
                 modal
@@ -273,16 +255,6 @@
                     <br>
                     Would you like to continue?
                   </Message>
-                  <!--
-                  <p>
-                    This will launch the DUSTER process to get the data and populate the REDCap project in real time.
-                    Please keep the current browser tab open till the processing completes.
-                    If you close the current browser tab, it will stop processing and project will be left in inconsistent state.
-                  </p>
-                  <p class="mt-2">
-                    Are you sure to launch the process in real time?
-                  </p>
-                  -->
                 </template>
                 <template #footer>
                   <Button
@@ -297,7 +269,7 @@
                   />
                 </template>
               </Card>
-            </Dialog>
+            </Dialog-->
 
             <Dialog
                 v-model:visible="showAsyncNotify"
@@ -327,12 +299,39 @@
                 </template>
               </Card>
             </Dialog>
+
+
           </div>
         </div>
       </div>
     </div>
   </div>
-  <SystemErrorDialog v-if="systemError" :exit-url="exit_url"/>
+  <Dialog
+    v-model:visible="showComplianceMessage"
+    max-width="500px"
+    modal :closable="false"
+    header="Missing Data Compliance Requirements"
+>
+  <Message severity="error" icon="" :closable="false">
+    <template #messageicon><span>&nbsp;</span></template>
+    <span v-html="complianceMessage"/>
+  </Message>
+  <template #footer>
+    <Button
+        class="p-button-primary"
+        label="OK"
+        @click="sendComplianceEmail()"
+    />
+  </template>
+</Dialog>
+  <ConfirmDialog style="max-width:50%">
+    <template #message="slotProps">
+      <Message :severity="confirmSeverity" :closable="false">
+        <span v-html="slotProps.message.message"></span>
+      </Message>
+    </template>
+  </ConfirmDialog>
+  <SystemErrorDialog v-if="systemError" :exit-url="projectConfig.exit_url"/>
 </template>
 <script setup lang="ts">
 import {ref, watch, computed, onMounted} from 'vue'
@@ -343,9 +342,10 @@ import RequestDataTable from "@/components/RequestDataTable.vue";
 import RcProgressBar from "@/components/RcProgressBar.vue";
 import AsyncFormProgressBar from "@/components/AsyncFormProgressBar.vue";
 import SystemErrorDialog from '@shared/components/SystemErrorDialog.vue'
-import {queryMessage, toTitleCase, formLabel} from "@/utils/helpers.js"
+import {queryMessage, toTitleCase, formLabel, irbOrDpaStr} from "@/utils/helpers.js"
 import {requiredIf, helpers} from "@vuelidate/validators";
 import {useVuelidate} from "@vuelidate/core";
+import { useConfirm } from "primevue/useconfirm";
 
 const projectConfig = JSON.parse(localStorage.getItem('getDataObj') || '{}');
 //console.log("getDataObj " + localStorage.getItem('getDataObj'))
@@ -354,7 +354,7 @@ localStorage.removeItem('getDataObj');
 setInterval(() => {
   axios.get(projectConfig.refresh_session_url)
       .then(response => {
-        console.log(response);
+        //console.log(response);
       }).catch(function (error) {
     console.log(error)
   });
@@ -363,16 +363,9 @@ setInterval(() => {
 const dev = ref<boolean>(false)
 const systemError = ref<boolean>(false)
 
-const projectId = ref<string>(projectConfig.project_id)
-const serverName = ref<string>(projectConfig.server_name)
-
-const record_base_url = ref<string>(projectConfig.record_base_url)
-const designer_url = ref<string>(projectConfig.designer_url)
-const data_exports_url = ref<string>(projectConfig.data_exports_url)
-const project_setup_url = ref<string>(projectConfig.project_setup_url)
-const get_data_url = ref<string>(projectConfig.get_data_api)
-const exit_url = ref<string>(projectConfig.exit_url)
-//<?php echo $module->getUrl("services/getData.php?pid=$projectId&action=productionStatus"); ?>
+const get_data_url = projectConfig.get_data_api
+const irb_valid = ref<boolean>(false);
+const complianceSettings = ref<any>();
 const step = ref<number>(0)
 const errorMessage = ref<string>("")
 const saveMessage = ref<string>("Saving ...")
@@ -401,6 +394,8 @@ const email = ref<string>(projectConfig.user_email)
 const asyncNotifyMessage = ref<string>("Enter an email address to get notified when the data retrieval request is complete.")
 const countDownUpdate = ref<string>("")
 const updateTime = ref<string>("")
+const confirm = useConfirm();
+const confirmSeverity = ref<string>("warn")
 
 const selectedRecordsOptions = ref([
     {name: 'All', disabled: false},
@@ -444,7 +439,22 @@ const v$ = useVuelidate(rules, validationState)
 const runInRealtime = () => {
   v$.value.$touch()
   if (!v$.value.$error) {
-    showSync.value = true;
+    //showSync.value = true;
+    confirmSeverity.value = "info"
+    confirm.require({
+      message: "DUSTER will attempt to retrieve and save data to this REDCap project in real time." +
+          "<br>Please keep this browser tab open until the process completes." +
+          "<br>If you close this browser tab, DUSTER will stop retrieving data." +
+          "<br>Would you like to continue?",
+      header: 'Run in Real time',
+      accept: () => syncCohort(),
+      acceptIcon:'pi pi-check',
+      rejectIcon:'pi pi-times',
+      rejectClass: 'p-button-secondary',
+      acceptClass: 'p-button-primary',
+      acceptLabel: "Yes, Launch",
+      rejectLabel: "No, Cancel"
+    });
   }
 }
 
@@ -456,25 +466,46 @@ const runInBackground = () => {
 }
 
 onMounted(async () => {
+  isLoading.value = true;
+  checkIRB()
   // bypass the production status check for now
   // in future bypass the production status check if the server is localhost or contains "-dev" (i.e., a dev server)
-  if (1 === 1 || serverName.value == "localhost" || serverName.value.includes("-dev")) {
+  if (1 === 1 || projectConfig.server_name == "localhost"
+      || projectConfig.server_name.includes("-dev")) {
     isProduction.value = true;
   } else { // check that project is in production status before getting data
-    const prodResponse = await axios.get(get_data_url.value + "&action=productionStatus")
-        .catch(function (error) {
+    axios.get(get_data_url + "&action=productionStatus")
+        .then(prodResponse => {
+          if (!hasError(prodResponse)) {
+            if (prodResponse?.data.production_status === 1) {
+              isProduction.value = true;
+            } else {
+              errorMessage.value = "Please move this REDCap project to production status before requesting data.";
+            }
+          }
+        }).catch(function (error) {
           systemError.value = true
           errorMessage.value += error.message + '<br>';
-        })
-    if (!hasError(prodResponse)) {
-      if (prodResponse?.data.production_status === 1) {
-        isProduction.value = true;
-      } else {
-        errorMessage.value = "Please move this REDCap project to production status before requesting data.";
-      }
-    }
+        });
   }
 })
+
+const checkIRB = () => {
+  let formData = new FormData();
+  formData.append('redcap_csrf_token', projectConfig.redcap_csrf_token);
+  formData.append('user', projectConfig.redcap_user);
+  axios.post(projectConfig.check_irb_url, formData).then(
+      response => {
+        //console.log(response.data)
+        complianceSettings.value = response.data
+        irb_valid.value = response.data.irb_status
+        if (!response.data.irb_status) {
+          errorMessage.value = irbOrDpaStr(response.data.irb_num) +
+              " is not valid.  Please enter a valid IRB for this project before retrieving data."
+        }
+      }
+  )
+}
 
 /*
 check status of previous getData requests.
@@ -482,10 +513,9 @@ If a synchronized request is in progress, do not start another one.
 If an asynchronous request is in progress, show the async request progress & cancel button
 If no request in progress, show status of previous request and get records to display
 */
-watch (isProduction, async(prodStatus) => {
-  if (prodStatus) {
-    isLoading.value = true;
-    const response = await axios.get(get_data_url.value + "&action=dataRequestStatus")
+watch ([isProduction, irb_valid], async([prodStatus, irb_okay]) => {
+  if (prodStatus && irb_okay) {
+    const response = await axios.get(get_data_url + "&action=dataRequestStatus")
         .catch(function (error) {
           systemError.value = true;
           console.log("dataRequestStatus error");
@@ -528,38 +558,143 @@ watch (isProduction, async(prodStatus) => {
       }
     }
   }
-
 })
+
+const complianceMessage = ref<string>("")
+const showComplianceMessage = ref<boolean>(false)
+// check for missing dpa or data attestation items
+const checkPrivacyAttestion = () => {
+  let message = ""
+  const attestationMissing: string[] = []
+  const duster_json_str = JSON.stringify(dusterData.value)
+
+  if (!complianceSettings.value.dpa) {
+    message = "No valid DPA was found for "
+        + irbOrDpaStr(complianceSettings.value.irb_num)
+        +
+        ".  <a style='font-size: 1rem' href='https://redcap.stanford.edu/surveys/?s=L3TRTT9EF9' target='_blank'><u>Please file a DPA</u></a> with the necessary attestations.<br>"
+    attestationMissing.push("MRNs")
+    attestationMissing.push("Dates")
+    if (complianceSettings.value.project_has_name) {
+      attestationMissing.push("Names")
+    }
+    if (duster_json_str.indexOf("demographic") > -1) {
+      attestationMissing.push("Demographics")
+    }
+    if (duster_json_str.indexOf("_labs") > -1) {
+      attestationMissing.push("Lab results")
+    }
+    if (duster_json_str.indexOf("_flow") > -1) {
+      attestationMissing.push("Clinical notes (includes flowsheets)")
+    }
+    if (duster_json_str.indexOf("_pharmacy") > -1) {
+      attestationMissing.push("Medications")
+    }
+    if (duster_json_str.indexOf("_diagnosis") > -1) {
+      attestationMissing.push("Diagnosis codes")
+    }
+    if (duster_json_str.indexOf("_procedure") > -1) {
+      attestationMissing.push("Procedure codes")
+    }
+  } else {
+    const dpa = complianceSettings.value.dpa
+    if (!dpa.approvedForMrn) {
+      attestationMissing.push("MRNs")
+    }
+    if (!dpa.approvedForDates) {
+      attestationMissing.push("Dates")
+    }
+    if (!dpa.approvedForName && complianceSettings.value.project_has_name) {
+      attestationMissing.push("Names")
+    }
+    if (!dpa.approvedForDemographics && duster_json_str.indexOf("demographic") > -1) {
+      attestationMissing.push("Demographics")
+    }
+    if (!dpa.approvedForLabResult && duster_json_str.indexOf("_labs") > -1) {
+      attestationMissing.push("Lab results")
+    }
+    if (!dpa.approvedForClinicalNotes && duster_json_str.indexOf("_flow") > -1) {
+      attestationMissing.push("Clinical notes (including flowsheets)")
+    }
+    if (!dpa.approvedForMedications && duster_json_str.indexOf("_pharmacy") > -1) {
+      attestationMissing.push("Medications")
+    }
+    if (!dpa.approvedForDiagnosis && duster_json_str.indexOf("_diagnosis") > -1) {
+      attestationMissing.push("Diagnosis codes")
+    }
+    if (!dpa.approvedForProcedure && duster_json_str.indexOf("_procedure") > -1) {
+      attestationMissing.push("Procedure codes")
+    }
+  }
+  if (attestationMissing.length > 0) {
+    if (complianceSettings.value.dpa) {
+      message = irbOrDpaStr(complianceSettings.value.irb_num)
+      message += complianceSettings.value.irb_num.startsWith("DPA-") ? "" : " (DPA-" +
+          complianceSettings.value.dpa.recordId + ")"
+      message +=
+          " is missing the following attestations for this DUSTER project. <a style='font-size: 1rem' href='https://redcap.stanford.edu/surveys/?s=L3TRTT9EF9' target='_blank'><u>File a new DPA with the required attestations</u></a>.<ul>"
+    } else {
+      message += "Your DPA must include the following PHI and data attestations for this DUSTER project.<ul>"
+    }
+    attestationMissing.forEach(currentValue =>
+        message += "<li>" + currentValue + "</li>"
+    )
+    message += "</ul>"
+
+  }
+  if (complianceSettings.value.dpa && !complianceSettings.value.user_permissions?.signedDpa) {
+    message += "User \"" + projectConfig.redcap_user +
+        "\"  does not have a DPA attestation associated with "
+        + irbOrDpaStr(complianceSettings.value.irb_num) +
+        ".  <a style='font-size: 1rem' href='https://redcap.stanford.edu/surveys/?s=8RWF73YTWA' target='_blank'><u>An add-on DPA</u></a> must be completed before any data can be retrieved."
+  }
+  return message;
+}
+
+const sendComplianceEmail = () => {
+  showComplianceMessage.value = false
+  let formData = new FormData();
+  formData.append('redcap_csrf_token', projectConfig.redcap_csrf_token);
+  formData.append('irb_num', projectConfig.project_irb_number);
+  formData.append('message', complianceMessage.value);
+
+  axios.post(projectConfig.compliance_emails_url, formData)
+  goToUrl(projectConfig.record_base_url)
+}
 
 watch(startLoad, async (start) => {
   if (start) {
-    //console.log(get_data_url.value + "&action=cohort")
-    axios.get(get_data_url.value + "&action=cohort").then
+    //console.log(get_data_url + "&action=cohort")
+    axios.get(get_data_url + "&action=cohort").then
     (response => {
       //console.log(response)
       isLoading.value = false;
       isLoaded.value = true;
       if (!hasError(response)) {
         dusterData.value = response.data;
-        //console.log(response.data);
-        cwQueries.value = response.data.queries;
-        numQueries.value = response.data.num_queries + 1;
-        saveSize.value = 100 / numQueries.value;
-        if (dusterData.value.missing_fields && dusterData.value.missing_fields.length > 0) {
-          step.value = 1;
-        } else if (!dusterData.value.rp_data ||
-            (dusterData.value.missing_data != null && dusterData.value.missing_data.length > 0)) {
-          step.value = 2;
+        complianceMessage.value = checkPrivacyAttestion();
+        if (complianceMessage.value.length > 0) {
+          showComplianceMessage.value = true
         } else {
-          if (dusterData.value.rp_data.length > defaultMaxCohortSize.value) {
-            selectedRecordsOptionsDisabled.value = true; // disable 'All'
-            selectedRecordsOption.value = selectedRecordsOptions.value[1]; // select 'Sub-cohort'
-            maxCohortSize.value = defaultMaxCohortSize.value;
+          cwQueries.value = dusterData.value.queries;
+          numQueries.value = dusterData.value.num_queries + 1;
+          saveSize.value = 100 / numQueries.value;
+          if (dusterData.value.missing_fields && dusterData.value.missing_fields.length > 0) {
+            step.value = 1;
+          } else if (!dusterData.value.rp_data ||
+              (dusterData.value.missing_data != null && dusterData.value.missing_data.length > 0)) {
+            step.value = 2;
           } else {
-            selectedRecordsOption.value = selectedRecordsOptions.value[0];
-            maxCohortSize.value = dusterData.value.rp_data.length;
+            if (dusterData.value.rp_data.length > defaultMaxCohortSize.value) {
+              selectedRecordsOptionsDisabled.value = true; // disable 'All'
+              selectedRecordsOption.value = selectedRecordsOptions.value[1]; // select 'Sub-cohort'
+              maxCohortSize.value = defaultMaxCohortSize.value;
+            } else {
+              selectedRecordsOption.value = selectedRecordsOptions.value[0];
+              maxCohortSize.value = dusterData.value.rp_data.length;
+            }
+            step.value = 3;
           }
-          step.value = 3;
         }
       }
     }).catch(function (error) {
@@ -595,17 +730,34 @@ const hasError = (response:any) => {
       console.log(data_str);
       errorMessage.value += data_str;
       systemError.value = true;
-      axios.get(get_data_url.value + "&action=error&message=" + errorMessage.value);
-      axios.get(get_data_url.value + "&action=logStatus&status=fail:Redcap EM error");
+      axios.get(get_data_url + "&action=error&message=" + errorMessage.value);
+      axios.get(get_data_url + "&action=logStatus&status=fail:Redcap EM error");
       return true;
     }
   }
   return false;
 }
 
+const showCancel = () => {
+  confirmSeverity.value = "warn"
+  confirm.require({
+    message: "Are you sure you want to exit?<br>"
+        + "Data that has already been saved to REDCap will not be deleted.",
+    header: 'Cancel Data Retrieval',
+    accept: () => cancel(),
+    acceptIcon:'pi pi-times',
+    rejectIcon:'pi pi-check',
+    rejectClass: 'p-button-primary',
+    acceptClass: 'p-button-danger',
+    acceptLabel: "Yes, Cancel",
+    rejectLabel: "No, Continue",
+    defaultFocus: "reject"
+  });
+}
+
 const cancel = () => {
-  axios.get(get_data_url.value + "&action=logStatus&status=cancel");
-  goToUrl(record_base_url.value);
+  axios.get(get_data_url + "&action=logStatus&status=cancel");
+  goToUrl(projectConfig.record_base_url);
 }
 
 const isValidNumber = (val:any) => {
@@ -693,7 +845,7 @@ const syncCohort = async() => {
     step.value = 4;
     showSync.value = false;
     try {
-      const cohortSync = await axios.get(get_data_url.value + "&action=realTimeSyncCohort" + selectedFilter.value);
+      const cohortSync = await axios.get(get_data_url + "&action=realTimeSyncCohort" + selectedFilter.value);
 
       if (!hasError(cohortSync)) {
         cohortProgress.value = 100;
@@ -726,8 +878,8 @@ const nextAsyncUpdateMessage = computed(()=> {
 });
 
 const updateProgress = (dataSync:any) => {
-  console.log('updateProgress')
-  console.log(dataSync)
+  //console.log('updateProgress')
+  //console.log(dataSync)
   totalProgress.value += saveSize.value;
   if (dataSync.data.message.indexOf('Get Data Error') > -1) {
     let msg = 'Failed: ' + queryMessage(dataSync.data.query_name) + " request for " + dataSync.data.form
@@ -739,7 +891,7 @@ const updateProgress = (dataSync:any) => {
   if (dataSync.data.num_remaining) {
     totalProgress.value += dataSync.data.num_remaining * saveSize.value;
   }
-  console.log('totalProgress ' + totalProgress.value)
+  //console.log('totalProgress ' + totalProgress.value)
   if (totalProgress.value > 99.5) {
     totalProgress.value = 100;
   }
@@ -769,7 +921,8 @@ const updateProgress = (dataSync:any) => {
 const asyncRequestData = async() => {
   v$.value.$touch()
   if (!v$.value.$error) {
-    const emailParam = (email.value) ? '&email=' + email.value : false;
+    const emailParam = (email.value) ? '&email='
+        + email.value : false;
     if (!emailParam) {
       asyncNotifyMessage.value = "No email was entered. " + asyncNotifyMessage.value;
       showAsyncNotify.value = true;
