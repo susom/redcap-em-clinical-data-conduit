@@ -632,9 +632,9 @@ const checkPrivacyAttestion = () => {
       message += complianceSettings.value.irb_num.startsWith("DPA-") ? "" : " (DPA-" +
           complianceSettings.value.dpa.recordId + ")"
       message +=
-          " is missing the following attestations for this Duster project. <a style='font-size: 1rem' href='https://redcap.stanford.edu/surveys/?s=L3TRTT9EF9' target='_blank'><u>File a new DPA with the required attestations</u></a>.<ul>"
+          " is missing the following attestations for this DUSTER project. <a style='font-size: 1rem' href='https://redcap.stanford.edu/surveys/?s=L3TRTT9EF9' target='_blank'><u>File a new DPA with the required attestations</u></a>.<ul>"
     } else {
-      message += "Your DPA must include the following phi and data attestations for this Duster project.<ul>"
+      message += "Your DPA must include the following PHI and data attestations for this DUSTER project.<ul>"
     }
     attestationMissing.forEach(currentValue =>
         message += "<li>" + currentValue + "</li>"

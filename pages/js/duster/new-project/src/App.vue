@@ -247,7 +247,7 @@ onMounted(() => {
 
 const irbWarningConfirmed = ref<boolean>(false)
 watch(irbWarningConfirmed, (confirmed) => {
-  irbCheckMessage.value = "Fetching Duster Metadata ..."
+  irbCheckMessage.value = "Fetching DUSTER Metadata ..."
   if (confirmed) {
     getDusterMetadata(projectConfig.metadata_url);
   }
@@ -310,10 +310,10 @@ const checkPrivacyAttestion = () => {
           : ('DPA-' + complianceSettings.value.dpa.recordId + " associated with " +
               irbOrDpaStr(complianceSettings.value.irb_num))
       message +=
-          " does not include the following attestations which may be required to retrieve data for this project. If any of the following are included as part of your Duster project, you will need to <a style='font-size: 1rem' href='https://redcap.stanford.edu/surveys/?s=L3TRTT9EF9' target='_blank'><u>file a new DPA</u></a>.<ul>"
+          " does not include the following attestations which may be required to retrieve data for this project. If any of the following are included as part of your DUSTER project, you will need to <a style='font-size: 1rem' href='https://redcap.stanford.edu/surveys/?s=L3TRTT9EF9' target='_blank'><u>file a new DPA</u></a>.<ul>"
     } else {
       message +=
-          "<span style='color:red'>The DPA must include all phi and data attestations which will be accessed as part of this project.  Please include the following items in your DPA as needed.<ul>"
+          "<span style='color:red'>The DPA must include all PHI and data attestations which will be accessed as part of this project. Please include the following items in your DPA as needed.<ul>"
     }
     attestationMissing.forEach(currentValue =>
         message += "<li>" + currentValue + "</li>"
@@ -328,7 +328,7 @@ const checkPrivacyAttestion = () => {
   }
   if (message.length > 0)
     message +=
-        "<br>You may continue to configure and create your DUSTER project, however all IRB and/or DPA issues must be resolved before retrieving data. Click \"OK\" to continue project creation."
+        "<br>You may continue to configure and create your DUSTER project. However, all IRB and/or DPA issues must be resolved before retrieving data. Click \"OK\" to continue project creation."
   return message;
 }
 
@@ -367,7 +367,7 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
               irbCheckMessage.value += irbOrDpaStr(projectIrbNumber) + " is valid.<br><br>"
                   + privacyIssues
             } else {
-              irbCheckMessage.value += irbOrDpaStr(projectIrbNumber) + " is valid.<br>Fetching Duster Metadata ..."
+              irbCheckMessage.value += irbOrDpaStr(projectIrbNumber) + " is valid.<br>Fetching DUSTER Metadata ..."
               irbWarningConfirmed.value = true
             }
             irbValid.value = true
