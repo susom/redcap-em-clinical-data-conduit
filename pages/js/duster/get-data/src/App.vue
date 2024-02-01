@@ -903,10 +903,10 @@ const updateProgress = (dataSync:any) => {
             " was incomplete. Some queries had failures. An email regarding this issue was sent to the DUSTER team.<br><br>"
             + failures.value.join('<br>');
         saveMessage.value = "";
-        axios.get(get_data_url.value + "&action=logStatus&status=fail");
+        axios.get(get_data_url + "&action=logStatus&status=fail");
       } else {
         saveMessage.value = "Data retrieval complete for " + cohortStr.value;
-        axios.get(get_data_url.value + "&action=logStatus&status=complete");
+        axios.get(get_data_url + "&action=logStatus&status=complete");
       }
     }  // else {hasError should handle error message}
   } else {
@@ -930,7 +930,7 @@ const asyncRequestData = async() => {
       isAsyncRequest.value = true;
       showAsyncNotify.value = false;
       step.value = 4;
-      axios.get(get_data_url.value + "&action=asyncDataRequest" + emailParam + selectedFilter.value);
+      axios.get(get_data_url + "&action=asyncDataRequest" + emailParam + selectedFilter.value);
       saveMessage.value = "<p>A request to fetch data for " + cohortStr.value
           + " in the background was submitted.  An email will be sent to "
           + email.value
@@ -968,7 +968,7 @@ const asyncPollStatus = async(cohortDesc:string) => {
   while (!complete) {
     count++;
     countDownUpdate.value = "Checking status...";
-    let response = await axios.get(get_data_url.value + "&action=asyncDataLog")
+    let response = await axios.get(get_data_url + "&action=asyncDataLog")
         .catch(function (error) {
           complete = true;
           errorMessage.value += error.message + '<br>';
