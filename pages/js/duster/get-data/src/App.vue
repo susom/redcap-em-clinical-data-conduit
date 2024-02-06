@@ -629,7 +629,7 @@ const checkPrivacyAttestion = () => {
   if (attestationMissing.length > 0) {
     if (complianceSettings.value.dpa) {
       message = irbOrDpaStr(complianceSettings.value.irb_num)
-      message += complianceSettings.value.irb_num.startsWith("DPA-") ? "" : " (DPA-" +
+      message += complianceSettings.value.irb_num?.startsWith("DPA-") ? "" : " (DPA-" +
           complianceSettings.value.dpa.recordId + ")"
       message +=
           " is missing the following attestations for this DUSTER project. <a style='font-size: 1rem' href='https://redcap.stanford.edu/surveys/?s=L3TRTT9EF9' target='_blank'><u>File a new DPA with the required attestations</u></a>.<ul>"
