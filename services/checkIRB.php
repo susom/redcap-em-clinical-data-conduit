@@ -58,11 +58,15 @@ try {
             }*/
             if ($pid) {
                 // This is a hack because otherwise can't tell if name is queried
-                $fields = REDCap::getFieldNames('demographics');
-                if (in_array("first_name", $fields) || in_array("last_name", $fields)) {
-                    $irb_status['project_has_name'] = true;
-                } else {
-                    $irb_status['project_has_name'] = false;
+                $demographics = REDCAP::getInstrumentNames("demographics");
+                if ($demographics) {
+                    $fields = REDCap::getFieldNames('demographics');
+                    if ($fields && in_array("first_name", $fields)
+                        || in_array("last_name", $fields)) {
+                        $irb_status['project_has_name'] = true;
+                    } else {
+                        $irb_status['project_has_name'] = false;
+                    }
                 }
             }
         }

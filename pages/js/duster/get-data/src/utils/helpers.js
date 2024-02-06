@@ -1,16 +1,21 @@
 function irbOrDpaStr(str) {
-  return str.startsWith('DPA-') ? str : 'IRB ' + str
+  if (str)
+    return str.startsWith('DPA-') ? str : 'IRB ' + str
+  return ""
 }
 
 function toTitleCase(str) {
-    str = str.replace(/_/g,' ')
+  if (str) {
+    str = str.replace(/_/g, ' ')
     return str.replace(
       /\w\S*/g,
-      function(txt) {
+      function (txt) {
         return txt.charAt(0).toUpperCase() +
           txt.substr(1).toLowerCase();
       }
     );
+  }
+  return ""
 }
 
 function queryLabel(str) {
@@ -18,6 +23,7 @@ function queryLabel(str) {
     const label = str.replace(/[\w_]*: */i, "");
     return toTitleCase(label);
   }
+  return ""
 }
 
 function queryMessage(str) {
@@ -25,11 +31,15 @@ function queryMessage(str) {
     const label = str.replace(/duster_pid\d+(_cw\d+)?_/i, "");
     return toTitleCase(label);
   }
+  return ""
 }
 
 function formLabel(str) {
-  const label = str.replace(/(cw\d+_)?/i, "");
-  return toTitleCase(label);
+  if (str) {
+    const label = str.replace(/(cw\d+_)?/i, "");
+    return toTitleCase(label);
+  }
+  return ""
 }
 
 export { toTitleCase, queryLabel, queryMessage, formLabel, irbOrDpaStr }
