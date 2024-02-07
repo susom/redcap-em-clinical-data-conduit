@@ -291,7 +291,7 @@ if ($action === 'productionStatus') {
             $return_obj['status'] = 200;
         } else {
             $return_obj['status'] = 400;
-            $return_obj['message'] = handleError('DUSTER getData: No configured queries', 'This project does not have any configured queries.');
+            $return_obj['message'] = $module->handleError('DUSTER getData: No configured queries', 'This project does not have any configured queries.');
         }
     }
 } else if ($action === 'dataRequestStatus') {
