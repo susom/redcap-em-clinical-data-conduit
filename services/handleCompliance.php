@@ -4,9 +4,9 @@ use REDCap;
 
 /** @var $module Duster */
 
-$message = $_POST["message"];
+$message = $_POST["message"] ?? 'No message';
 //$pds = $_GET["pds"];
-$irb_num = $_POST['irb_num'];
+$irb_num = $_POST['irb_num'] ?? 'No IRB';
 $pid = $_GET["pid"];
 
 $module->emLog("compliance notify pid:$pid, irb:$irb_num, message:$message");

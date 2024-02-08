@@ -29,7 +29,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     // $this->emDebug(" Page is " . PAGE . " action is " . $_GET['action']);
     if ($project_id === null
       && strpos(PAGE, "index.php") !== false
-      && $_GET['action'] === 'create'
+      && isset($_GET['action']) && $_GET['action'] === 'create'
       && $this->isUserAllowed() === true) {
         // $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
         $some = "<script> let dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";

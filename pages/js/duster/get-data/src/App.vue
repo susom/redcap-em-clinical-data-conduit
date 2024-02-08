@@ -500,8 +500,12 @@ const checkIRB = () => {
         complianceSettings.value = response.data
         irb_valid.value = response.data.irb_status
         if (!response.data.irb_status) {
-          errorMessage.value = irbOrDpaStr(response.data.irb_num) +
-              " is not valid.  Please enter a valid IRB for this project before retrieving data."
+          if (response.data.irb_num) {
+            errorMessage.value = irbOrDpaStr(response.data.irb_num) +
+                " is not valid.  Please enter a valid IRB/DPA for this project before retrieving data."
+          } else {
+            errorMessage.value = "Redcap project does not have an IRB or DPA.  Please enter a valid IRB/DPA for this project before retrieving data."
+          }
         }
       }
   )
