@@ -338,7 +338,7 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
   user:string) => {
   if (dev.value) {
     irbValid.value = true
-  } else {
+  } else if (projectIrbNumber) {
     irbCheckVisible.value = true
     let formData = new FormData();
     formData.append('redcap_csrf_token', redcapCsrfToken);
@@ -378,16 +378,16 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
               errorFormData.append('redcap_csrf_token', redcapCsrfToken);
               errorFormData.append('fatal_error', response.data);
               axios.post(projectConfig.report_fatal_error_url, errorFormData)
-                .then(function (response) {
+                  .then(function (response) {
 
-                })
-                .catch(function (error) {
+                  })
+                  .catch(function (error) {
 
-                });
+                  });
 
             } else {
               irbCheckMessage.value += irbOrDpaStr(projectIrbNumber)
-                + " is invalid. Please enter a different IRB or DPA. (DPAs must start with \"DPA-\")";
+                  + " is invalid. Please enter a different IRB or DPA. (DPAs must start with \"DPA-\")";
             }
             irbValid.value = false
           }
@@ -399,6 +399,12 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
           systemError.value = true;
           console.log(error);
         });
+  } else {
+    irbCheckMessage.value =
+        "You must have an IRB or DPA to use Duster. Please enter a valid IRB or DPA. (DPAs must start with \"DPA-\")";
+    irbValid.value = false
+    irbCheckStatus.value = 'checked'
+    irbCheckVisible.value = true
   }
 }
 
