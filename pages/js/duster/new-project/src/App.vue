@@ -261,7 +261,9 @@ const checkPrivacyAttestion = () => {
   if (!complianceSettings.value.dpa) {
     message = "<span style='color:red'>No valid DPA was found for IRB "
         + complianceSettings.value.irb_num
-        +".  <a style='font-size: 1rem' href='https://redcap.stanford.edu/surveys/?s=L3TRTT9EF9' target='_blank'><u>Please file a DPA</u></a> with the necessary attestations.</span> "
+        +".  <a style='font-size: 1rem' href='" +
+        projectConfig.add_dpa_to_irb_url
+    +"' target='_blank'><u>Please add a DPA to your protocol</u></a> with the necessary attestations.</span> "
       attestationMissing.push("MRNs (required)")
       attestationMissing.push("Dates (required)")
       attestationMissing.push("Names")
@@ -305,12 +307,20 @@ const checkPrivacyAttestion = () => {
   if (attestationMissing.length > 0) {
     if (complianceSettings.value.dpa) {
       message += "<span style='color:red'>"
-      message += complianceSettings.value.irb_num.startsWith('DPA-')
-          ? complianceSettings.value.irb_num
-          : ('DPA-' + complianceSettings.value.dpa.recordId + " associated with " +
-              irbOrDpaStr(complianceSettings.value.irb_num))
+      const isIRB = !complianceSettings.value.irb_num?.startsWith("DPA-");
+      message = irbOrDpaStr(complianceSettings.value.irb_num)
       message +=
-          " does not include the following attestations which may be required to retrieve data for this project. If any of the following are included as part of your DUSTER project, you will need to <a style='font-size: 1rem' href='https://redcap.stanford.edu/surveys/?s=L3TRTT9EF9' target='_blank'><u>file a new DPA</u></a>.<ul>"
+          " does not include the following attestations which may be required to retrieve data for this project. If any of the following are included as part of your DUSTER project, you will need to "
+      if (isIRB) {
+        message +=
+            "<a style='font-size: 1rem' href='" +
+            projectConfig.add_dpa_to_irb_url
+            +"' target='_blank'><u>modify your protocol and file a new DPA</u></a>.<ul>"
+      } else {
+        message +="<a style='font-size: 1rem' href='" +
+            projectConfig.new_dpa_url
+            +"' target='_blank'><u>file a new DPA</u></a> with the required attestations.<ul>"
+      }
     } else {
       message +=
           "<span style='color:red'>The DPA must include all PHI and data attestations which will be accessed as part of this project. Please include the following items in your DPA as needed.<ul>"
@@ -324,7 +334,8 @@ const checkPrivacyAttestion = () => {
     message += "<span style='color:red'>User " + projectConfig.redcap_user +
         "  does not have a DPA attestation associated with "
         + irbOrDpaStr(complianceSettings.value.irb_num) +
-        " and needs an  <a style='font-size: 1rem' href='https://redcap.stanford.edu/surveys/?s=8RWF73YTWA' target='_blank'><u>add-on DPA</u></a>.</span><br>"
+        " and needs an  <a style='font-size: 1rem' href='" + projectConfig.addon_dpa_url +
+        "' target='_blank'><u>add-on DPA</u></a>.</span><br>"
   }
   if (message.length > 0)
     message +=
