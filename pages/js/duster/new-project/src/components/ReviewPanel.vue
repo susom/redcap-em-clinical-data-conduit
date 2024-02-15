@@ -159,19 +159,13 @@
   <Dialog
     v-model:visible="showCreateProjectDialog"
     modal
+    :closable="false"
     :style="{ width: '50vw' }"
     header="Create Project"
   >
     <div :class="['my-3',{'p-error': createProjectError}]">
     {{createProjectMessage}}
     </div>
-    <template #footer>
-      <Button
-        label="Close"
-        icon="pi pi-times"
-        @click="showCreateProjectDialog=false"
-      />
-    </template>
   </Dialog>
   <SystemErrorDialog
     v-model:error-message="systemErrorMessage"
@@ -784,7 +778,85 @@ const createProject = () => {
 }
 
 const updateProject = () => {
+  createProjectMessage.value = "Updating REDCap Project. Please wait.";
+  showCreateProjectDialog.value = true;
+  const data = {
+    redcap_project_id: props.projectInfo.redcap_project_id,
 
+    config: getDusterConfig(),
+    design_config: getDesignConfig()
+  }
+  console.log(data); // TODO remove
+  let formData = new FormData()
+  formData.append('redcap_csrf_token', props.projectInfo.redcap_csrf_token);
+  formData.append('data', JSON.stringify(data));
+  console.log(formData); // TODO remove
+  axios.post(props.projectInfo.update_project_url, formData)
+      .then(function (response) {
+        console.log(response);
+        if (response.data.toLowerCase().includes("fatal error")) {
+          /*
+          createProjectMessage.value = "Oops";
+          createProjectError.value = true;
+          showCreateProjectDialog.value = true;
+          */
+          showSystemError("The project was not properly updated.");
+
+          // send a report of the fatal error
+          let errorFormData = new FormData();
+          errorFormData.append('redcap_csrf_token', props.projectInfo.redcap_csrf_token);
+          errorFormData.append('fatal_error', response.data);
+          axios.post(props.projectInfo.report_fatal_error_url, errorFormData)
+              .then(function (response) {
+
+              })
+              .catch(function (error) {
+
+              });
+        } else if (response.data.toLowerCase().indexOf('error') > -1) {
+          showSystemError("The project was not properly updated.");
+          /*
+          console.log("Found Error");
+          createProjectError.value = true;
+          createProjectMessage.value = response.data;
+          showCreateProjectDialog.value = true;
+          */
+        } else { // success
+          window.location.href = response.data;
+          console.log('SUCCESS');
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+        // TODO
+        if (error.response.status == 400 || error.response.status == 500) {
+          switch (error.response.data) {
+              // a project was created, but something went wrong during configuration
+            case 'fail_project_post':
+              showSystemError("A project was created, but it was not properly configured.");
+              break;
+              // a project could not be created
+            case 'fail_project':
+              showSystemError("A project was not created.");
+              break;
+              // something wrong happened
+            default:
+              showSystemError("A project was not properly created and configured.");
+          }
+        } else {
+          showSystemError("A project was not properly created and configured.");
+        }
+        /*
+        createProjectMessage.value = error.message;
+        createProjectError.value = true;
+        showCreateProjectDialog.value = true;
+        console.log("Catch: " + error);
+
+        console.log(error.toJSON());
+        console.log(error.response);
+        console.log(error.response.data);
+        */
+      });
 }
 
 </script>

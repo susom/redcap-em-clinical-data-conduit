@@ -292,7 +292,8 @@ $config_data = array(
   'redcap_user' => $module->getUser()->getUserName(),
   'config' => $data['config'],
   'design_config' => $data['design_config'],
-  'linkinfo' => $data_arr
+  'linkinfo' => $data_arr,
+  'is_update' => false
 );
 
 // Retrieve the data URL that is saved in the config file
@@ -331,7 +332,7 @@ if ($save_config_results['success'] && !empty($save_config_results['rcToStarrLin
 } else {
   $module->removeUser(USERID);
   http_response_code(500);
-  $msg = $module->handleError("Duster Error: Project Create",  "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $save_config_results['error']);
+  $msg = $module->handleError("DUSTER Error: Project Create",  "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $save_config_results['error']);
   echo "fail_project_post";
   //  print "Error: A new REDCap project was created (pid $project_id), but DUSTER's data queries for this project failed to set up. " . $msg;
   exit();

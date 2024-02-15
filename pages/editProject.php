@@ -104,6 +104,8 @@ $project_design = $response['data'];
   postObj['get_dataset_designs_url'] = "<?php echo $module->getUrl("services/getDatasetDesigns.php"); ?>";
   // store URL for services/refreshSession.php
   postObj['refresh_session_url'] = "<?php echo $module->getUrl("services/refreshSession.php"); ?>";
+  // store URL for services/updateProject.php
+  postObj['update_project_url'] = "<?php echo $module->getUrl("services/updateProject.php"); ?>";
   localStorage.setItem('postObj', JSON.stringify(postObj));
 
 </script>

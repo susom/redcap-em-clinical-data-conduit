@@ -47,13 +47,13 @@ class RedcapToStarrLinkConfig
   }
 
   /**
-   * TODO remove all project settings for REDCap to STARR Link EM
+   * TODO remove project settings for REDCap to STARR Link EM
    */
-  public function removeRedcapToStarrLinkEmSettings($pid, $em_config) {
-    // TODO is $em_config what's needed here?
-    // TODO use removeProjectSetting($key[,[$pid]) to remove all project settings for REDCap to STARR Link
-    // TODO seems like removeProjectSetting() might not be the right method
-
+  public function removeRedcapToStarrLinkEmSettings() {
+    $em_id = $this->getEmId();
+    $this->module->query('DELETE FROM redcap_external_module_settings 
+       WHERE `external_module_id` = ? AND `project_id` = ? AND `key` != "enabled"',
+    [$em_id, $this->project_id]);
   }
 
     /*takes JsonObject returned from starr-api to configure project level RtoS Link EM settings*/
