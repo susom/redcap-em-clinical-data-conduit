@@ -389,11 +389,14 @@ const getTimingConfig = (timing:TimingConfig, index: number, eventType:string) =
     tconfig.interval={}
     tconfig.interval.type = timing.interval.type
     tconfig.interval.length = timing.interval.length
+    tconfig.value_type = "datetime"
+    /*
     if (tconfig.interval.type == 'hour') {
       tconfig.value_type = "datetime"
     } else {
       tconfig.value_type = "date"
     }
+    */
   } else {
     tconfig.value_type= timing.value_type
     if (timing.duster_field_name) {
