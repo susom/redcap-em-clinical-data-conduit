@@ -20,10 +20,10 @@ use REDCap;
  * }
  */
 
-$irb_num = $_POST["project_irb_number"];
+$irb_num = $_POST['project_irb_number'] ?? "";
 $username = $module->getUser()->getUsername();
 
-$pid = $_GET["pid"];
+$pid = $_GET["pid"] ?? "";
 $irb_status = [];
 
 try {
@@ -33,47 +33,52 @@ try {
         if (!empty($pid)) {
             $irb_num = $IRB->findIRBNumber($pid);
         } else {
-            throw new Exception("checkCompliance both irb_num and pid can not be null.");
+            $irb_status['irb_status'] = false;
+            $irb_status['message'] = "IRB/DPA value is empty";
         }
     }
-    $irb_status['irb_num'] = $irb_num;
-    $compliance = $IRB->getAllCompliance($irb_num, $pid);
-    if ($compliance) {
-        $irb_status['irb_status'] = $compliance['isValid'];
-        $module->emLog("Status for IRB number $irb_num returned by IRB Lookup EM: "  . $irb_status['irb_status']);
+    if (!empty($irb_num))
+        $irb_status['irb_num'] = $irb_num;
+        $compliance = $IRB->getAllCompliance($irb_num, $pid);
+        if ($compliance) {
+            $irb_status['irb_status'] = $compliance['isValid'];
+            $module->emLog("Status for IRB number $irb_num returned by IRB Lookup EM: " . $irb_status['irb_status']);
 
-        if ($irb_status['irb_status']) {
-            $irb_status['dpa'] = $compliance['dpa'];
-            $personnel = $compliance['personnel'];
-            // original intent was to send email to pds for dpa violations. Just sending email to duster team now
-            //$irb_status['dpa_contacts'] = [];
-            foreach ($personnel as $person) {
-                if ($person['sunetid'] == $username)
-                    $irb_status['user_permissions'] = $person;
-                /*if ($person['role'] === 'PD' || $person['role'] === 'COPD')
-                    $irb_status['dpa_contacts'][] = $person['sunetid'];*/
-            }
-            /*if ($compliance['dpa'] && !in_array($compliance['dpa']['primaryUser'], $irb_status['protocol_directors'])) {
-                $irb_status['dpa_contacts'][] = $compliance['dpa']['primaryUser'];
-            }*/
-            if ($pid) {
-                // This is a hack because otherwise can't tell if name is queried
-                $demographics = REDCAP::getInstrumentNames("demographics");
-                if ($demographics) {
-                    $fields = REDCap::getFieldNames('demographics');
-                    if ($fields && in_array("first_name", $fields)
-                        || in_array("last_name", $fields)) {
-                        $irb_status['project_has_name'] = true;
-                    } else {
-                        $irb_status['project_has_name'] = false;
+            if ($irb_status['irb_status']) {
+                $irb_status['dpa'] = $compliance['dpa'];
+                $personnel = $compliance['personnel'];
+                // original intent was to send email to pds for dpa violations. Just sending email to duster team now
+                //$irb_status['dpa_contacts'] = [];
+                foreach ($personnel as $person) {
+                    if ($person['sunetid'] == $username)
+                        $irb_status['user_permissions'] = $person;
+                    /*if ($person['role'] === 'PD' || $person['role'] === 'COPD')
+                        $irb_status['dpa_contacts'][] = $person['sunetid'];*/
+                }
+                /*if ($compliance['dpa'] && !in_array($compliance['dpa']['primaryUser'], $irb_status['protocol_directors'])) {
+                    $irb_status['dpa_contacts'][] = $compliance['dpa']['primaryUser'];
+                }*/
+                if ($pid) {
+                    // This is a hack because otherwise can't tell if name is queried
+                    $demographics = REDCAP::getInstrumentNames("demographics");
+                    if ($demographics) {
+                        $fields = REDCap::getFieldNames('demographics');
+                        if ($fields && in_array("first_name", $fields)
+                            || in_array("last_name", $fields)) {
+                            $irb_status['project_has_name'] = true;
+                        } else {
+                            $irb_status['project_has_name'] = false;
+                        }
                     }
                 }
+            } else {
+                $irb_status['irb_status'] = false;
+                $irb_status['message'] = "Compliance API returns false for $irb_num";
             }
+        } else {
+            $irb_status['irb_status'] = false;
+            $irb_status['message'] = "No response for Compliance API for $irb_num";
         }
-    } else {
-        $irb_status['irb_status'] = false;
-        $irb_status['message'] = "Compliance API returns false for IRB $irb_num";
-    }
 } catch(Exception $ex) {
     http_response_code(500);
     //$module->emError("Exception when creating class irb_lookup");

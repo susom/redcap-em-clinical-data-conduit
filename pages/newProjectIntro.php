@@ -65,7 +65,10 @@ namespace Stanford\Duster;
 
   // store URL for pages/newProjectIntro.php
   postObj['new_project_intro_url'] = "<?php echo $module->getUrl("pages/newProjectIntro.php"); ?>";
-
+  // URLs for DPAs
+  postObj['new_dpa_url'] = 'https://redcap.stanford.edu/surveys/?s=L3TRTT9EF9';
+  postObj['addon_dpa_url'] = 'https://redcap.stanford.edu/surveys/?s=8RWF73YTWA'
+  postObj['add_dpa_to_irb_url'] = 'https://med.stanford.edu/starr-tools/data-compliance/modify-existing-protocol.html';
   // save to local storage
   localStorage.setItem('postObj', JSON.stringify(postObj));
 

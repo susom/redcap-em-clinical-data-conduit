@@ -38,7 +38,9 @@ $redcap_version = explode('_',APP_PATH_WEBROOT)[1];
   getDataObj['exit_url'] = "<?php echo APP_PATH_WEBROOT_FULL
       . 'redcap_' . $redcap_version .'index.php?pid=' . PROJECT_ID; ?>" ;
   getDataObj['max_cohort_size'] = "<?php echo $module->getSystemSetting("get-data-limit") ?: 600; ?>" ;
-
+  getDataObj['new_dpa_url'] = 'https://redcap.stanford.edu/surveys/?s=L3TRTT9EF9';
+  getDataObj['addon_dpa_url'] = 'https://redcap.stanford.edu/surveys/?s=8RWF73YTWA'
+  getDataObj['add_dpa_to_irb_url'] = 'https://med.stanford.edu/starr-tools/data-compliance/modify-existing-protocol.html';
   localStorage.setItem('getDataObj', JSON.stringify(getDataObj));
 
   // redirect to 'new-project' Vue app for creating a new project

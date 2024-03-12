@@ -291,7 +291,7 @@ if ($action === 'productionStatus') {
             $return_obj['status'] = 200;
         } else {
             $return_obj['status'] = 400;
-            $return_obj['message'] = handleError('DUSTER getData: No configured queries', 'This project does not have any configured queries.');
+            $return_obj['message'] = $module->handleError('DUSTER getData: No configured queries', 'This project does not have any configured queries.');
         }
     }
 } else if ($action === 'dataRequestStatus') {
@@ -454,10 +454,10 @@ if ($action === 'productionStatus') {
     // requires authentication (i.e. status)
     $email = isset($_GET['email']) && !empty($_GET['email']) ? $_GET['email'] : null;
     $duster_email = $module->getSystemSetting("duster-email");
-    list($request_status, $failed_instruments) = explode(":", $_GET['request_status']);
+    list($request_status, $failed_instruments) = explode(":", $_GET['request_status'] ?? []);
     //$module->emDebug("email status " . $_GET['request_status']);
-    $request_id = $_GET['request_id'];
-    if (isset($email)) {
+    $request_id = $_GET['request_id'] ?? 'unknown';
+    if ($email) {
         if ($request_status == 'success') {
             $message = "DUSTER data retrieval request $request_id for pid $pid $cohort_str completed successfully.<br>";
         } else {
