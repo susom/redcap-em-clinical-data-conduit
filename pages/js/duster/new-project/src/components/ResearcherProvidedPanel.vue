@@ -106,7 +106,7 @@
               rounded
               size="small"
               severity="danger"
-              :class="(slotProps.index < 2)? 'hidden' : 'mr-2'"
+              :class="(slotProps.index < 2 || rpData[slotProps.index].edit === false)? 'hidden' : 'mr-2'"
               @click="confirmDeleteRpDate(slotProps.data)"
               :disabled="rpData[slotProps.index].edit === false"
             />
@@ -219,7 +219,10 @@ const rpDate = ref<BasicConfig>(newRpDate())
 
 const addRpDate = () => {
   rpDate.value = newRpDate()
+  rpDate.value.redcap_field_type = 'text';
+  rpDate.value.phi = 't';
   rpDate.value.id = (rpDate.value.redcap_field_name || "") + new Date().getTime()
+  console.log(rpDate.value);
 
   if (localRpData.value)
     localRpData.value.push(rpDate.value)

@@ -2,16 +2,84 @@
 namespace Stanford\Duster;
 /** @var $module Duster */
 
-use RedCapDB;
 use Throwable;
 use Exception;
 
-require_once $module->getModulePath() . "classes/OdmXmlString.php";
 require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
 
 /**
  * service page to update a DUSTER project based on user edits
  */
+
+
+/**
+ * helper function that returns a CSV-formatted string of a REDCap field's configuration used by REDCap API
+ * @param $field
+ * @param string $form_name
+ * @param $section_header
+ * @return string
+ */
+function getFieldParams($field, string $form_name = "", string $section_header = ""):string {
+    global $module;
+    $params = "{$field['redcap_field_name']},$form_name,$section_header,{$field['redcap_field_type']},\"{$field['label']}\",";
+
+    switch ($field['redcap_field_type']) {
+        case 'checkbox':
+        case 'radio':
+        case 'calc':
+            $module->emDebug("Entered case checkbox or radio or calc");
+            $params .= "\"{$field['redcap_options']}\",";
+            break;
+        default:
+            $params .= ",";
+            break;
+    }
+
+    if (array_key_exists('redcap_field_note', $field) && is_string($field['redcap_field_note']) === true) {
+        $params .= "{$field['redcap_field_note']}";
+    }
+    $params .= ",";
+
+    if ($field['value_type'] === 'datetime') {
+        $params .= "datetime_seconds_ymd";
+    } else if ($field['value_type'] === 'date') {
+        $params .= "date_ymd";
+    }
+    $params .= ",,,";
+
+    $params .= $field['phi'] === 't' ? "y" : "";
+    $params .= ",,,,,,,";
+
+    if (array_key_exists('field_annotation', $field)) {
+        $params .= "\"{$field['field_annotation']}\"";
+    }
+
+    $module->emDebug($params);
+    return $params . "\n";
+}
+
+/**
+ * @param $username
+ * @return null
+ */
+function getUserProjectToken($username, $project_id)
+{
+    $username = db_escape($username);
+
+    $sql = "
+			SELECT api_token
+			FROM redcap_user_rights
+			WHERE username = '$username' AND project_id = '$project_id'
+			LIMIT 1
+		";
+    $q = db_query($sql);
+    if($q && $q !== false && db_num_rows($q))
+    {
+        $row = db_fetch_assoc($q);
+        return $row['api_token'];
+    }
+    return null;
+}
 
 /**
  * avoiding false-positive Psalm TaintedSSRF on $_POST['data']
@@ -27,271 +95,187 @@ require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
  * update REDCap to STARR Link config on REDCap side
  */
 
-
-
 /* get JSON from POST request */
 $data = json_decode($_POST['data'], true);
 $project_id = $data['redcap_project_id'];
-//
-///* construct the ODM XML string */
-//try {
-//  $odm = new OdmXmlString($data['app_title'], $data['purpose'], $data['purpose_other'], $data['project_note']);
-//  $config = $data['config'];
-//  // Researcher-Provided Information
-//  if (array_key_exists("rp_info", $config)) {
-//    $rp_form_name = "researcher_provided_information";
-//    $rp_form_label = "Researcher-Provided Information";
-//    $odm->addForm($rp_form_name, $rp_form_label, false);
-//    // add field for REDCap Record ID
-//    $odm->addFields($rp_form_name, null, null, "", array(array("redcap_field_name" => "redcap_record_id", "label" => "REDCap Record ID", "redcap_field_type" => "text")));
-//    // add fields for identifiers
-//    $odm->addFields($rp_form_name, null, null, "Identifiers", $config["rp_info"]["rp_identifiers"]);
-//    // add fields for dates
-//    $dates_arr = [];
-//    foreach ($config["rp_info"]["rp_dates"] as $date) {
-//      $dates_arr[] = $date;
-//    }
-//    $odm->addFields($rp_form_name, null, null, "Dates", $dates_arr);
-//
-//  } else {
-//    $module->emError("DUSTER configuration missed 'rp_info' key. POST data: " . json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-//    throw new Exception ("DUSTER configuration requires Researcher-Provided values");
-//  }
-//
-//  // Demographics
-//  if (array_key_exists("demographics", $config)) {
-//    $demo_form_name = "demographics";
-//    $demo_form_label = "Demographics";
-//    $odm->addForm($demo_form_name, $demo_form_label, false);
-//    $odm->addFields($demo_form_name, null, null, "", $config["demographics"]);
-//  }
-//
-//  // Clinical Windows
-//  if(array_key_exists("collection_windows", $config)) {
-//    foreach($config["collection_windows"] as $collection_window) {
-//      $repeat_window = $collection_window["type"] === "repeating";
-//      // add form
-//      $odm->addForm($collection_window["form_name"], $collection_window["label"], $repeat_window);
-//      // add timing fields with its own section header
-//      $timing_fields_arr = [$collection_window["timing"]["start"], $collection_window["timing"]["end"]];
-//      $odm->addFields($collection_window["form_name"], null, null, "Timing", $timing_fields_arr);
-//      // if applicable, add repeat instance start/end with its own section header
-//      if ($repeat_window) {
-//        $repeat_fields_arr = [
-//          array(
-//            "redcap_field_name" => $collection_window["form_name"],
-//            "label" => "Unique Instance Token",
-//            "redcap_field_type" => "text",
-//            "hidden" => true
-//          ),
-//          $collection_window["timing"]["repeat_interval"]["start_instance"],
-//          $collection_window["timing"]["repeat_interval"]["end_instance"]
-//        ];
-//        $odm->addFields($collection_window["form_name"], null, null, "Repeat Instance", $repeat_fields_arr);
-//      }
-//      // if applicable, add closest to event with its own section header
-//      if(count($collection_window["event"]) > 0 && !empty((array)$collection_window["event"][0])) {
-//        $odm->addFields($collection_window["form_name"], null, null, "Closest Event Aggregation", $collection_window["event"]);
-//      }
-//      // add labs with its own section header
-//      $odm->addFields($collection_window["form_name"], null, null, "Labs", $collection_window["data"]["labs"]);
-//      // add vitals with its own section header
-//      $odm->addFields($collection_window["form_name"], null, null, "Vitals", $collection_window["data"]["vitals"]);
-//      // add outcomes with its own section header
-//      $odm->addFields($collection_window["form_name"], null, null, "Outcomes", $collection_window["data"]["outcomes"]);
-//
-//      // add each score with a section header
-//      foreach($collection_window["data"]["scores"] as $score) {
-//        $score_arr = [];
-//        // add each subscore for score
-//        foreach($score["subscores"] as $subscore) {
-//          // add each clinical variable for subscore
-//          foreach($subscore["dependencies"] as $clinical_var) {
-//            $score_arr[] = $clinical_var;
-//          }
-//          unset($subscore["dependencies"]);
-//          $score_arr[] = $subscore;
-//        }
-//        unset($score["subscores"]);
-//        $score_arr[] = $score;
-//        $odm->addFields($collection_window["form_name"], null, null, $score["label"], $score_arr);
-//      }
-//    }
-//  }
-//
-//  $odm_str = $odm->getOdmXmlString();
-//  // $module->emLog($odm_str);
-//} catch (Throwable $ex) {
-//  http_response_code(400);
-//  $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to create an ODM XML string.", $ex );
-//  echo "fail_project";
-//  // print "Error: Failed to create project. " . $msg;
-//  exit();
-//}
-//
-//$data_arr = array(
-//  'project_title' => $data['app_title'],
-//  'purpose' => $data['purpose']
-//);
-//
-//if(array_key_exists("purpose_other", $data)) {
-//  $data_arr['purpose_other'] = $data['purpose_other'];
-//}
-//if(array_key_exists("purpose_other", $data)) {
-//  $data_arr['project_notes'] = $data['project_notes'];
-//}
-//
-//$data_json = json_encode(array($data_arr));
-//
-//// create a REDCap Super API Token if needed
-//// if a REDCap Super API Token was created, then delete it after
-//$db = new RedCapDB();
-//$delete_token = false;
-//$super_token = $db->getUserSuperToken(USERID);
-//if (!$super_token) {
-//  // Create a temporary token
-//  if ($db->setAPITokenSuper(USERID)) {
-//    $module->emLog("REDCap Super API Token created for " . USERID . ".");
-//    $super_token = $db->getUserSuperToken(USERID);
-//    $delete_token = true;
-//    // Remember to delete the temporary token
-//    // register_shutdown_function(array($this, "deleteTempSuperToken"));
-//  } else {
-//    http_response_code(500);
-//    $msg = $module->handleError('DUSTER Error: Project Create', "Failed to create a REDCap SUPER API Token for user " . USERID);
-//    echo "fail_project";
-//    // print "Error: Failed to create project. " . $msg;
-//    exit();
-//  }
-//}
-//
-//// call REDCap API to create project
-//$fields = array(
-//  'token'   => $super_token,
-//  'content' => 'project',
-//  'format'  => 'json',
-//  'data'    => $data_json,
-//  'odm'     => $odm_str
-//);
-//
-//$ch = curl_init();
-//$api_url = APP_PATH_WEBROOT_FULL . "api/";
-//
-//$module->emDebug("Create Project POST Request to REDCap API URL $api_url");
-//curl_setopt($ch, CURLOPT_URL, $api_url);
-//curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields, '', '&'));
-//curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-//curl_setopt($ch, CURLOPT_VERBOSE, 0);
-//curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-//curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-//curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-//curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-//curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
-//
-//$redcap_api_response = curl_exec($ch);
-//$redcap_api_response_code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-//$redcap_api_response_error = curl_error($ch);
-//curl_close($ch);
-//
-//// delete the super token if needed
-//if ($delete_token) {
-//  $db->deleteApiTokenSuper(USERID);
-//  $module->emLog("REDCap Super API Token deleted for " . USERID . ".");
-//}
-//
-//if ($redcap_api_response !== false && strlen($redcap_api_response) === 32) {
-//  $project_token = $redcap_api_response;
-//} else { // failure: cURL returned false or string JSON containing error
-//  http_response_code(500);
-//  $msg = $module->handleError('DUSTER Error: Project Create',
-//    "Create Project POST Request to REDCap API failed.\n"
-//    . "REDCap API Response: $redcap_api_response\n"
-//    . "REDCap API Response Code: $redcap_api_response_code\n"
-//    . "REDCap API Response Error: $redcap_api_response_error\n");
-//  echo "fail_project";
-//  // print "Error: Failed to create project. " . $msg;
-//  exit();
-//}
-//
-//// use the user's project-level token for the newly created project to identify the pid
-//try {
-//  $project_id = $module->getUserProjectFromToken($project_token);
-//} catch (Throwable $ex) {
-//  http_response_code(500);
-//  $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to retrieve user token/project id.", $ex);
-//  echo "fail_project_post";
-//  // print "Error: Failed to retrieve user token/project id. " . $msg;
-//  exit();
-//}
-//
-//// add project info via SQL
-//// since not all project info could be added via the REDCap create project call with ODM XML due to API limitations
-//$project_info_sql_result = $module->query(
-//  '
-//    UPDATE redcap_projects
-//      SET
-//        purpose = ?,
-//        purpose_other = ?,
-//        project_pi_firstname = ?,
-//        project_pi_mi = ?,
-//        project_pi_lastname = ?,
-//        project_pi_email = ?,
-//        project_pi_alias = ?,
-//        project_pi_username = ?,
-//        project_irb_number = ?,
-//        project_grant_number = ?,
-//        project_note = ?
-//    WHERE project_id = ?
-//  ',
-//  [
-//    $data['purpose'], // purpose
-//    trim($data['purpose_other']), // purpose_other
-//    !isset($data['project_pi_firstname']) || $data['project_pi_firstname'] == "" ? NULL : db_escape($data['project_pi_firstname']), // project_pi_firstname
-//    !isset($data['project_pi_mi']) || $data['project_pi_mi'] == "" ? NULL : db_escape($data['project_pi_mi']), // project_pi_mi
-//    !isset($data['project_pi_lastname']) || $data['project_pi_lastname'] == "" ? NULL : db_escape($data['project_pi_lastname']), // project_pi_lastname
-//    !isset($data['project_pi_email']) || $data['project_pi_email'] == "" ? NULL : db_escape($data['project_pi_email']), // project_pi_email
-//    !isset($data['project_pi_alias']) || $data['project_pi_alias'] == "" ? NULL : db_escape($data['project_pi_alias']), // project_pi_alias
-//    !isset($data['project_pi_username']) || $data['project_pi_username'] == "" ? NULL : db_escape($data['project_pi_username']), // project_pi_username
-//    !isset($data['project_irb_number']) || $data['project_irb_number'] == "" ? NULL : db_escape($data['project_irb_number']), // project_irb_number
-//    !isset($data['project_grant_number']) || $data['project_grant_number'] == "" ? NULL : db_escape($data['project_grant_number']), // project_grant_number
-//    trim($data['project_note']), // project_note
-//    $project_id // project_id
-//  ]
-//);
-//
-//// put DUSTER into project-level context of the newly created project
-//// for sake of non-admin user permissions and access to the Project object
-//$_GET['pid'] = $project_id;
-//
-//if($project_info_sql_result !== true) {
-//  $module->removeUser(USERID);
-//  http_response_code(500);
-//  $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to add project info in services/createProject.php. Db insert failed with data=".print_r($data, true));
-//  echo "fail_project_post";
-//  // print "Error: A REDCap project was created (pid $project_id), but DUSTER failed to add project info to it. " . $msg;
-//  exit();
-//}
-//
-//$data_arr['redcap_server_name'] = SERVER_NAME;
-//$data_arr['project_irb_number'] = $data['project_irb_number'];
-//$data_arr['project_pi_name'] = $data['project_pi_firstname'] . ' ' . $data['project_pi_lastname'];
-//
-//// enable DUSTER EM on the newly created project
-//$external_module_id = $module->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = ?', ['duster']);
-//$em_module_sql_result = $module->query('INSERT INTO `redcap_external_module_settings`(`external_module_id`, `project_id`, `key`, `type`, `value`) VALUES (?, ?, ?, ?, ?)',
-//  [$external_module_id->fetch_assoc()['external_module_id'], $project_id, 'enabled', 'boolean', 'true']);
-//if (!$em_module_sql_result) {
-//  $module->removeUser(USERID);
-//  http_response_code(500);
-//  $msg = $module->handleError('DUSTER Error: Project Create',  "Failed to enable DUSTER EM on new project $project_id. Db insert failed with following values: external_module_id" .  $external_module_id->fetch_assoc()['external_module_id'] . ", project_id: $project_id, key: enabled, type: boolean, value: true");
-//  echo "fail_project_post";
-//  // print "Error: A new REDCap project was created (pid $project_id), but the DUSTER EM failed to enable itself on the project. " . $msg;
-//  exit();
-//}
-//
-//*/
-//
+
+/* TODO
+ 0. safety checks, like if the project is in draft mode
+ 1. get all fields and instruments from REDCap (or maybe we don't need to do this up front and instead iteratively get/check as we try to add new fields)
+ 2. for all Researcher-Provided dates/datetimes in the new config, add a REDCap field if it doesn't already exist
+ 3. for all demographics in the new config, add a REDCap field if it doesn't already exist (in order?)
+ 4. for all data collection windows in the new config:
+ 4. a. if the data collection window is new, add the form
+    b. if the "closest to" is new, add it
+    c. for each category of data, add the section header and fields that don't exist and need to. also, when does order of the fields matter?
+ */
+
+/* Update REDCap project's data dictionary */
+try {
+    $config = $data['config'];
+    $project_metadata = "\"Variable / Field Name\",\"Form Name\",\"Section Header\",\"Field Type\",\"Field Label\",\"Choices, Calculations, OR Slider Labels\",\"Field Note\",\"Text Validation Type OR Show Slider Number\",\"Text Validation Min\",\"Text Validation Max\",Identifier?,\"Branching Logic (Show field only if...)\",\"Required Field?\",\"Custom Alignment\",\"Question Number (surveys only)\",\"Matrix Group Name\",\"Matrix Ranking?\",\"Field Annotation\"\n";
+
+    // REDCap Record ID
+    $project_metadata .= "redcap_record_id,researcher_provided_information,,text,\"REDCap Record ID\",,,,,,,,,,,,,\n";
+
+    // Researcher-Provided Identifier
+    $project_metadata .= "mrn,researcher_provided_information,Identifiers,text,\"Medical Record Number (MRN)\",,\"8-digit number (including leading zeros, e.g., '01234567')\",,,,y,,,,,,,\n";
+
+    // Researcher-Provided Dates/Datetimes
+    if (array_key_exists('rp_info', $config)) {
+        // $rp_fields_current = $module->getFieldNames('researcher_provided_information');
+        foreach ($config['rp_info']['rp_dates'] as $key => $date) {
+            $rp_dates_header = $key === 0 ? 'Dates': '';
+            $project_metadata .= getFieldParams($date, 'researcher_provided_information', $rp_dates_header);
+        }
+    }
+
+    // Demographics
+    if (array_key_exists('demographics', $config)) {
+        /*
+        $had_demographics = false;
+        if ($project_designer->formExists('demographics')) {
+            $had_demographics = true;
+        } else {
+            $project_designer->createForm('demographics', 'researcher_provided_information', 'Demographics');
+        }
+        */
+        // TODO need to keep track if this form didn't yet exist
+        // TODO if so, this form need to have its form menu description i.e., form label updated after REDCap API
+    foreach ($config['demographics'] as $demographic) {
+        $project_metadata .= getFieldParams($demographic, 'demographics', '');
+    }
+}
+
+// Data Collection Windows
+if (array_key_exists('collection_windows', $config)) {
+    foreach ($config['collection_windows'] as $collection_window) {
+        $form_name = $collection_window['form_name'];
+
+        // TODO need to keep track of what forms don't yet exist
+        // TODO these forms will need to have their form menu description i.e., form label updated after REDCap API
+        /*
+        $had_window = false;
+        if ($project_designer->formExists($form_name)) {
+            $had_window = true;
+        } else {
+            // $project_designer->createForm($form_name, NULL, $collection_window['label']);
+            $project_designer->createForm($form_name, NULL, NULL);
+        }
+        $collection_window_fields_current = $module->getFieldNames($form_name);
+        */
+
+            // Timing
+            $timing_header = 'Timing';
+            if ($collection_window['type'] === 'repeating') {
+                $repeat_field_params = array(
+                    'label' => 'Unique Instance Token',
+                    'redcap_field_name' => $form_name,
+                    'redcap_field_type' => 'text',
+                    'field_annotation' => ' @HIDDEN'
+                );
+                $project_metadata .= getFieldParams($repeat_field_params, $form_name, 'Timing');
+                $timing_header = '';
+            }
+            $project_metadata .= getFieldParams($collection_window['timing']['start'], $form_name, $timing_header);
+            $project_metadata .= getFieldParams($collection_window['timing']['end'], $form_name, '');
+
+            // Closest Event Aggregation
+            if (!empty($collection_window['event'])) {
+                $project_metadata .= getFieldParams($collection_window['event'][0], $form_name, 'Closest Event Aggregation');
+            }
+
+            // Labs
+            $labs = $collection_window['data']['labs'];
+            if (!empty($labs)) {
+                foreach ($labs as $key => $lab) {
+                    $labs_header = $key === 0 ? 'Labs': '';
+                    $project_metadata .= getFieldParams($lab, $form_name, $labs_header);
+                }
+            }
+
+            // Vitals
+            $vitals = $collection_window['data']['vitals'];
+            if (!empty($vitals)) {
+                foreach ($vitals as $key => $vital) {
+                    $vitals_header = $key === 0 ? 'Vitals': '';
+                    $project_metadata .=  getFieldParams($vital, $form_name, $vitals_header);
+                }
+            }
+
+            // Outcomes
+            $outcomes = $collection_window['data']['outcomes'];
+            if (!empty($outcomes)) {
+                foreach ($outcomes as $key => $outcome) {
+                    $outcomes_header = $key === 0 ? 'Outcomes' : '';
+                    $project_metadata .= getFieldParams($outcome, $form_name, $outcomes_header);
+                }
+            }
+
+            // Scores
+            foreach ($collection_window['data']['scores'] as $score) {
+                foreach ($score['subscores'] as $subscore_key => $subscore) {
+                    foreach ($subscore['dependencies'] as $dependency_key => $dependency) {
+                        $outcomes_header = $subscore_key === 0 && $dependency_key === 0 ? $score['label'] : '';
+                        $project_metadata .= getFieldParams($dependency, $form_name, $outcomes_header);
+                    }
+                    $project_metadata .= getFieldParams($subscore, $form_name, '');
+                }
+                $project_metadata .= getFieldParams($score, $form_name, '');
+            }
+        }
+    }
+
+    $module->emDebug($project_metadata);
+    // REDCap API: Import Metadata (Data Dictionary)
+    $token = getUserProjectToken(USERID, $module->getProjectId());
+    $fields = array(
+        'token'        => $token,
+        'content'      => 'metadata',
+        'format'       => 'csv',
+        'data'         => $project_metadata,
+        'returnFormat' => 'json'
+    );
+
+    $ch = curl_init();
+    $api_url = APP_PATH_WEBROOT_FULL . "api/";
+
+    $module->emDebug("Import Metadata POST Request to REDCap API URL $api_url");
+    curl_setopt($ch, CURLOPT_URL, $api_url);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields, '', '&'));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_VERBOSE, 0);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+    curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
+
+    $redcap_api_response = curl_exec($ch);
+    $redcap_api_response_code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    $redcap_api_response_error = curl_error($ch);
+    curl_close($ch);
+
+    if ($redcap_api_response_code !== 200) {
+        http_response_code(500);
+        $msg = $module->handleError('DUSTER Error: Project Update',
+            "Import Metadata POST Request to REDCap API failed.\n"
+            . "REDCap API Response: $redcap_api_response\n"
+            . "REDCap API Response Code: $redcap_api_response_code\n"
+            . "REDCap API Response Error: $redcap_api_response_error\n");
+        echo "fail_project"; // TODO revise this echo
+        exit();
+    }
+
+} catch (Throwable $ex) {
+    // TODO
+    http_response_code(400);
+    $msg = $module->handleError('DUSTER Error: Project Update',  "Failed to correctly update the REDCap's project data dictionary for pid $project_id.", $ex );
+    echo "Failed to correctly update the REDCap's project data dictionary for pid $project_id.";
+  // print "Error: Failed to create project. " . $msg;
+    exit();
+}
 
 /* send POST request to DUSTER's config route in STARR-API
    updates config in postgres and generates new REDCap to STARR Link queries
@@ -343,7 +327,7 @@ if ($save_config_results['success'] && !empty($save_config_results['rcToStarrLin
   // $module->removeUser(USERID);
   http_response_code(500);
   $msg = $module->handleError("DUSTER Error: Project Update",  "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $save_config_results['error']);
-  echo "fail_project_post";
+  echo "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $save_config_results['error'];
   //  print "Error: A new REDCap project was created (pid $project_id), but DUSTER's data queries for this project failed to set up. " . $msg;
   exit();
 }
