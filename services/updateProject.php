@@ -57,29 +57,6 @@ function getFieldParams($field, string $form_name = "", string $section_header =
 }
 
 /**
- * @param $username
- * @return null
- */
-function getUserProjectToken($username, $project_id)
-{
-    $username = db_escape($username);
-
-    $sql = "
-			SELECT api_token
-			FROM redcap_user_rights
-			WHERE username = '$username' AND project_id = '$project_id'
-			LIMIT 1
-		";
-    $q = db_query($sql);
-    if($q && $q !== false && db_num_rows($q))
-    {
-        $row = db_fetch_assoc($q);
-        return $row['api_token'];
-    }
-    return null;
-}
-
-/**
  * avoiding false-positive Psalm TaintedSSRF on $_POST['data']
  * @psalm-taint-escape ssrf
  */
@@ -96,17 +73,6 @@ function getUserProjectToken($username, $project_id)
 /* get JSON from POST request */
 $data = json_decode($_POST['data'], true);
 $project_id = $data['redcap_project_id'];
-
-/* TODO
- 0. safety checks, like if the project is in draft mode
- 1. get all fields and instruments from REDCap (or maybe we don't need to do this up front and instead iteratively get/check as we try to add new fields)
- 2. for all Researcher-Provided dates/datetimes in the new config, add a REDCap field if it doesn't already exist
- 3. for all demographics in the new config, add a REDCap field if it doesn't already exist (in order?)
- 4. for all data collection windows in the new config:
- 4. a. if the data collection window is new, add the form
-    b. if the "closest to" is new, add it
-    c. for each category of data, add the section header and fields that don't exist and need to. also, when does order of the fields matter?
- */
 
 /* Update REDCap project's data dictionary */
 try {
@@ -209,7 +175,7 @@ try {
     }
 
     // REDCap API: Import Metadata (Data Dictionary)
-    $token = getUserProjectToken(USERID, $module->getProjectId());
+    $token = $module->getUser()->getRights()['api_token'];
     $fields = array(
         'token'        => $token,
         'content'      => 'metadata',
@@ -245,7 +211,7 @@ try {
             . "REDCap API Response: $redcap_api_response\n"
             . "REDCap API Response Code: $redcap_api_response_code\n"
             . "REDCap API Response Error: $redcap_api_response_error\n");
-        echo "fail_project"; // TODO revise this echo
+        echo "Import Metadata POST Request to REDCap API failed.";
         exit();
     }
 
@@ -273,7 +239,6 @@ try {
     http_response_code(400);
     $msg = $module->handleError('DUSTER Error: Project Update',  "Failed to correctly update the REDCap's project data dictionary for pid $project_id.", $ex );
     echo "Failed to correctly update the REDCap's project data dictionary for pid $project_id.";
-  // print "Error: Failed to create project. " . $msg;
     exit();
 }
 
@@ -325,6 +290,5 @@ if ($save_config_results['success'] && !empty($save_config_results['rcToStarrLin
   http_response_code(500);
   $msg = $module->handleError("DUSTER Error: Project Update",  "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $save_config_results['error']);
   echo "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $save_config_results['error'];
-  //  print "Error: A new REDCap project was created (pid $project_id), but DUSTER's data queries for this project failed to set up. " . $msg;
   exit();
 }
