@@ -2,6 +2,8 @@
 namespace Stanford\Duster;
 /** @var $module Duster */
 
+use Project;
+use Vanderbilt\REDCap\Classes\ProjectDesigner;
 use Throwable;
 use Exception;
 
@@ -20,14 +22,12 @@ require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
  * @return string
  */
 function getFieldParams($field, string $form_name = "", string $section_header = ""):string {
-    global $module;
     $params = "{$field['redcap_field_name']},$form_name,$section_header,{$field['redcap_field_type']},\"{$field['label']}\",";
 
     switch ($field['redcap_field_type']) {
         case 'checkbox':
         case 'radio':
         case 'calc':
-            $module->emDebug("Entered case checkbox or radio or calc");
             $params .= "\"{$field['redcap_options']}\",";
             break;
         default:
@@ -54,7 +54,6 @@ function getFieldParams($field, string $form_name = "", string $section_header =
         $params .= "\"{$field['field_annotation']}\"";
     }
 
-    $module->emDebug($params);
     return $params . "\n";
 }
 
@@ -113,6 +112,10 @@ $project_id = $data['redcap_project_id'];
 /* Update REDCap project's data dictionary */
 try {
     $config = $data['config'];
+    $project_object = new Project($project_id, false); // not the same object returned by $module->getProject()
+    $project_designer = new ProjectDesigner($project_object);
+    $new_forms = [];
+
     $project_metadata = "\"Variable / Field Name\",\"Form Name\",\"Section Header\",\"Field Type\",\"Field Label\",\"Choices, Calculations, OR Slider Labels\",\"Field Note\",\"Text Validation Type OR Show Slider Number\",\"Text Validation Min\",\"Text Validation Max\",Identifier?,\"Branching Logic (Show field only if...)\",\"Required Field?\",\"Custom Alignment\",\"Question Number (surveys only)\",\"Matrix Group Name\",\"Matrix Ranking?\",\"Field Annotation\"\n";
 
     // REDCap Record ID
@@ -123,7 +126,6 @@ try {
 
     // Researcher-Provided Dates/Datetimes
     if (array_key_exists('rp_info', $config)) {
-        // $rp_fields_current = $module->getFieldNames('researcher_provided_information');
         foreach ($config['rp_info']['rp_dates'] as $key => $date) {
             $rp_dates_header = $key === 0 ? 'Dates': '';
             $project_metadata .= getFieldParams($date, 'researcher_provided_information', $rp_dates_header);
@@ -132,38 +134,19 @@ try {
 
     // Demographics
     if (array_key_exists('demographics', $config)) {
-        /*
-        $had_demographics = false;
-        if ($project_designer->formExists('demographics')) {
-            $had_demographics = true;
-        } else {
-            $project_designer->createForm('demographics', 'researcher_provided_information', 'Demographics');
+        foreach ($config['demographics'] as $demographic) {
+            $project_metadata .= getFieldParams($demographic, 'demographics', '');
         }
-        */
-        // TODO need to keep track if this form didn't yet exist
-        // TODO if so, this form need to have its form menu description i.e., form label updated after REDCap API
-    foreach ($config['demographics'] as $demographic) {
-        $project_metadata .= getFieldParams($demographic, 'demographics', '');
     }
-}
 
-// Data Collection Windows
-if (array_key_exists('collection_windows', $config)) {
-    foreach ($config['collection_windows'] as $collection_window) {
-        $form_name = $collection_window['form_name'];
+    // Data Collection Windows
+    if (array_key_exists('collection_windows', $config)) {
+        foreach ($config['collection_windows'] as $collection_window) {
+            $form_name = $collection_window['form_name'];
 
-        // TODO need to keep track of what forms don't yet exist
-        // TODO these forms will need to have their form menu description i.e., form label updated after REDCap API
-        /*
-        $had_window = false;
-        if ($project_designer->formExists($form_name)) {
-            $had_window = true;
-        } else {
-            // $project_designer->createForm($form_name, NULL, $collection_window['label']);
-            $project_designer->createForm($form_name, NULL, NULL);
-        }
-        $collection_window_fields_current = $module->getFieldNames($form_name);
-        */
+            if (!$project_designer->formExists($form_name)) {
+                $new_forms[$form_name] = $collection_window['label'];
+            }
 
             // Timing
             $timing_header = 'Timing';
@@ -226,7 +209,6 @@ if (array_key_exists('collection_windows', $config)) {
         }
     }
 
-    $module->emDebug($project_metadata);
     // REDCap API: Import Metadata (Data Dictionary)
     $token = getUserProjectToken(USERID, $module->getProjectId());
     $fields = array(
@@ -268,6 +250,25 @@ if (array_key_exists('collection_windows', $config)) {
         exit();
     }
 
+    // Update form labels to "correct" labeling for each new data collection window
+    foreach ($new_forms as $form_name => $label) {
+        $module->query(
+            '
+                UPDATE redcap_metadata
+                SET form_menu_description = ?
+                WHERE 
+                    project_id = ?
+                    AND form_name = ?
+                    AND form_menu_description IS NOT NULL
+            ',
+            [
+                $label,
+                $project_id,
+                $form_name
+            ]
+        );
+    }
+
 } catch (Throwable $ex) {
     // TODO
     http_response_code(400);
@@ -301,12 +302,10 @@ $config_url = $module->getSystemSetting("starrapi-config-url");
 // send POST request to DUSTER's config route in STARR-API
 $save_config_results = $module->starrApiPostRequest($config_url, 'ddp', $config_data);
 if ($save_config_results === null) {
-  // $module->removeUser(USERID);
   http_response_code(500);
   echo "fail_project_post";
   exit();
 } else if (array_key_exists('status', $save_config_results)) {
-  // $module->removeUser(USERID);
   http_response_code($save_config_results['status']);
   echo "fail_project_post";
   exit();
@@ -324,7 +323,6 @@ if ($save_config_results['success'] && !empty($save_config_results['rcToStarrLin
   echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id";
   exit();
 } else {
-  // $module->removeUser(USERID);
   http_response_code(500);
   $msg = $module->handleError("DUSTER Error: Project Update",  "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $save_config_results['error']);
   echo "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $save_config_results['error'];
