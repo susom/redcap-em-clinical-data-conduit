@@ -13,7 +13,6 @@ require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
  * service page to update a DUSTER project based on user edits
  */
 
-
 /**
  * helper function that returns a CSV-formatted string of a REDCap field's configuration used by REDCap API
  * @param $field
@@ -262,9 +261,9 @@ try {
                     AND form_menu_description IS NOT NULL
             ',
             [
-                $label,
-                $project_id,
-                $form_name
+                db_escape($label),
+                intval($project_id),
+                db_escape($form_name)
             ]
         );
     }
