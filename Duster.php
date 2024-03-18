@@ -29,7 +29,7 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     // $this->emDebug(" Page is " . PAGE . " action is " . $_GET['action']);
     if ($project_id === null
       && strpos(PAGE, "index.php") !== false
-      && $_GET['action'] === 'create'
+      && isset($_GET['action']) && $_GET['action'] === 'create'
       && $this->isUserAllowed() === true) {
         // $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
         $some = "<script> let dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
@@ -301,6 +301,33 @@ class Duster extends \ExternalModules\AbstractExternalModule {
         $this->handleError("ERROR: Unable to retrieve user project from token", "Returned $num_results in " .
             __METHOD__ . " from token '$token'");
       throw new Exception ("Returned $num_results in " . __METHOD__ . " from token '$token'");
+    }
+  }
+
+  /**
+   * Mark REDCap project for deletion by 'DeleteProject' REDCap cron
+   * @param $pid
+   * @return true
+   * @throws Exception
+   */
+  public function deleteRedcapProject($pid)
+  {
+    $sql = "
+            UPDATE redcap_projects
+            SET date_deleted = NOW()
+            WHERE project_id = ?
+            ";
+    $q = $this->createQuery();
+    $q->add($sql, [$pid]);
+    $q->execute();
+    $num_results = $q->affected_rows;
+    if ($num_results === 1) {
+      $this->emLog("REDCap pid $pid marked for deletion.");
+      return true;
+    } else {
+      $this->handleError("ERROR: Unexpected SQL results in deleteRedcapProject()", "Returned $num_results in " .
+        __METHOD__ . " from pid '$pid'");
+      throw new Exception ("Returned $num_results in " . __METHOD__ . " from project_id '$pid'");
     }
   }
 

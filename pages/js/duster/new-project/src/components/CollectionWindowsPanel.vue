@@ -12,46 +12,38 @@
         />
         </span>
     </template>
-    <!--
-    <div
-        v-if="localCollectionWindows.length === 0"
-    >
-      <Message  severity="info" class="mb-3">No collection windows have been added.</Message>
-    </div>
-    -->
     <DataTable
-      editMode="row"
-      class="p-datatable-sm"
-      v-model:selection="localCollectionWindowsEditing"
-      v-model:editingRows="localCollectionWindowsEditing"
-      :value="localCollectionWindows"
-      dataKey="id"
+        editMode="row"
+        class="p-datatable-sm"
+        :value="localCollectionWindows"
+        dataKey="id"
     >
       <Column
-        key="timing_config"
-        header="Timing"
-        style="width: 5%"
+          key="timing_config"
+          header="Timing"
+          style="width: 5%"
       >
         <template #body="{ data }">
           <Button
-            icon="pi pi-pencil"
-            class="ml-2 p-1"
-            size="small"
-            :severity="(!v$.$dirty || data.timing_valid) ? 'primary':'danger'"
-            :disabled="initialWindowIds.includes(data.id)"
-            @click="showTiming(data)"
-            v-tooltip.top="'Configure Timing'"
+              icon="pi pi-pencil"
+              class="ml-2 p-1"
+              size="small"
+              :severity="(!v$.$dirty || data.timing_valid) ? 'primary':'danger'"
+              :disabled="initialWindowIds.includes(data.id)"
+              @click="showTiming(data)"
+              v-tooltip.top="'Configure Timing'"
           />
         </template>
       </Column>
       <Column
-        key="timing_display"
-        header="Period"
-        style="width: 20%"
+          key="timing_display"
+          header="Period"
+          style="width: 20%"
       >
         <template #body="{ data }">
-          <div v-if="data['timing']['start']['label']"
-               :class="{'p-invalid': !data['timing_valid']}"
+          <div
+              v-if="data['timing']['start']['label']"
+              :class="{'p-invalid': !data['timing_valid']}"
           >
             <strong>From: </strong>{{ data['timing']['start']['label'] }}<br>
             <strong>To: </strong>{{ data['timing']['end']['label'] }}<br>
@@ -66,10 +58,10 @@
         </template>
       </Column>
       <Column
-        key="label"
-        field="label"
-        header="Label"
-        style="width: 25%"
+          key="label"
+          field="label"
+          header="Label"
+          style="width: 25%"
       >
         <template #body="slotProps">
           <div>
@@ -218,11 +210,6 @@
       <Button @click="showDataCollectionInfo=false">Close</Button>
     </template>
   </Dialog>
-  <!--div>Current: {{ currentCollectionWindow }}</div>
-<br>
-  <div>Values: {{ localCollectionWindows }}</div>
-<br>
-  <div>Editing: {{ localCollectionWindowsEditing }}</div-->
 </template>
 
 <script setup lang="ts">
@@ -281,13 +268,11 @@ const emit = defineEmits(['update:collectionWindows'])
 
 const currentCollectionWindow = ref<CollectionWindow>(JSON.parse(JSON.stringify(INIT_COLLECTION_WINDOW)));
 const savedCollectionWindow = ref<CollectionWindow>()
-//const localCollectionWindows = ref<CollectionWindow[]>([currentCollectionWindow.value])
-const localCollectionWindowsEditing = ref<CollectionWindow[]>([])
 const showTimingDialog = ref(false)
 const showClinicalDataDialog = ref(false)
 const showDataCollectionInfo = ref(false)
 
-const localCollectionWindows = computed({
+const localCollectionWindows = computed<CollectionWindow[]>({
 get() {
   return props.collectionWindows;
 },
@@ -323,17 +308,13 @@ const addNew = () => {
     localCollectionWindows.value = []
   }
   localCollectionWindows.value.push(currentCollectionWindow.value)
-
-  // 1st label is always blank with this change
-  //showTiming(localCollectionWindows.value[localCollectionWindows.value.length - 1])
+  showTiming(localCollectionWindows.value[localCollectionWindows.value.length - 1])
 }
 
 // to restore after cancel
 const saveInitialState = (cw: CollectionWindow) => {
   currentCollectionWindow.value = cw
   savedCollectionWindow.value = JSON.parse(JSON.stringify(cw))
-  // add to editing
-  localCollectionWindowsEditing.value.push(currentCollectionWindow.value)
 }
 
 const showTiming = (cw:CollectionWindow) => {
@@ -446,6 +427,8 @@ const v$ = useVuelidate(rules, validationState, {$lazy: true})
 /****/
 
 const saveTiming = (cwCopy:CollectionWindow) => {
+  //console.log("saveTiming")
+  //console.log(cwCopy)
   if (cwCopy && cwCopy.id) {
     let index = getRowIndex(cwCopy.id, localCollectionWindows.value)
     if (localCollectionWindows.value && index > -1) {
@@ -461,23 +444,12 @@ const saveTiming = (cwCopy:CollectionWindow) => {
 }
 
 const saveUpdate = () => {
-  // remove from editing?
-  if (currentCollectionWindow.value && currentCollectionWindow.value.id) {
-    let editIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindowsEditing.value)
-    if (localCollectionWindowsEditing.value && editIndex > -1) {
-      localCollectionWindowsEditing.value.splice(editIndex, 1)
-    }
-  }
   v$.value.$reset()
 
 }
 
 const restoreInitialStates = () => {
   if (localCollectionWindows.value && currentCollectionWindow.value && currentCollectionWindow.value.id) {
-    let editIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindowsEditing.value)
-    if (savedCollectionWindow.value && editIndex > -1) {
-      localCollectionWindowsEditing.value[editIndex] = savedCollectionWindow.value
-    }
     let cwIndex = getRowIndex(currentCollectionWindow.value.id, localCollectionWindows.value)
     if (savedCollectionWindow.value && cwIndex > -1) {
       localCollectionWindows.value[cwIndex] = savedCollectionWindow.value
@@ -492,11 +464,6 @@ const deleteCw = (id:string) => {
     let index = getRowIndex(id, localCollectionWindows.value)
     localCollectionWindows.value.splice(index, 1)
   }
-  /*if (localCollectionWindowsEditing.value) {
-    let index = getRowIndex(id, localCollectionWindowsEditing.value)
-    localCollectionWindowsEditing.value.splice(index, 1)
-  }*/
-
 }
 
 const duplicateCw = (id:string) => {

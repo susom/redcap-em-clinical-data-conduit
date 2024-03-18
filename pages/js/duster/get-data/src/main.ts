@@ -4,6 +4,8 @@ import PrimeVue from 'primevue/config';
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Column from 'primevue/column'
+import ConfirmDialog from 'primevue/confirmdialog';
+import ConfirmationService from 'primevue/confirmationservice';
 import DataTable from 'primevue/datatable'
 import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
@@ -26,6 +28,8 @@ const app = createApp(App)
     .component( 'Button', Button)
     .component( 'Card', Card)
     .component( 'Column', Column)
+    .component( 'ConfirmDialog', ConfirmDialog)
+    .use(ConfirmationService)
     .component( 'DataTable', DataTable)
     .component( 'Dialog', Dialog)
     .component( 'InputNumber', InputNumber)

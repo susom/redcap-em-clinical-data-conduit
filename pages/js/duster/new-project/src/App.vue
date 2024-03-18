@@ -17,7 +17,8 @@
           </div>
           <div class="grid text-white text-lg" style="background-color: #53565A;">
             <div class="col-offset-9 col-2">
-              <a href="https://med.stanford.edu/duster" class="text-white" target="_blank">DUSTER Website</a>
+              <a style='font-size: 1rem' href="https://med.stanford.edu/duster" class="text-white"
+                 target="_blank">DUSTER Website</a>
             </div>
           </div>
         </nav>
@@ -97,19 +98,21 @@
     </div>
   </div>
   <Dialog v-model:visible="irbCheckVisible"
-          modal header="Checking IRB"
+          modal header="Checking IRB or DPA"
           :style="{ width: '40vw' }"
           :closable=false>
     <p>
       <span v-html="irbCheckMessage"></span>
     </p>
     <div v-if="!irbValid && irbCheckStatus==='checked'" class="m-2">
-      <label>IRB Number: </label>
+      <label>IRB or DPA: </label>
       <InputText v-model="projectIrb"/>
     </div>
     <template #footer>
       <Button v-if="!irbValid && irbCheckStatus==='checked'"
               label="Submit" icon="pi pi-refresh" class="p-button-primary" @click="irbRetry" size="small"/>
+      <Button v-if="irbValid && !irbWarningConfirmed"
+              label="OK" icon="pi pi-check" class="p-button-primary" @click="irbWarningConfirmed = true" size="small" />
       <Button label="Cancel" icon="pi pi-times" class="p-button-secondary" @click="irbCheckCancel" size="small" />
     </template>
   </Dialog>
@@ -234,9 +237,12 @@ const demographicsSelects = ref<FieldMetadata[]>([]);
 const collectionWindows = ref<CollectionWindow[]>([]);
 
 const projectIrb = ref<string>(projectConfig.project_irb_number)
+const irbOrDpaStr = (irbOrDpa: string) => {
+  return  irbOrDpa.startsWith('DPA') ? irbOrDpa : 'IRB ' + irbOrDpa
+}
 const irbValid = ref<boolean>(false)
 const irbCheckStatus = ref<string>("checking")
-const irbCheckMessage = ref<string>("Checking IRB #" + projectIrb.value + " ...")
+const irbCheckMessage = ref<string>("Checking " + irbOrDpaStr(projectIrb.value) + " ...")
 const irbCheckVisible = ref<boolean>(false)
 
 // const autoSaveDesign = {rpData: null, demographicsSelects: null, collectionWindows: null};
@@ -255,48 +261,165 @@ const promptRestoreAutoSave = ref<boolean>(false);
 
 onMounted(() => {
   // check irb
-  checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number);
+  checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectConfig.project_irb_number, projectConfig.redcap_user);
 })
 
-watch(irbValid, (irbValidUpdate) => {
-  if (irbValidUpdate) {
+const irbWarningConfirmed = ref<boolean>(false)
+watch(irbWarningConfirmed, (confirmed) => {
+  irbCheckMessage.value = "Fetching DUSTER Metadata ..."
+  if (confirmed) {
     getDusterMetadata(projectConfig.metadata_url);
   }
 })
 
-const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber: string) => {
+// check for missing dpa or data attestation items
+const checkPrivacyAttestion = () => {
+  let message = ""
+  const attestationMissing: string[] = []
+
+  if (!complianceSettings.value.dpa) {
+    message = "<span style='color:red'>No valid DPA was found for IRB "
+        + complianceSettings.value.irb_num
+        +".  <a style='font-size: 1rem' href='" +
+        projectConfig.add_dpa_to_irb_url
+    +"' target='_blank'><u>Please add a DPA to your protocol</u></a> with the necessary attestations.</span> "
+      attestationMissing.push("MRNs (required)")
+      attestationMissing.push("Dates (required)")
+      attestationMissing.push("Names")
+      attestationMissing.push("Demographics")
+      attestationMissing.push("Lab results")
+      attestationMissing.push("Clinical notes (includes flowsheets)")
+      attestationMissing.push("Medications")
+      attestationMissing.push("Diagnosis codes")
+      attestationMissing.push("Procedure codes")
+  } else {
+    const dpa = complianceSettings.value.dpa
+
+    if (!dpa.approvedForMrn) {
+      attestationMissing.push("MRNs (required)")
+    }
+    if (!dpa.approvedForDates) {
+      attestationMissing.push("Dates (required)")
+    }
+    if (!dpa.approvedForName) {
+      attestationMissing.push("Names")
+    }
+    if (!dpa.approvedForDemographics) {
+      attestationMissing.push("Demographics")
+    }
+    if (!dpa.approvedForLabResult) {
+      attestationMissing.push("Lab results")
+    }
+    if (!dpa.approvedForClinicalNotes) {
+      attestationMissing.push("Clinical notes (includes flowsheets)")
+    }
+    if (!dpa.approvedForMedications) {
+      attestationMissing.push("Medications")
+    }
+    if (!dpa.approvedForDiagnosis) {
+      attestationMissing.push("Diagnosis codes")
+    }
+    if (!dpa.approvedForProcedure) {
+      attestationMissing.push("Procedure codes")
+    }
+  }
+  if (attestationMissing.length > 0) {
+    if (complianceSettings.value.dpa) {
+      message += "<span style='color:red'>"
+      const isIRB = !complianceSettings.value.irb_num?.startsWith("DPA-");
+      message = irbOrDpaStr(complianceSettings.value.irb_num)
+      message +=
+          " does not include the following attestations which may be required to retrieve data for this project. If any of the following are included as part of your DUSTER project, you will need to "
+      if (isIRB) {
+        message +=
+            "<a style='font-size: 1rem' href='" +
+            projectConfig.add_dpa_to_irb_url
+            +"' target='_blank'><u>modify your protocol and file a new DPA</u></a>.<ul>"
+      } else {
+        message +="<a style='font-size: 1rem' href='" +
+            projectConfig.new_dpa_url
+            +"' target='_blank'><u>file a new DPA</u></a> with the required attestations.<ul>"
+      }
+    } else {
+      message +=
+          "<span style='color:red'>The DPA must include all PHI and data attestations which will be accessed as part of this project. Please include the following items in your DPA as needed.<ul>"
+    }
+    attestationMissing.forEach(currentValue =>
+        message += "<li>" + currentValue + "</li>"
+    )
+    message += "</ul></span><br>"
+  }
+  if (complianceSettings.value.dpa && !complianceSettings.value.user_permissions?.signedDpa) {
+    message += "<span style='color:red'>User " + projectConfig.redcap_user +
+        "  does not have a DPA attestation associated with "
+        + irbOrDpaStr(complianceSettings.value.irb_num) +
+        " and needs an  <a style='font-size: 1rem' href='" + projectConfig.addon_dpa_url +
+        "' target='_blank'><u>add-on DPA</u></a>.</span><br>"
+  }
+  if (message.length > 0)
+    message +=
+        "<br>You may continue to configure and create your DUSTER project. However, all IRB and/or DPA issues must be resolved before retrieving data. Click \"OK\" to continue project creation."
+  return message;
+}
+
+const complianceSettings = ref<any>()
+
+const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber: string,
+  user:string) => {
   if (dev.value) {
     irbValid.value = true
-  } else {
+  } else if (projectIrbNumber) {
     irbCheckVisible.value = true
     let formData = new FormData();
     formData.append('redcap_csrf_token', redcapCsrfToken);
     formData.append("project_irb_number", projectIrbNumber);
+    formData.append("user", user)
     axios.post(checkIrbUrl, formData)
         .then(function (response) {
           // response.data === 1 is valid
           irbCheckStatus.value = 'checked'
-          if (response.data === 1) {
-            irbValid.value = true;
-            irbCheckMessage.value = "IRB " + projectIrbNumber + " check success. Fetching DUSTER metadata.";
+          complianceSettings.value = response.data
+          //console.log("checkIrbResponse")
+          //console.log(response)
+          irbCheckMessage.value = ""
+          if (response.data.irb_status) {
+            // if dpa has a valid irb, use the irb instead
+            // do we need to inform the user that we're doing this?
+            if (projectIrbNumber.startsWith('DPA') && complianceSettings.value.dpa.protocolNum) {
+              irbCheckMessage.value = irbOrDpaStr(complianceSettings.value.dpa.protocolNumStr) +
+                  " will be used in place of " + projectIrbNumber + ".  "
+              projectIrbNumber = complianceSettings.value.dpa.protocolNumStr
+            }
             projectConfig.project_irb_number = projectIrbNumber;
+            //console.log('irb = ' + projectConfig.project_irb_number)
+            const privacyIssues = checkPrivacyAttestion()
+            if (privacyIssues.length > 0) {
+              irbCheckMessage.value += irbOrDpaStr(projectIrbNumber) + " is valid.<br><br>"
+                  + privacyIssues
+            } else {
+              irbCheckMessage.value += irbOrDpaStr(projectIrbNumber) + " is valid.<br>Fetching DUSTER Metadata ..."
+              irbWarningConfirmed.value = true
+            }
+            irbValid.value = true
           } else {
-            if (response.data.toLowerCase().includes("fatal error")) {
+            if (typeof response.data == 'string' && response.data.toLowerCase().includes("fatal error")) {
               systemError.value = true;
               let errorFormData = new FormData();
               errorFormData.append('redcap_csrf_token', redcapCsrfToken);
               errorFormData.append('fatal_error', response.data);
               axios.post(projectConfig.report_fatal_error_url, errorFormData)
-                .then(function (response) {
+                  .then(function (response) {
 
-                })
-                .catch(function (error) {
+                  })
+                  .catch(function (error) {
 
-                });
+                  });
+
+            } else {
+              irbCheckMessage.value += irbOrDpaStr(projectIrbNumber)
+                  + " is invalid. Please enter a different IRB or DPA. (DPAs must start with \"DPA-\")";
             }
-            irbValid.value = false;
-            irbCheckMessage.value = "IRB " + projectIrbNumber
-                + " is invalid. Please enter a different IRB number.";
+            irbValid.value = false
           }
 
         })
@@ -306,19 +429,27 @@ const checkIrb = (checkIrbUrl:string, redcapCsrfToken: string, projectIrbNumber:
           systemError.value = true;
           console.log(error);
         });
+  } else {
+    irbCheckMessage.value =
+        "You must have an IRB or DPA to use DUSTER. Please enter a valid IRB or DPA. (DPAs must start with \"DPA-\")";
+    irbValid.value = false
+    irbCheckStatus.value = 'checked'
+    irbCheckVisible.value = true
   }
 }
 
 const irbRetry = () => {
   irbCheckStatus.value = "retry";
-  irbCheckMessage.value = "Checking IRB #" + projectIrb.value + " ...";
-  checkIrb(projectConfig.check_irb_url, projectConfig.redcap_csrf_token, projectIrb.value);
+  irbCheckMessage.value = "Checking " + irbOrDpaStr(projectIrb.value) + " ...";
+  checkIrb(projectConfig.check_irb_url,
+      projectConfig.redcap_csrf_token, projectIrb.value,
+      projectConfig.redcap_user);
 };
 
 const irbCheckCancel = () => {
   irbCheckVisible.value = false;
   // return to project create page for invalid IRBs
-  if (!irbValid.value) {
+  if (!irbValid.value || !irbWarningConfirmed.value) {
     window.location.href = projectConfig.redcap_new_project_url;
   }
 };
@@ -443,7 +574,7 @@ const reservedFieldNames = computed(() => {
 const confirm = useConfirm();
 
 const exitFromDuster = (event: any) => {
-  console.log('exit from duster invoked') ;
+  //console.log('exit from duster invoked') ;
   confirm.require({
     target: event.currentTarget,
     header: 'Back to REDCap New Project Page',
@@ -469,7 +600,7 @@ const checkValidation = () => {
       saveDatasetDesign('auto-save');
     }
   } else {
-    console.log(v$)
+    //console.log(v$)
     v$.value.$errors.forEach(error => {
       if (typeof error.$message === 'object') {
         // @ts-ignore
