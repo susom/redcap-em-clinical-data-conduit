@@ -79,16 +79,19 @@ if ($editable === true) {
         });
     },60000);
 
-    const editable = <?php echo $editable; ?> ?;
+    const editable = <?php echo $editable; ?> ? true:false;
     if (editable === true) {
         localStorage.removeItem('postObj');
         let postObj = {};
         postObj['redcap_csrf_token'] = "<?php echo $module->getCSRFToken(); ?>";
+        postObj['redcap_user'] = "<?php echo $module->getUser()->getUserName(); ?>";
         postObj['edit_mode'] = true;
         postObj['redcap_project_id'] = "<?php echo $pid; ?>";
         postObj['project_irb_number'] = "<?php echo $irb; ?>";
         postObj['initial_design'] = <?php echo $design_config; ?>;
 
+        // store URL for REDCap's 'New Project' page
+        postObj['redcap_new_project_url'] = "<?php echo APP_PATH_WEBROOT_FULL . "index.php?action=create"; ?>";
         // store URL for services/reportFatalError.php
         postObj['report_fatal_error_url'] = "<?php echo $module->getUrl("services/reportFatalError.php"); ?>";
         // store URL for services/checkIRB.php
@@ -101,6 +104,10 @@ if ($editable === true) {
         postObj['refresh_session_url'] = "<?php echo $module->getUrl("services/refreshSession.php"); ?>";
         // store URL for services/updateProject.php
         postObj['update_project_url'] = "<?php echo $module->getUrl("services/updateProject.php"); ?>";
+        // store DPA URLs
+        postObj['new_dpa_url'] = 'https://redcap.stanford.edu/surveys/?s=L3TRTT9EF9';
+        postObj['addon_dpa_url'] = 'https://redcap.stanford.edu/surveys/?s=8RWF73YTWA'
+        postObj['add_dpa_to_irb_url'] = 'https://med.stanford.edu/starr-tools/data-compliance/modify-existing-protocol.html';
         localStorage.setItem('postObj', JSON.stringify(postObj));
     }
 </script>
