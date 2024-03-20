@@ -20,6 +20,7 @@ interface CollectionWindow {
     closest_time?: string
     data: {
         labs: Array<FieldMetadata>
+        community_labs: Array<FieldMetadata>
         vitals: Array<FieldMetadata>
         outcomes: Array<FieldMetadata>
         scores: Array<FieldMetadata>
@@ -46,6 +47,7 @@ export const INIT_COLLECTION_WINDOW: CollectionWindow = {
     closest_time: "",
     data: {
         labs:[],
+        community_labs:[],
         vitals:[],
         outcomes:[],
         scores:[],

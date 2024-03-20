@@ -155,6 +155,16 @@
             v-model:selected-options="localClinicalData.labs"
         />
       </AccordionTab>
+      <AccordionTab header="Community Labs">
+        <Button
+            label="Create New Community Lab"
+            icon="pi pi-plus"
+            severity="success"
+            class="mr-2"
+            @click="visibleNewCommunityLabForm = true"
+        >
+        </Button>
+      </AccordionTab>
       <AccordionTab header="Vitals">
         <ClinicalDataOptions
             category="vitals"
@@ -289,6 +299,8 @@ const visible = computed({
     emit('update:showClinicalDataDialog', value)
   }
 });
+
+const visibleNewCommunityLabForm = ref(false);
 
 const localClinicalData = computed({
   get() {
@@ -626,7 +638,7 @@ const activeClinicalOptions = computed({
 })
 
 const expandAll = () => {
-  activeClinicalOptions.value = [0,1,2,3]
+  activeClinicalOptions.value = [0,1,2,3,4];
 }
 /****/
 

@@ -67,6 +67,10 @@
         :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
             Labs<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].labs.length }}</Badge>
         </Button>
+        <Button @click="showClinicalData('community_labs', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded
+                :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
+            Community Labs<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].community_labs.length }}</Badge>
+        </Button>
         <Button @click="showClinicalData('vitals', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
             Vitals<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].vitals.length }}</Badge>
         </Button>
@@ -268,14 +272,17 @@ const showClinicalData = (category:string, cw: CollectionWindow) => {
     case 'labs' :
       activeClinicalOptions.value.push(0);
       break;
-    case 'vitals' :
+    case 'community_labs' :
       activeClinicalOptions.value.push(1);
       break;
-    case 'outcomes' :
+    case 'vitals' :
       activeClinicalOptions.value.push(2);
       break;
-    case 'scores' :
+    case 'outcomes' :
       activeClinicalOptions.value.push(3);
+      break;
+    case 'scores' :
+      activeClinicalOptions.value.push(4);
   }
   showClinicalDataDialog.value = true
 }
