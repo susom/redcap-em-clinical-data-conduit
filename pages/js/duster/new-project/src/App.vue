@@ -496,26 +496,15 @@ const getDusterMetadata = (metadataUrl:string) => {
   }
 };
 
-// TODO
 const loadEditMode = () => {
   initialDesign.value = JSON.parse(projectConfig.initial_design);
   initialDesign.collectionWindows = initialDesign.value.collectionWindows;
   initialDesign.value = JSON.parse(projectConfig.initial_design);
-  console.log(initialDesign); // TODO delete this
   // transform and load researcher-provided data
   rpData.value = initialDesign.value.rpData;
   rpData.value.forEach((rp:any) => {
     rp.edit = false;
   });
-  /*
-  const datesObj = projectConfig.initial_design.rp_info.rp_dates;
-  const dates = Object.keys(datesObj).map((date) => datesObj[date]);
-  let initialRpData = projectConfig.initial_design.rp_info.rp_identifiers.concat(dates);
-  initialRpData.forEach((rpData:any) => {
-    rpData.edit = false;
-  });
-  rpData.value = initialRpData.map((rp:any) => ({duster_field_name: null, ...rp}));
-   */
 
   // load demographics
   let initialDemographicsSelects = initialDesign.value.demographicsSelects.map((selected:any) => selected.duster_field_name);
@@ -557,9 +546,6 @@ const checkForRpDateChanges = () => {
   })
 };
 
-/*const deleteRpDate = (rpDate:BasicConfig) => {
-  rpData.value = rpData.value.filter(item => item.id !== rpDate.id)
-}*/
 const toast = useToast();
 
 // tracks all redcap field names to ensure uniqueness

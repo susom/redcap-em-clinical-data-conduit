@@ -710,11 +710,6 @@ const createProject = () => {
     axios.post(props.projectInfo.create_project_url, formData)
       .then(function (response) {
         if (response.data.toLowerCase().includes("fatal error")) {
-          /*
-          createProjectMessage.value = "Oops";
-          createProjectError.value = true;
-          showCreateProjectDialog.value = true;
-          */
           showSystemError("A project was not properly created and configured.");
 
           // send a report of the fatal error
@@ -730,12 +725,6 @@ const createProject = () => {
             });
         } else if (response.data.toLowerCase().indexOf('error') > -1) {
           showSystemError("A project was not properly created and configured.");
-          /*
-          console.log("Found Error");
-          createProjectError.value = true;
-          createProjectMessage.value = response.data;
-          showCreateProjectDialog.value = true;
-          */
         } else { // success
           emit('delete-auto-save');
           window.location.href = response.data;
@@ -759,16 +748,6 @@ const createProject = () => {
         } else {
           showSystemError("A project was not properly created and configured.");
         }
-        /*
-        createProjectMessage.value = error.message;
-        createProjectError.value = true;
-        showCreateProjectDialog.value = true;
-        console.log("Catch: " + error);
-
-        console.log(error.toJSON());
-        console.log(error.response);
-        console.log(error.response.data);
-        */
       });
   }
 }
@@ -778,24 +757,16 @@ const updateProject = () => {
   showCreateProjectDialog.value = true;
   const data = {
     redcap_project_id: props.projectInfo.redcap_project_id,
-
     config: getDusterConfig(),
     design_config: getDesignConfig()
   }
-  console.log(data); // TODO remove
   let formData = new FormData()
   formData.append('redcap_csrf_token', props.projectInfo.redcap_csrf_token);
   formData.append('data', JSON.stringify(data));
-  console.log(formData); // TODO remove
   axios.post(props.projectInfo.update_project_url, formData)
       .then(function (response) {
         console.log(response);
         if (response.data.toLowerCase().includes("fatal error")) {
-          /*
-          createProjectMessage.value = "Oops";
-          createProjectError.value = true;
-          showCreateProjectDialog.value = true;
-          */
           showSystemError("The project was not properly updated.");
 
           // send a report of the fatal error
@@ -811,47 +782,30 @@ const updateProject = () => {
               });
         } else if (response.data.toLowerCase().indexOf('error') > -1) {
           showSystemError("The project was not properly updated.");
-          /*
-          console.log("Found Error");
-          createProjectError.value = true;
-          createProjectMessage.value = response.data;
-          showCreateProjectDialog.value = true;
-          */
         } else { // success
           window.location.href = response.data;
-          console.log('SUCCESS');
         }
       })
       .catch(function (error) {
         console.log(error);
-        // TODO
         if (error.response.status == 400 || error.response.status == 500) {
           switch (error.response.data) {
-              // a project was created, but something went wrong during configuration
-            case 'fail_project_post':
-              showSystemError("A project was created, but it was not properly configured.");
+            case 'fail_import': // the project's data dictionary wasn't updated
+              showSystemError("The project was not properly updated.");
+              // showSystemError("The project could not be updated. No changes have been made.");
               break;
-              // a project could not be created
-            case 'fail_project':
-              showSystemError("A project was not created.");
+            case 'fail_duster_config': // DUSTER was not re-configured successfully
+              showSystemError(""); // TODO
               break;
-              // something wrong happened
-            default:
-              showSystemError("A project was not properly created and configured.");
+            case 'fail_rtosl_config': // REDCap to STARR Link was not re-configured successfully
+              showSystemError(""); // TODO
+              break;
+            default: // something wrong happened
+              showSystemError("The project was not properly updated.");
           }
         } else {
-          showSystemError("A project was not properly created and configured.");
+          showSystemError("The project was not properly updated.");
         }
-        /*
-        createProjectMessage.value = error.message;
-        createProjectError.value = true;
-        showCreateProjectDialog.value = true;
-        console.log("Catch: " + error);
-
-        console.log(error.toJSON());
-        console.log(error.response);
-        console.log(error.response.data);
-        */
       });
 }
 

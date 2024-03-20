@@ -61,15 +61,6 @@ function getFieldParams($field, string $form_name = "", string $section_header =
  * @psalm-taint-escape ssrf
  */
 
-/**
- * TODO
- * remove lines of code for removing user and project
- * update REDCap project's fields and instruments
- * update DUSTER config in STARR-API
- * update REDCap to STARR Link queries
- * update REDCap to STARR Link config on REDCap side
- */
-
 /* get JSON from POST request */
 $data = json_decode($_POST['data'], true);
 $project_id = $data['redcap_project_id'];
@@ -211,7 +202,7 @@ try {
             . "REDCap API Response: $redcap_api_response\n"
             . "REDCap API Response Code: $redcap_api_response_code\n"
             . "REDCap API Response Error: $redcap_api_response_error\n");
-        echo "Import Metadata POST Request to REDCap API failed.";
+        echo "fail_import";
         exit();
     }
 
@@ -235,10 +226,9 @@ try {
     }
 
 } catch (Throwable $ex) {
-    // TODO
     http_response_code(400);
     $msg = $module->handleError('DUSTER Error: Project Update',  "Failed to correctly update the REDCap's project data dictionary for pid $project_id.", $ex );
-    echo "Failed to correctly update the REDCap's project data dictionary for pid $project_id.";
+    echo "fail_import";
     exit();
 }
 
@@ -266,12 +256,14 @@ $config_url = $module->getSystemSetting("starrapi-config-url");
 // send POST request to DUSTER's config route in STARR-API
 $save_config_results = $module->starrApiPostRequest($config_url, 'ddp', $config_data);
 if ($save_config_results === null) {
-  http_response_code(500);
-  echo "fail_project_post";
+    // TODO can we restore the project back to its prior data dictionary and configuration?
+    http_response_code(500);
+  echo "fail_duster_config";
   exit();
 } else if (array_key_exists('status', $save_config_results)) {
-  http_response_code($save_config_results['status']);
-  echo "fail_project_post";
+    // TODO can we restore the project back to its prior data dictionary and configuration?
+    http_response_code($save_config_results['status']);
+  echo "fail_duster_config";
   exit();
 }
 
@@ -289,6 +281,6 @@ if ($save_config_results['success'] && !empty($save_config_results['rcToStarrLin
 } else {
   http_response_code(500);
   $msg = $module->handleError("DUSTER Error: Project Update",  "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $save_config_results['error']);
-  echo "Could not retrieve RtoS configuration for project_id $project_id. Error:" . $save_config_results['error'];
+  echo "fail_rtosl_config";
   exit();
 }

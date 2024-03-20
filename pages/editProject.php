@@ -40,6 +40,9 @@ if ($editable === true) {
       <li>Add new clinical variables to pre-existing data collection windows.</li>
       <!-- <li>Select additional aggregations to pre-existing clinical variables in data collection windows.</li> -->
     </ol>
+    <strong>
+        <!-- TODO add a warning/disclaimer -->
+    </strong>
     <button
       type="button"
       onclick="window.location = '<?php echo $module->getUrl("pages/js/duster/new-project/dist/index.html"); ?>';"
