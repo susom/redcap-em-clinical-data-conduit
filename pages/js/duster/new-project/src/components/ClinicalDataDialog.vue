@@ -164,6 +164,10 @@
             @click="visibleNewCommunityLabForm = true"
         >
         </Button>
+        <CommunityLabForm
+            v-model:visible="visibleNewCommunityLabForm"
+            @close-form="visibleNewCommunityLabForm = false"
+        />
       </AccordionTab>
       <AccordionTab header="Vitals">
         <ClinicalDataOptions
@@ -222,6 +226,7 @@ import type FieldConfig from "@/types/FieldConfig";
 import type TimingConfig from "@/types/TimingConfig";
 import type TextValuePair from "@/types/TextValuePair";
 import ClinicalDataOptions from "./ClinicalDataOptions.vue";
+import CommunityLabForm from "@/components/CommunityLabForm.vue";
 import { useToast } from "primevue/usetoast";
 import Toast from 'primevue/toast'
 import {INIT_TIMING_CONFIG} from "@/types/TimingConfig";
