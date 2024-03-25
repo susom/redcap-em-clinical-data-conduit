@@ -791,15 +791,9 @@ const updateProject = () => {
         if (error.response.status == 400 || error.response.status == 500) {
           switch (error.response.data) {
             case 'fail_import': // the project's data dictionary wasn't updated
-              showSystemError("The project was not properly updated.");
               // showSystemError("The project could not be updated. No changes have been made.");
-              break;
             case 'fail_duster_config': // DUSTER was not re-configured successfully
-              showSystemError(""); // TODO
-              break;
             case 'fail_rtosl_config': // REDCap to STARR Link was not re-configured successfully
-              showSystemError(""); // TODO
-              break;
             default: // something wrong happened
               showSystemError("The project was not properly updated.");
           }

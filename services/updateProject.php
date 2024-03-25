@@ -256,12 +256,10 @@ $config_url = $module->getSystemSetting("starrapi-config-url");
 // send POST request to DUSTER's config route in STARR-API
 $save_config_results = $module->starrApiPostRequest($config_url, 'ddp', $config_data);
 if ($save_config_results === null) {
-    // TODO can we restore the project back to its prior data dictionary and configuration?
     http_response_code(500);
   echo "fail_duster_config";
   exit();
 } else if (array_key_exists('status', $save_config_results)) {
-    // TODO can we restore the project back to its prior data dictionary and configuration?
     http_response_code($save_config_results['status']);
   echo "fail_duster_config";
   exit();
