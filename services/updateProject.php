@@ -260,7 +260,7 @@ if ($save_config_results === null) {
   echo "fail_duster_config";
   exit();
 } else if (array_key_exists('status', $save_config_results)) {
-    http_response_code($save_config_results['status']);
+  http_response_code($save_config_results['status']);
   echo "fail_duster_config";
   exit();
 }
