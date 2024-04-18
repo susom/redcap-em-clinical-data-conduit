@@ -110,6 +110,12 @@
 			"validation" : "number"
 		},
 		{
+			"key": "dev",
+			"name": "<b>Development Environment</b><br>local development flag for REDCap API URL",
+			"required": false,
+			"type": "checkbox"
+		},
+		{
 			"key": "enable-allowlist",
 			"name": "<b>Enable Allow List</b>",
 			"required": false,

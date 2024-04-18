@@ -115,6 +115,19 @@ class Duster extends \ExternalModules\AbstractExternalModule {
   }
 
   /**
+   * returns the URL for the REDCap API
+   * @return string
+   */
+  public function getRedcapApiUrl() {
+      $is_dev = $this->getSystemSetting('dev');
+      if($is_dev === true) {
+          return APP_PATH_WEBROOT_FULL . "api/";
+      } else {
+          return 'https://127.0.0.1/api/';
+      }
+  }
+
+  /**
    * sends a STARR-API GET request
    * @param $url
    * @param $service

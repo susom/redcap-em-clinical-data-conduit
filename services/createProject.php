@@ -163,7 +163,7 @@ $fields = array(
 );
 
 $ch = curl_init();
-$api_url = APP_PATH_WEBROOT_FULL . "api/";
+$api_url = $module->getRedcapApiUrl();
 
 $module->emDebug("Create Project POST Request to REDCap API URL $api_url");
 curl_setopt($ch, CURLOPT_URL, $api_url);
