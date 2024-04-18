@@ -110,8 +110,8 @@
 			"validation" : "number"
 		},
 		{
-			"key": "dev",
-			"name": "<b>Development Environment</b><br>local development flag for REDCap API URL",
+			"key": "local-dev",
+			"name": "<b>Local Development Environment</b><br>local development flag for REDCap API URL",
 			"required": false,
 			"type": "checkbox"
 		},
