@@ -119,8 +119,8 @@ class Duster extends \ExternalModules\AbstractExternalModule {
    * @return string
    */
   public function getRedcapApiUrl() {
-      $is_dev = $this->getSystemSetting('dev');
-      if($is_dev === true) {
+      $is_local_dev = $this->getSystemSetting('local-dev');
+      if($is_local_dev === true) {
           return APP_PATH_WEBROOT_FULL . "api/";
       } else {
           return 'https://127.0.0.1/api/';
