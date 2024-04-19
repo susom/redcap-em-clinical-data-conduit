@@ -115,6 +115,19 @@ class Duster extends \ExternalModules\AbstractExternalModule {
   }
 
   /**
+   * returns the URL for the REDCap API
+   * @return string
+   */
+  public function getRedcapApiUrl() {
+      $is_local_dev = $this->getSystemSetting('local-dev');
+      if($is_local_dev === true) {
+          return APP_PATH_WEBROOT_FULL . "api/";
+      } else {
+          return 'https://127.0.0.1/api/';
+      }
+  }
+
+  /**
    * sends a STARR-API GET request
    * @param $url
    * @param $service
@@ -254,6 +267,28 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     $this->emDebug("PID ". $this->getProjectId() . ":refreshMetadata url = $url for PID " . $this->getProjectId());
     $this->starrApiGetRequest($url,'ddp');
     // error handled by starrApiGetRequest
+  }
+
+  /**
+   * Fetch a project's IRB number
+   * @param String $pid
+   * @return mixed
+   * @throws Exception
+   */
+  public function getProjectIrb(String $pid) {
+    $sql = 'SELECT project_irb_number FROM redcap_projects WHERE project_id = ?';
+    $query = $this->createQuery();
+    $query->add($sql, [$pid]);
+    $sql_result = $query->execute();
+    $num_results = $query->affected_rows;
+    if ($num_results === 1) {
+      $irb = $sql_result->fetch_assoc()['project_irb_number'];
+      return $irb;
+    } else {
+      $this->handleError("ERROR: Unable to retrieve this project's IRB number.", "Returned $num_results in " .
+        __METHOD__ . " from pid '$pid'");
+      throw new Exception ("Returned $num_results in " . __METHOD__ . " from pid '$pid'");
+    }
   }
 
   /**
