@@ -12,16 +12,16 @@ require_once $module->getModulePath() . "classes/DusterConfigClass.php";
 $pid = $module->getProjectId();
 $project_status = $module->getProjectStatus($pid);
 $user_rights = $module->getUser()->getRights($pid);
+$irb = $module->getProjectIrb($pid);
+$duster_config_obj = new DusterConfigClass($pid, $module);
+$design_config = $duster_config_obj->getDesignConfig();
+$has_design_config = $design_config !== NULL; // PHP 8.3 provides json_validate(), which checks if a string contains valid JSON.
+$design_config = json_encode($design_config);
 $editable = $project_status === "DEV"
     && strlen($user_rights['api_token']) === 32
     && $user_rights['api_import'] === '1'
-    && $user_rights['design'] === '1';
-
-if ($editable === true) {
-    $irb = $module->getProjectIrb($pid);
-    $duster_config_obj = new DusterConfigClass($pid, $module);
-    $design_config = json_encode($duster_config_obj->getDesignConfig());
-}
+    && $user_rights['design'] === '1'
+    && $has_design_config === true;
 
 ?>
 
@@ -30,7 +30,8 @@ if ($editable === true) {
 <h3>
     DUSTER: Edit Project
 </h3>
-<?php if ($editable === true) {
+<?php
+ if ($editable === true) {
 ?>
     <p>Hitting the button below will launch an application where you may perform the following modifications to your project:</p>
     <ol>
@@ -45,6 +46,12 @@ if ($editable === true) {
       onclick="window.location = '<?php echo $module->getUrl("pages/js/duster/new-project/dist/index.html"); ?>';"
     >Launch Editor
     </button>
+<?php
+ } else if ($has_design_config === false) {
+    ?>
+    <strong>
+        Sorry, you cannot edit this DUSTER project. This project was created before the editing feature was released and cannot be retroactively supported.
+    </strong>
 <?php
 } else {
 ?>
