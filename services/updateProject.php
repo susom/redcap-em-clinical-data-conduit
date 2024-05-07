@@ -70,6 +70,7 @@ try {
     $config = $data['config'];
     $project_object = new Project($project_id, false); // not the same object returned by $module->getProject()
     $project_designer = new ProjectDesigner($project_object);
+    $repeatable_forms = [];
     $new_forms = [];
 
     $project_metadata = "\"Variable / Field Name\",\"Form Name\",\"Section Header\",\"Field Type\",\"Field Label\",\"Choices, Calculations, OR Slider Labels\",\"Field Note\",\"Text Validation Type OR Show Slider Number\",\"Text Validation Min\",\"Text Validation Max\",Identifier?,\"Branching Logic (Show field only if...)\",\"Required Field?\",\"Custom Alignment\",\"Question Number (surveys only)\",\"Matrix Group Name\",\"Matrix Ranking?\",\"Field Annotation\"\n";
@@ -105,19 +106,21 @@ try {
             }
 
             // Timing
-            $timing_header = 'Timing';
+            $project_metadata .= getFieldParams($collection_window['timing']['start'], $form_name, 'Timing');
+            $project_metadata .= getFieldParams($collection_window['timing']['end'], $form_name, '');
             if ($collection_window['type'] === 'repeating') {
+                $repeatable_forms[] = $form_name;
+
                 $repeat_field_params = array(
                     'label' => 'Unique Instance Token',
                     'redcap_field_name' => $form_name,
                     'redcap_field_type' => 'text',
                     'field_annotation' => ' @HIDDEN'
                 );
-                $project_metadata .= getFieldParams($repeat_field_params, $form_name, 'Timing');
-                $timing_header = '';
+                $project_metadata .= getFieldParams($repeat_field_params, $form_name, 'Repeat Instance');
+                $project_metadata .= getFieldParams($collection_window['timing']['repeat_interval']['start_instance'], $form_name, '');
+                $project_metadata .= getFieldParams($collection_window['timing']['repeat_interval']['end_instance'], $form_name, '');
             }
-            $project_metadata .= getFieldParams($collection_window['timing']['start'], $form_name, $timing_header);
-            $project_metadata .= getFieldParams($collection_window['timing']['end'], $form_name, '');
 
             // Closest Event Aggregation
             if (!empty($collection_window['event'])) {
@@ -204,6 +207,11 @@ try {
             . "REDCap API Response Error: $redcap_api_response_error\n");
         echo "fail_import";
         exit();
+    }
+
+    // Make forms repeatable
+    foreach ($repeatable_forms as $form_name) {
+        $project_designer->makeFormRepeatable($form_name, $module->getEventId(), NULL);
     }
 
     // Update form labels to "correct" labeling for each new data collection window
