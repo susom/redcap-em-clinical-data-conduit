@@ -151,13 +151,64 @@
           :label="editMode ? 'Update Project' : 'Create Project'"
           icon="pi pi-check"
           severity="success"
-          @click="editMode ? updateProject() : createProject()"
+          @click="editMode ? showConfirmUpdateDialog = true : createProject()"
         />
       </template>
     </Toolbar>
   </Panel>
   <Dialog
-    v-model:visible="showCreateProjectDialog"
+    :visible="showConfirmUpdateDialog"
+    modal
+    :closable="false"
+    :style="{ width: '50vw'}"
+    header="Update Project"
+  >
+    <div
+      v-if="props.projectInfo?.non_duster_fields.length > 0"
+    >
+      <h1 style="color:red">
+        WARNING: This REDCap project contains non-DUSTER REDCap fields/forms.
+      </h1>
+      <h2 style="color:red">
+        The following non-DUSTER REDCap fields may be lost if you decide to edit this DUSTER project:
+      </h2>
+      <strong>
+        <ol
+            v-for="form in props.projectInfo?.non_duster_fields"
+            :key="form.name"
+        >
+          {{form.label}} ({{form.name}})
+          <li
+            v-for="field_name in form?.fields"
+            :key="field_name"
+          >
+            {{field_name}}
+          </li>
+        </ol>
+      </strong>
+    </div>
+    <div
+        class="text-center my-2"
+    >
+      Are you sure you want to update this project?
+    </div>
+    <template #footer>
+      <Button
+          label="No, Cancel"
+          severity="secondary"
+          @click="showConfirmUpdateDialog = false"
+          autofocus
+      />
+      <Button
+          label="Yes, Update"
+          severity="primary"
+          @click="updateProject()"
+          autofocus
+      />
+    </template>
+  </Dialog>
+  <Dialog
+    :visible="showCreateProjectDialog"
     modal
     :closable="false"
     :style="{ width: '50vw' }"
@@ -651,6 +702,7 @@ const getScoresConfig = (scoresMeta:FieldMetadata[], index:number) => {
 }
 
 const showCreateProjectDialog = ref<boolean>(false);
+const showConfirmUpdateDialog = ref<boolean>(false);
 const createProjectMessage = ref<string>("");
 const createProjectError = ref<boolean>(false);
 const systemErrorMessage = ref<string>("");
@@ -753,6 +805,7 @@ const createProject = () => {
 }
 
 const updateProject = () => {
+  showConfirmUpdateDialog.value = false;
   createProjectMessage.value = "Updating REDCap Project. Please wait.";
   showCreateProjectDialog.value = true;
   const data = {

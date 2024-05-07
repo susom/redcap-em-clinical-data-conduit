@@ -223,6 +223,7 @@ foreach ($existing_forms as $non_duster_form_name=>$non_duster_form) {
         postObj['redcap_project_id'] = "<?php echo $pid; ?>";
         postObj['project_irb_number'] = "<?php echo $irb; ?>";
         postObj['initial_design'] = <?php echo $design_config; ?>;
+        postObj['non_duster_fields'] = <?php echo json_encode($non_duster_fields); ?>;
 
         // store URL for REDCap's 'New Project' page
         postObj['redcap_new_project_url'] = "<?php echo APP_PATH_WEBROOT_FULL . "index.php?action=create"; ?>";
