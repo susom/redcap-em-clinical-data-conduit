@@ -68,6 +68,7 @@ $project_id = $data['redcap_project_id'];
 /* Update REDCap project's data dictionary */
 try {
     $config = $data['config'];
+    $module->emDebug($config);
     $project_object = new Project($project_id, false); // not the same object returned by $module->getProject()
     $project_designer = new ProjectDesigner($project_object);
     $repeatable_forms = [];
@@ -181,7 +182,7 @@ try {
     $ch = curl_init();
     $api_url = $module->getRedcapApiUrl();
 
-    $module->emDebug("Import Metadata POST Request to REDCap API URL $api_url");
+    $module->emDebug("Import Metadata POST Request to REDCap API URL $api_url using the following metadata: $project_metadata");
     curl_setopt($ch, CURLOPT_URL, $api_url);
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($fields, '', '&'));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
