@@ -15,7 +15,7 @@ $project_status = $module->getProjectStatus($pid);
 $user_rights = $module->getUser()->getRights($pid);
 $irb = $module->getProjectIrb($pid);
 $duster_config_obj = new DusterConfigClass($pid, $module);
-$duster_config = json_decode($duster_config_obj->getDusterConfig(), true);
+$duster_config = $duster_config_obj->getDusterConfig();
 $design_config = $duster_config_obj->getDesignConfig();
 $has_design_config = $design_config !== NULL; // PHP 8.3 provides json_validate(), which checks if a string contains valid JSON.
 $design_config = json_encode($design_config);
