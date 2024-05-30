@@ -80,7 +80,7 @@ try {
     $project_metadata .= "redcap_record_id,researcher_provided_information,,text,\"REDCap Record ID\",,,,,,,,,,,,,\n";
 
     // Researcher-Provided Identifier
-    $project_metadata .= "mrn,researcher_provided_information,Identifiers,text,\"Medical Record Number (MRN)\",,\"8-digit number (including leading zeros, e.g., '01234567')\",,,,y,,,,,,,\n";
+    $project_metadata .= "mrn,researcher_provided_information,Identifiers,text,\"Medical Record Number (MRN)\",,\"8-digit number (including leading zeros, e.g., '01234567') or 10-digit number (no leading zeros)\",,,,y,,,,,,,\n";
 
     // Researcher-Provided Dates/Datetimes
     if (array_key_exists('rp_info', $config)) {
