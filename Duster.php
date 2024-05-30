@@ -31,9 +31,8 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       && strpos(PAGE, "index.php") !== false
       && isset($_GET['action']) && $_GET['action'] === 'create'
       && $this->isUserAllowed() === true) {
-        // $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
-        $some = "<script> let dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
-        echo $some;
+        echo "<script> const isSunet = '" . !str_contains($this->getUser()->getUsername(), '@') . "'; </script>";
+        echo "<script> const dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
         $script = <<<EOD
                 <script>
                     $(document).ready(function() {
@@ -48,6 +47,10 @@ class Duster extends \ExternalModules\AbstractExternalModule {
                         div += "</div>";
 
                         $("#project_template_radio0").closest('td').append(div) ;
+                        if (!isSunet) {
+                           $("#project_template_duster").attr('disabled', true);
+                           $("#duster_option").append("<br><small>You must be logged into REDCap with your SUNet to use DUSTER.</small>");
+                        }
 
                         // show DUSTER radio button option if purpose is research
                         $("#purpose").change(function() {
