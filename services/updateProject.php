@@ -80,7 +80,6 @@ try {
         'phi' => "t"
     );
     $project_metadata[] = getFieldParams($mrn_params, "researcher_provided_information", "Identifiers");
-    //$project_metadata .= "mrn,researcher_provided_information,Identifiers,text,\"Medical Record Number (MRN)\",,\"8-digit number (including leading zeros, e.g., '01234567') or 10-digit number (no leading zeros)\",,,,y,,,,,,,\n";
 
     // Researcher-Provided Dates/Datetimes
     if (array_key_exists('rp_info', $config)) {
