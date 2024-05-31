@@ -18,7 +18,6 @@ $duster_config_obj = new DusterConfigClass($pid, $module);
 $duster_config = $duster_config_obj->getDusterConfig();
 $design_config = $duster_config_obj->getDesignConfig();
 $has_design_config = $design_config !== NULL; // PHP 8.3 provides json_validate(), which checks if a string contains valid JSON.
-$design_config = json_encode($design_config);
 $editable = $project_status === "DEV"
     && strlen($user_rights['api_token']) === 32
     && $user_rights['api_import'] === '1'
