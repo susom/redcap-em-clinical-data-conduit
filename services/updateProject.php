@@ -14,46 +14,33 @@ require_once $module->getModulePath() . "classes/RedcapToStarrLinkConfig.php";
  */
 
 /**
- * helper function that returns a CSV-formatted string of a REDCap field's configuration used by REDCap API
+ * helper function that returns an associated array of a REDCap field's configuration as part of a larger array used by REDCap API
  * @param $field
  * @param string $form_name
- * @param $section_header
- * @return string
+ * @param string $section_header
+ * @return array
  */
-function getFieldParams($field, string $form_name = "", string $section_header = ""):string {
-    $params = "{$field['redcap_field_name']},$form_name,$section_header,{$field['redcap_field_type']},\"{$field['label']}\",";
-
-    switch ($field['redcap_field_type']) {
-        case 'checkbox':
-        case 'radio':
-        case 'calc':
-            $params .= "\"{$field['redcap_options']}\",";
-            break;
-        default:
-            $params .= ",";
-            break;
-    }
-
-    if (array_key_exists('redcap_field_note', $field) && is_string($field['redcap_field_note']) === true) {
-        $params .= "{$field['redcap_field_note']}";
-    }
-    $params .= ",";
-
-    if ($field['value_type'] === 'datetime') {
-        $params .= "datetime_seconds_ymd";
-    } else if ($field['value_type'] === 'date') {
-        $params .= "date_ymd";
-    }
-    $params .= ",,,";
-
-    $params .= $field['phi'] === 't' ? "y" : "";
-    $params .= ",,,,,,,";
-
-    if (array_key_exists('field_annotation', $field)) {
-        $params .= "\"{$field['field_annotation']}\"";
-    }
-
-    return $params . "\n";
+function getFieldParams($field, string $form_name = "", string $section_header = ""):array {
+    return array(
+        'field_name' => $field['redcap_field_name'],
+        'form_name' => $form_name,
+        'section_header' => $section_header,
+        'field_type' => $field['redcap_field_type'],
+        'field_label' => $field['label'],
+        'select_choices_or_calculations' => in_array($field['redcap_field_type'], ['checkbox', 'radio', 'calc'], true) ? $field['redcap_options'] : "",
+        'field_note' => array_key_exists('redcap_field_note', $field) && is_string($field['redcap_field_note']) === true ? $field['redcap_field_note'] : "",
+        'text_validation_type_or_show_slider_number' => $field['value_type'] === 'datetime' ? "datetime_seconds_ymd" : ($field['value_type'] === 'date' ? "date_ymd" : ""),
+        'text_validation_min' => "",
+        'text_validation_max' => "",
+        'identifier' => $field['phi'] === "t" ? "y" : "",
+        'branching_logic' => "",
+        'required_field' => "",
+        'custom_alignment' => "",
+        'question_number' => "",
+        'matrix_group_name' => "",
+        'matrix_ranking' => "",
+        'field_annotation' => $field['field_annotation'] ? : ""
+    );
 }
 
 /**
@@ -74,26 +61,39 @@ try {
     $repeatable_forms = [];
     $new_forms = [];
 
-    $project_metadata = "\"Variable / Field Name\",\"Form Name\",\"Section Header\",\"Field Type\",\"Field Label\",\"Choices, Calculations, OR Slider Labels\",\"Field Note\",\"Text Validation Type OR Show Slider Number\",\"Text Validation Min\",\"Text Validation Max\",Identifier?,\"Branching Logic (Show field only if...)\",\"Required Field?\",\"Custom Alignment\",\"Question Number (surveys only)\",\"Matrix Group Name\",\"Matrix Ranking?\",\"Field Annotation\"\n";
+    $project_metadata = array();
 
     // REDCap Record ID
-    $project_metadata .= "redcap_record_id,researcher_provided_information,,text,\"REDCap Record ID\",,,,,,,,,,,,,\n";
+    $rrid = array(
+        'label' => "REDCap Record ID",
+        'redcap_field_name' => "redcap_record_id",
+        'redcap_field_type' => "text"
+    );
+    $project_metadata[] = getFieldParams($rrid, "researcher_provided_information");
 
     // Researcher-Provided Identifier
-    $project_metadata .= "mrn,researcher_provided_information,Identifiers,text,\"Medical Record Number (MRN)\",,\"8-digit number (including leading zeros, e.g., '01234567') or 10-digit number (no leading zeros)\",,,,y,,,,,,,\n";
+    $mrn_params = array(
+        'label' => "Medical Record Number (MRN)",
+        'redcap_field_name' => "mrn",
+        'redcap_field_type' => "text",
+        'redcap_field_note' => "8-digit number (including leading zeros, e.g., '01234567') or 10-digit number (no leading zeros)",
+        'phi' => "t"
+    );
+    $project_metadata[] = getFieldParams($mrn_params, "researcher_provided_information", "Identifiers");
+    //$project_metadata .= "mrn,researcher_provided_information,Identifiers,text,\"Medical Record Number (MRN)\",,\"8-digit number (including leading zeros, e.g., '01234567') or 10-digit number (no leading zeros)\",,,,y,,,,,,,\n";
 
     // Researcher-Provided Dates/Datetimes
     if (array_key_exists('rp_info', $config)) {
         foreach ($config['rp_info']['rp_dates'] as $key => $date) {
             $rp_dates_header = $key === 0 ? 'Dates': '';
-            $project_metadata .= getFieldParams($date, 'researcher_provided_information', $rp_dates_header);
+            $project_metadata[] = getFieldParams($date, "researcher_provided_information", $rp_dates_header);
         }
     }
 
     // Demographics
     if (array_key_exists('demographics', $config)) {
         foreach ($config['demographics'] as $demographic) {
-            $project_metadata .= getFieldParams($demographic, 'demographics', '');
+            $project_metadata[] = getFieldParams($demographic, "demographics");
         }
     }
 
@@ -107,8 +107,8 @@ try {
             }
 
             // Timing
-            $project_metadata .= getFieldParams($collection_window['timing']['start'], $form_name, 'Timing');
-            $project_metadata .= getFieldParams($collection_window['timing']['end'], $form_name, '');
+            $project_metadata[] = getFieldParams($collection_window['timing']['start'], $form_name, "Timing");
+            $project_metadata[] = getFieldParams($collection_window['timing']['end'], $form_name);
             if ($collection_window['type'] === 'repeating') {
                 $repeatable_forms[] = $form_name;
 
@@ -118,14 +118,14 @@ try {
                     'redcap_field_type' => 'text',
                     'field_annotation' => ' @HIDDEN'
                 );
-                $project_metadata .= getFieldParams($repeat_field_params, $form_name, 'Repeat Instance');
-                $project_metadata .= getFieldParams($collection_window['timing']['repeat_interval']['start_instance'], $form_name, '');
-                $project_metadata .= getFieldParams($collection_window['timing']['repeat_interval']['end_instance'], $form_name, '');
+                $project_metadata[] = getFieldParams($repeat_field_params, $form_name, "Repeat Instance");
+                $project_metadata[] = getFieldParams($collection_window['timing']['repeat_interval']['start_instance'], $form_name);
+                $project_metadata[] = getFieldParams($collection_window['timing']['repeat_interval']['end_instance'], $form_name);
             }
 
             // Closest Event Aggregation
             if (!empty($collection_window['event'])) {
-                $project_metadata .= getFieldParams($collection_window['event'][0], $form_name, 'Closest Event Aggregation');
+                $project_metadata[] = getFieldParams($collection_window['event'][0], $form_name, "Closest Event Aggregation");
             }
 
             // Labs
@@ -133,7 +133,7 @@ try {
             if (!empty($labs)) {
                 foreach ($labs as $key => $lab) {
                     $labs_header = $key === 0 ? 'Labs': '';
-                    $project_metadata .= getFieldParams($lab, $form_name, $labs_header);
+                    $project_metadata[] = getFieldParams($lab, $form_name, $labs_header);
                 }
             }
 
@@ -142,7 +142,7 @@ try {
             if (!empty($vitals)) {
                 foreach ($vitals as $key => $vital) {
                     $vitals_header = $key === 0 ? 'Vitals': '';
-                    $project_metadata .=  getFieldParams($vital, $form_name, $vitals_header);
+                    $project_metadata[] =  getFieldParams($vital, $form_name, $vitals_header);
                 }
             }
 
@@ -151,7 +151,7 @@ try {
             if (!empty($outcomes)) {
                 foreach ($outcomes as $key => $outcome) {
                     $outcomes_header = $key === 0 ? 'Outcomes' : '';
-                    $project_metadata .= getFieldParams($outcome, $form_name, $outcomes_header);
+                    $project_metadata[] = getFieldParams($outcome, $form_name, $outcomes_header);
                 }
             }
 
@@ -160,11 +160,11 @@ try {
                 foreach ($score['subscores'] as $subscore_key => $subscore) {
                     foreach ($subscore['dependencies'] as $dependency_key => $dependency) {
                         $outcomes_header = $subscore_key === 0 && $dependency_key === 0 ? $score['label'] : '';
-                        $project_metadata .= getFieldParams($dependency, $form_name, $outcomes_header);
+                        $project_metadata[] = getFieldParams($dependency, $form_name, $outcomes_header);
                     }
-                    $project_metadata .= getFieldParams($subscore, $form_name, '');
+                    $project_metadata[] = getFieldParams($subscore, $form_name);
                 }
-                $project_metadata .= getFieldParams($score, $form_name, '');
+                $project_metadata[] = getFieldParams($score, $form_name);
             }
         }
     }
@@ -174,8 +174,8 @@ try {
     $fields = array(
         'token'        => $token,
         'content'      => 'metadata',
-        'format'       => 'csv',
-        'data'         => $project_metadata,
+        'format'       => 'json',
+        'data'         => json_encode($project_metadata),
         'returnFormat' => 'json'
     );
 
