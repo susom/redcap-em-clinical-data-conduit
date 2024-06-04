@@ -73,7 +73,6 @@ foreach ($duster_config['collection_windows'] as $collection_window) {
                 $collection_window['timing']['end']['redcap_field_name']
         ];
         if ($collection_window['type'] === 'repeating' && isset($collection_window['timing']['repeat_interval'])) {
-            $module->emLog("REPEATING HERE");
             $timing_fields = array_merge($timing_fields, [
                     $cw_form_name,
                     $collection_window['timing']['repeat_interval']['start_instance']['redcap_field_name'],
