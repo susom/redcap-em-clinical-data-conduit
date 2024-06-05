@@ -193,7 +193,7 @@ const rpData = ref<BasicConfig[]>([
     label:"Medical Record Number (MRN)",
     redcap_field_type:"text",
     value_type:"Identifier", // this needs to be replaced by "text" in review step
-    redcap_field_note:"8-digit number (including leading zeros, e.g., '01234567')",
+    redcap_field_note:"8-digit number (including leading zeros, e.g., '01234567') or 10-digit number (no leading zeros)",
     phi:"t",
     id: "mrn",
     duster_field_name: undefined

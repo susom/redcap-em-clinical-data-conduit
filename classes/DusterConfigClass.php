@@ -31,8 +31,8 @@ class DusterConfigClass
             ((substr($config_url, -1) === '/') ? "" : "/") . SERVER_NAME . '/' . $this->project_id
             . '?redcap_user=' . $this->module->getUser()->getUserName();
         $config_object = $this->module->starrApiGetRequest($config_url, 'ddp');
-        $this->duster_config = $config_object['config'];
-        $this->design_config = $config_object['design_config'];
+        $this->duster_config = json_decode($config_object['config'], true);
+        $this->design_config = json_decode($config_object['design_config'], true);
     }
 
     public function loadDesignConfig () {
