@@ -32,7 +32,7 @@ class DusterConfigClass
             . '?redcap_user=' . $this->module->getUser()->getUserName();
         $config_object = $this->module->starrApiGetRequest($config_url, 'ddp');
         $this->duster_config = json_decode($config_object['config'], true);
-        $this->design_config = $config_object['design_config'];
+        $this->design_config = json_decode($config_object['design_config'], true);
     }
 
     public function loadDesignConfig () {
