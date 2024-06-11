@@ -164,33 +164,13 @@
     header="Update Project"
   >
     <div
-      v-if="props.projectInfo?.non_duster_fields.length > 0"
-    >
-      <h1 style="color:red">
-        WARNING: This REDCap project contains non-DUSTER REDCap fields/forms.
-      </h1>
-      <h2 style="color:red">
-        The following non-DUSTER REDCap fields may be lost if you decide to edit this DUSTER project:
-      </h2>
-      <strong>
-        <ol
-            v-for="form in props.projectInfo?.non_duster_fields"
-            :key="form.name"
-        >
-          {{form.label}} ({{form.name}})
-          <li
-            v-for="field_name in form?.fields"
-            :key="field_name"
-          >
-            {{field_name}}
-          </li>
-        </ol>
-      </strong>
-    </div>
-    <div
         class="text-center my-2"
     >
       Are you sure you want to update this project?
+      <br>
+      Bear in mind that any non-DUSTER user-performed changes made to this project's current data dictionary may be lost or conflict when updating this project.
+      <br>
+      Non-DUSTER fields and forms will remain, but they may be rearranged within the data dictionary.
     </div>
     <template #footer>
       <Button

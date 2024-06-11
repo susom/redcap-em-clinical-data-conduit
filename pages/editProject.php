@@ -24,107 +24,6 @@ $editable = $project_status === "DEV"
     && $user_rights['design'] === '1'
     && $has_design_config === true;
 
-/* Check for non-DUSTER fields */
-$project_object = new Project($pid, false);
-$existing_forms = $project_object->forms;
-$non_duster_fields = [];
-
-// Researcher-Provided Information
-if (isset($existing_forms['researcher_provided_information'])) {
-    $rp_fields = array_keys($existing_forms['researcher_provided_information']['fields']);
-    $duster_rp_fields = ['redcap_record_id', 'mrn'];
-    $duster_rp_fields = array_merge($duster_rp_fields, array_keys($duster_config['rp_info']['rp_dates']));
-    $duster_rp_fields[] = "researcher_provided_information_complete";
-    $non_duster_rp_fields = array_diff($rp_fields, $duster_rp_fields);
-    if (!empty($non_duster_rp_fields)) {
-        $non_duster_fields[] = [
-            'name' => 'researcher_provided_information',
-            'label' => 'Researcher-Provided Information',
-            'fields' => $non_duster_rp_fields
-        ];
-    }
-    unset($existing_forms['researcher_provided_information']);
-}
-
-// Demographics
-if (isset($existing_forms['demographics'])) {
-    $demographic_fields = array_keys($existing_forms['demographics']['fields']);
-    $duster_demographic_fields = array_column($duster_config['demographics'], 'redcap_field_name');
-    $duster_demographic_fields[] = "demographics_complete";
-    $non_duster_demographic_fields = array_diff($demographic_fields, $duster_demographic_fields);
-    if (!empty($non_duster_demographic_fields)) {
-        $non_duster_fields[] = [
-            'name' => 'demographics',
-            'label' => 'Demographics',
-            'fields' => $non_duster_demographic_fields
-        ];
-    }
-    unset($existing_forms['demographics']);
-}
-
-// Data Collection Windows
-foreach ($duster_config['collection_windows'] as $collection_window) {
-    $cw_form_name = $collection_window['form_name'];
-    if (isset($existing_forms[$cw_form_name])) {
-        $cw_fields = array_keys($existing_forms[$cw_form_name]['fields']);
-        $timing_fields = [
-                $collection_window['timing']['start']['redcap_field_name'],
-                $collection_window['timing']['end']['redcap_field_name']
-        ];
-        if ($collection_window['type'] === 'repeating' && isset($collection_window['timing']['repeat_interval'])) {
-            $module->emLog("REPEATING HERE");
-            $timing_fields = array_merge($timing_fields, [
-                    $cw_form_name,
-                    $collection_window['timing']['repeat_interval']['start_instance']['redcap_field_name'],
-                    $collection_window['timing']['repeat_interval']['end_instance']['redcap_field_name']
-                ]);
-        }
-
-        $score_fields = [];
-        foreach ($collection_window['data']['scores'] as $score) {
-            $score_fields[] = $score['redcap_field_name'];
-            foreach ($score['subscores'] as $subscore) {
-                $score_fields[] = $subscore['redcap_field_name'];
-                $score_fields = array_merge(
-                    $score_fields,
-                    array_column($subscore['dependencies'], 'redcap_field_name')
-                );
-            }
-        }
-
-        $duster_cw_fields = array_merge(
-            $timing_fields,
-            array_column($collection_window['event'], 'redcap_field_name'),
-            array_column($collection_window['data']['labs'], 'redcap_field_name'),
-            array_column($collection_window['data']['vitals'], 'redcap_field_name'),
-            array_column($collection_window['data']['outcomes'], 'redcap_field_name'),
-            $score_fields
-        );
-        $duster_cw_fields[] = $cw_form_name . '_complete';
-
-        $non_duster_cw_fields = array_diff($cw_fields, $duster_cw_fields);
-        if (!empty($non_duster_cw_fields)) {
-            $non_duster_fields[] = [
-                'name' => $cw_form_name,
-                'label' => $collection_window['label'],
-                'fields' => $non_duster_cw_fields
-            ];
-        }
-        unset($existing_forms[$cw_form_name]);
-    }
-}
-
-// non-DUSTER forms
-foreach ($existing_forms as $non_duster_form_name=>$non_duster_form) {
-    if (!empty($non_duster_form['fields'])) {
-        $non_duster_fields[] = [
-            'name' => $non_duster_form_name,
-            'label' => $non_duster_form['menu'],
-            'fields' => array_keys($non_duster_form['fields'])
-        ];
-    }
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -143,28 +42,11 @@ foreach ($existing_forms as $non_duster_form_name=>$non_duster_form) {
       <li>Add new clinical variables to pre-existing data collection windows.</li>
       <!-- <li>Select additional aggregations to pre-existing clinical variables in data collection windows.</li> -->
     </ol>
-    <?php
-     if (!empty($non_duster_fields)) {
-    ?>
-        <h1 style="color:red">
-            WARNING: This REDCap project contains non-DUSTER REDCap fields/forms.
-        </h1>
-        <h2 style="color:red">
-            The following non-DUSTER REDCap fields may be lost if you decide to edit this DUSTER project:
-        </h2>
-         <strong>
-        <?php foreach ($non_duster_fields as $form): ?>
-            <ol>
-                <?= $form['label']; ?> (<?= $form['name']; ?>)
-                <?php foreach ($form['fields'] as $field_name): ?>
-                 <li><?= $field_name; ?></li>
-                <?php endforeach; ?>
-            </ol>
-        <?php endforeach; ?>
-         </strong>
-    <?php
-     }
-    ?>
+    <p>
+        Any non-DUSTER user-performed changes made to this project's current data dictionary may be lost or conflict when editing this project.
+        <br>
+        Non-DUSTER fields and forms will remain, but they may be rearranged within the data dictionary.
+    </p>
 
     <button
       type="button"
@@ -222,7 +104,6 @@ foreach ($existing_forms as $non_duster_form_name=>$non_duster_form) {
         postObj['redcap_project_id'] = "<?php echo $pid; ?>";
         postObj['project_irb_number'] = "<?php echo $irb; ?>";
         postObj['initial_design'] = <?php echo $design_config; ?>;
-        postObj['non_duster_fields'] = <?php echo json_encode($non_duster_fields); ?>;
 
         // store URL for REDCap's 'New Project' page
         postObj['redcap_new_project_url'] = "<?php echo APP_PATH_WEBROOT_FULL . "index.php?action=create"; ?>";
