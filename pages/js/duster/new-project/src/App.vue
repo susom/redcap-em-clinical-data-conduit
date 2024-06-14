@@ -497,9 +497,7 @@ const getDusterMetadata = (metadataUrl:string) => {
 };
 
 const loadEditMode = () => {
-  initialDesign.value = JSON.parse(projectConfig.initial_design);
-  initialDesign.collectionWindows = initialDesign.value.collectionWindows;
-  initialDesign.value = JSON.parse(projectConfig.initial_design);
+  initialDesign.value = projectConfig.initial_design;
   // transform and load researcher-provided data
   rpData.value = initialDesign.value.rpData;
   rpData.value.forEach((rp:any) => {
