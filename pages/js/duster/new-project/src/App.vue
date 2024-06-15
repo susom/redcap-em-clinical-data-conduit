@@ -255,8 +255,6 @@ const initialDesign: {[key: string]:any} = ({
   collectionWindows: []
 });
 
-// const myObj: {[index: string]:any} = {}
-
 const promptRestoreAutoSave = ref<boolean>(false);
 
 onMounted(() => {
@@ -498,6 +496,7 @@ const getDusterMetadata = (metadataUrl:string) => {
 
 const loadEditMode = () => {
   initialDesign.value = projectConfig.initial_design;
+
   // transform and load researcher-provided data
   rpData.value = initialDesign.value.rpData;
   rpData.value.forEach((rp:any) => {
@@ -516,6 +515,7 @@ const loadEditMode = () => {
   }
 
   // load data collection windows
+  initialDesign.collectionWindows = projectConfig.initial_design.collectionWindows;
   collectionWindows.value = initialDesign.value.collectionWindows;
 };
 
