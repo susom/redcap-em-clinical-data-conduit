@@ -16,7 +16,6 @@ $user_rights = $module->getUser()->getRights($pid);
 $irb = $module->getProjectIrb($pid);
 $duster_config_obj = new DusterConfigClass($pid, $module);
 $design_config = $duster_config_obj->getDesignConfig();
-$module->emDebug($design_config);
 $has_design_config = $design_config !== NULL; // PHP 8.3 provides json_validate(), which checks if a string contains valid JSON.
 $editable = $project_status === "DEV"
     && strlen($user_rights['api_token']) === 32
