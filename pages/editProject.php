@@ -15,7 +15,6 @@ $project_status = $module->getProjectStatus($pid);
 $user_rights = $module->getUser()->getRights($pid);
 $irb = $module->getProjectIrb($pid);
 $duster_config_obj = new DusterConfigClass($pid, $module);
-$duster_config = $duster_config_obj->getDusterConfig();
 $design_config = $duster_config_obj->getDesignConfig();
 $has_design_config = $design_config !== NULL; // PHP 8.3 provides json_validate(), which checks if a string contains valid JSON.
 $editable = $project_status === "DEV"
@@ -23,7 +22,6 @@ $editable = $project_status === "DEV"
     && $user_rights['api_import'] === '1'
     && $user_rights['design'] === '1'
     && $has_design_config === true;
-
 ?>
 
 <!DOCTYPE html>
@@ -103,7 +101,7 @@ $editable = $project_status === "DEV"
         postObj['edit_mode'] = true;
         postObj['redcap_project_id'] = "<?php echo $pid; ?>";
         postObj['project_irb_number'] = "<?php echo $irb; ?>";
-        postObj['initial_design'] = <?php echo $design_config; ?>;
+        postObj['initial_design'] = <?php echo json_encode($design_config); ?>;
 
         // store URL for REDCap's 'New Project' page
         postObj['redcap_new_project_url'] = "<?php echo APP_PATH_WEBROOT_FULL . "index.php?action=create"; ?>";
