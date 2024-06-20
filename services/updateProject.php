@@ -54,7 +54,7 @@ $project_id = $data['redcap_project_id'];
 
 /* Update REDCap project's data dictionary */
 try {
-    $api_url = $module->getRedcapApiUrl();
+    $api_url = $module->getRedcapUrl("api");
     $config = $data['config'];
     $module->emDebug($config);
     $project_object = new Project($project_id, false); // not the same object returned by $module->getProject()
@@ -363,9 +363,9 @@ if ($save_config_results['success'] && !empty($save_config_results['rcToStarrLin
   $rctostarr_config = new RedcapToStarrLinkConfig($project_id, $module);
   $rctostarr_config->removeRedcapToStarrLinkEmSettings();
   $rctostarr_config->configureRedcapToStarrLink($save_config_results);
-  $module->emDebug(APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id");
+  $module->emDebug($module->getRedcapUrl() . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id");
   http_response_code(200);
-  echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id";
+  echo $module->getRedcapUrl() . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id";
   exit();
 } else {
   http_response_code(500);
