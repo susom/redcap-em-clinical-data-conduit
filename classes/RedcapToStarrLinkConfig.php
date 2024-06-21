@@ -88,7 +88,7 @@ class RedcapToStarrLinkConfig
     /*constructs the url to call RtoStarr Link api
     @return "1" if successful*/
     private function invokeRedcapToStarrLink($action, $query) {
-        $url = APP_PATH_WEBROOT_FULL .
+        $url = $this->module->getRedcapUrl() .
             'api/?type=module&prefix=redcap_to_starr_link&page=src%2FRedcapProjectToStarrLink&NOAUTH'
             . '&action=' . $action // should be either data or records
             . '&pid=' . $this->project_id;
