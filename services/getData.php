@@ -348,7 +348,7 @@ if ($action === 'productionStatus') {
         $email = (isset($_GET['email']) && !empty($_GET['email']))
             ? $_GET['email'] : null;
         $module->setProjectSetting('dataUpdateNotify', $email, $pid);
-        $post_fields['redcap_url'] = $module->getRedcapUrl();
+        $post_fields['redcap_url'] = APP_PATH_WEBROOT_FULL;
         $post_fields['user'] = $module->getUser()->getUsername();
         $post_fields['email'] = $email;
         $post_fields['pid'] = $pid;
@@ -365,7 +365,7 @@ if ($action === 'productionStatus') {
             logToStarrApi($pid, $request_id . "::status", 'fail');
         } else {
             $redcap_version = explode('_',APP_PATH_WEBROOT)[1];
-            $get_data_url = $module->getRedcapUrl()
+            $get_data_url = APP_PATH_WEBROOT_FULL
                 . 'redcap_' . $redcap_version
                 . 'ExternalModules/?prefix=duster&page=pages%2FpopulateData&pid='
                 . $pid;
@@ -483,7 +483,7 @@ if ($action === 'productionStatus') {
         }
         // Add a link to the redcap project
         $redcap_version = explode('_', APP_PATH_WEBROOT)[1];
-        $data_exports_url = $module->getRedcapUrl()
+        $data_exports_url = APP_PATH_WEBROOT_FULL
             . 'redcap_' . $redcap_version . 'DataExport/index.php?pid=' . $pid;
         $message .= "<br><a href=\"$data_exports_url\">View data in redcap.</a>";
         $message .= '</body></html>';
