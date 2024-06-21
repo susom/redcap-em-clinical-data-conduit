@@ -117,16 +117,18 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     return $token;
   }
 
-  /**
-   * returns the URL for the REDCap API
-   * @return string
-   */
-  public function getRedcapApiUrl() {
+    /**
+     * returns a REDCap URL
+     * @param $path
+     * @return string
+     */
+  public function getRedcapUrl($path = ""):string {
       $is_local_dev = $this->getSystemSetting('local-dev');
+      $pathname = $path === "" ? $path : $path . "/";
       if($is_local_dev === true) {
-          return APP_PATH_WEBROOT_FULL . "api/";
+          return APP_PATH_WEBROOT_FULL . $pathname;
       } else {
-          return 'https://127.0.0.1/api/';
+          return 'https://127.0.0.1/' . $pathname;
       }
   }
 

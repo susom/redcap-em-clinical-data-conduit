@@ -163,7 +163,7 @@ $fields = array(
 );
 
 $ch = curl_init();
-$api_url = $module->getRedcapApiUrl();
+$api_url = $module->getRedcapUrl("api");
 
 $module->emDebug("Create Project POST Request to REDCap API URL $api_url");
 curl_setopt($ch, CURLOPT_URL, $api_url);
@@ -330,9 +330,9 @@ if ($save_config_results['success'] && !empty($save_config_results['rcToStarrLin
     exit();
   }
   $rctostarr_config->configureRedcapToStarrLink($save_config_results);
-  $module->emDebug(APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject");
+  $module->emDebug($module->getRedcapUrl() . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject");
   http_response_code(200);
-  echo APP_PATH_WEBROOT_FULL . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
+  echo $module->getRedcapUrl() . substr(APP_PATH_WEBROOT, 1) . "ProjectSetup/index.php?pid=$project_id&msg=newproject";
   exit();
 } else {
   $module->removeUser(USERID);
