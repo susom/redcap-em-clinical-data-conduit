@@ -73,12 +73,6 @@
 			"type": "checkbox"
 		},
 		{
-			"key": "starrapi-search-url",
-			"name": "STARR-API Search Webservice URL",
-			"required": true,
-			"type": "text"
-		},
-		{
 			"key": "starrapi-metadata-url",
 			"name": "STARR-API Metadata Webservice URL",
 			"required": true,
