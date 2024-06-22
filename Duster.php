@@ -123,12 +123,12 @@ class Duster extends \ExternalModules\AbstractExternalModule {
      * @return string
      */
   public function getRedcapUrl($path = ""):string {
-      $is_local_dev = $this->getSystemSetting('local-dev');
+      $server_type = $this->getSystemSetting('server-type');
       $pathname = $path === "" ? $path : $path . "/";
-      if($is_local_dev === true) {
-          return APP_PATH_WEBROOT_FULL . $pathname;
-      } else {
+      if($server_type === "development") {
           return 'https://127.0.0.1/' . $pathname;
+      } else {
+          return APP_PATH_WEBROOT_FULL . $pathname;
       }
   }
 
