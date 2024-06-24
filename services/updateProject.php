@@ -337,7 +337,7 @@ $config_data = array(
   'redcap_user' => $module->getUser()->getUserName(),
   'config' => $data['config'],
   'design_config' => $data['design_config'],
-  'linkinfo' => array('redcap_server_name' => SERVER_NAME),
+  'linkinfo' => array('redcap_server_name' => $module->getRedcapServerAlias()),
   'is_update' => true
 );
 
