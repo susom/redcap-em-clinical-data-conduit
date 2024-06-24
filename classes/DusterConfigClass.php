@@ -28,21 +28,11 @@ class DusterConfigClass
         $config_url = $this->module->getSystemSetting("starrapi-config-url");
         // add a '/' at the end of the url if it's not there
         $config_url = $config_url .
-            ((substr($config_url, -1) === '/') ? "" : "/") . SERVER_NAME . '/' . $this->project_id
+            ((substr($config_url, -1) === '/') ? "" : "/") . $this->module->getRedcapServerAlias() . '/' . $this->project_id
             . '?redcap_user=' . $this->module->getUser()->getUserName();
         $config_object = $this->module->starrApiGetRequest($config_url, 'ddp');
         $this->duster_config = json_decode($config_object['config'], true);
         $this->design_config = json_decode($config_object['design_config'], true);
-    }
-
-    public function loadDesignConfig () {
-      // build and send GET request to config webservice
-      $config_url = $this->module->getSystemSetting("starrapi-config-url");
-      // add a '/' at the end of the url if it's not there
-      $config_url = $config_url .
-        ((substr($config_url, -1) === '/') ? "" : "/") . 'design/' . SERVER_NAME . '/' . $this->project_id
-        . '?redcap_user=' . $this->module->getUser()->getUserName();
-      $this->design_config = $this->module->starrApiGetRequest($config_url, 'ddp');
     }
 
     public function getDusterConfig()
