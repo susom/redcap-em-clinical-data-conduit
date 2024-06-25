@@ -132,6 +132,14 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       }
   }
 
+    /**
+     * returns the servername that should be used
+     * @return string
+     */
+    public function getRedcapServerAlias():string {
+        return $this->getSystemSetting('server-type') === "development" ? '127.0.0.1' : SERVER_NAME;
+    }
+
   /**
    * sends a STARR-API GET request
    * @param $url
