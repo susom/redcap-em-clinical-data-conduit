@@ -262,7 +262,7 @@ if($project_info_sql_result !== true) {
   exit();
 }
 
-$data_arr['redcap_server_name'] = $module->getRedcapServerAlias();
+$data_arr['redcap_server_name'] = REDCAP_SERVER;
 $data_arr['project_irb_number'] = $data['project_irb_number'];
 $data_arr['project_pi_name'] = $data['project_pi_firstname'] . ' ' . $data['project_pi_lastname'];
 
