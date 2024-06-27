@@ -12,7 +12,7 @@ use REDCap;
 
 class DusterConfigClass
 {
-    private $project_id, $duster_config, $module;
+    private $project_id, $duster_config, $design_config, $module;
     private $rp_info_form = array('form_name' => 'rp_info', 'form_label' => 'Researcher-Provided Information');
     private $demographics_form = array('form_name' => 'demographics', 'form_label' => 'Demographics');
 
@@ -30,17 +30,9 @@ class DusterConfigClass
         $config_url = $config_url .
             ((substr($config_url, -1) === '/') ? "" : "/") . SERVER_NAME . '/' . $this->project_id
             . '?redcap_user=' . $this->module->getUser()->getUserName();
-        $this->duster_config = $this->module->starrApiGetRequest($config_url, 'ddp');
-    }
-
-    public function loadDesignConfig () {
-      // build and send GET request to config webservice
-      $config_url = $this->module->getSystemSetting("starrapi-config-url");
-      // add a '/' at the end of the url if it's not there
-      $config_url = $config_url .
-        ((substr($config_url, -1) === '/') ? "" : "/") . 'design/' . SERVER_NAME . '/' . $this->project_id
-        . '?redcap_user=' . $this->module->getUser()->getUserName();
-      $this->design_config = $this->module->starrApiGetRequest($config_url, 'ddp');
+        $config_object = $this->module->starrApiGetRequest($config_url, 'ddp');
+        $this->duster_config = json_decode($config_object['config'], true);
+        $this->design_config = json_decode($config_object['design_config'], true);
     }
 
     public function getDusterConfig()
@@ -53,9 +45,9 @@ class DusterConfigClass
 
     public function getDesignConfig() {
       if ($this->design_config == null) {
-        $this->loadDesignConfig();
+        $this->loadConfig();
       }
-      return $this->design_config['design_config'];
+      return $this->design_config;
     }
 
     public function setDusterConfig($config)

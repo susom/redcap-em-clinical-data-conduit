@@ -151,13 +151,54 @@
           :label="editMode ? 'Update Project' : 'Create Project'"
           icon="pi pi-check"
           severity="success"
-          @click="editMode ? updateProject() : createProject()"
+          @click="editMode ? showConfirmUpdateDialog = true : createProject()"
         />
       </template>
     </Toolbar>
   </Panel>
   <Dialog
-    v-model:visible="showCreateProjectDialog"
+    :visible="showConfirmUpdateDialog"
+    modal
+    :closable="false"
+    :style="{ width: '50vw'}"
+    header="Update Project"
+  >
+    <div
+    >
+      Are you sure you want to update this project?
+      <br>
+      <strong>It is recommended you back up your project's data in case editing this project causes any issues.</strong>
+      <br>
+      Bear in mind any non-DUSTER user-performed changes made to this project's current data dictionary may be lost or conflict when editing this project.
+      <ol>
+        <li>Non-DUSTER fields and forms will remain, but they may be rearranged within the data dictionary.</li>
+        <li>If you add a new DUSTER field and its field name matches a pre-existing non-DUSTER field, the non-DUSTER field will be replaced and its data will be overwritten when DUSTER fetches data.
+          <ol>Example Scenario
+            <li>You create a DUSTER project without selecting 'Race' under Demographics.</li>
+            <li>You then add a non-DUSTER field with 'race' as its REDCap field name to any of your project's instruments.</li>
+            <li>You subsequently edit your project via DUSTER and add 'Race' under the Demographics category.</li>
+            <li>Fetching data with DUSTER will save its results for 'Race' into the 'race' REDCap field, overwriting what was previously saved.</li>
+          </ol>
+        </li>
+      </ol>
+    </div>
+    <template #footer>
+      <Button
+          label="No, Cancel"
+          severity="secondary"
+          @click="showConfirmUpdateDialog = false"
+          autofocus
+      />
+      <Button
+          label="Yes, Update"
+          severity="primary"
+          @click="updateProject()"
+          autofocus
+      />
+    </template>
+  </Dialog>
+  <Dialog
+    :visible="showCreateProjectDialog"
     modal
     :closable="false"
     :style="{ width: '50vw' }"
@@ -651,6 +692,7 @@ const getScoresConfig = (scoresMeta:FieldMetadata[], index:number) => {
 }
 
 const showCreateProjectDialog = ref<boolean>(false);
+const showConfirmUpdateDialog = ref<boolean>(false);
 const createProjectMessage = ref<string>("");
 const createProjectError = ref<boolean>(false);
 const systemErrorMessage = ref<string>("");
@@ -753,6 +795,7 @@ const createProject = () => {
 }
 
 const updateProject = () => {
+  showConfirmUpdateDialog.value = false;
   createProjectMessage.value = "Updating REDCap Project. Please wait.";
   showCreateProjectDialog.value = true;
   const data = {

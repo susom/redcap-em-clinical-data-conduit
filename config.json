@@ -31,6 +31,13 @@
 				"icon": "fas fa-receipt",
 				"url": "pages/populateData.php",
 				"show-header-and-footer": true
+			},
+			{
+				"name": "DUSTER: Edit Project",
+				"key": "dustereditproject",
+				"icon": "fas fa-pen-to-square",
+				"url": "pages/editProject.php",
+				"show-header-and-footer": true
 			}
 		],
 		"control-center": [
@@ -103,10 +110,24 @@
 			"validation" : "number"
 		},
 		{
-			"key": "local-dev",
-			"name": "<b>Local Development Environment</b><br>local development flag for REDCap API URL",
-			"required": false,
-			"type": "checkbox"
+			"key": "server-type",
+			"name": "<b>Server Type</b><br>server environment flag for REDCap URL",
+			"required": true,
+			"type": "dropdown",
+			"choices": [
+				{
+					"value": "local",
+					"name": "Local"
+				},
+				{
+					"value": "development",
+					"name": "Development"
+				},
+				{
+					"value": "production",
+					"name": "Production"
+				}
+			]
 		},
 		{
 			"key": "enable-allowlist",

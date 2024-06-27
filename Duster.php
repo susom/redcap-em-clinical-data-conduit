@@ -31,9 +31,8 @@ class Duster extends \ExternalModules\AbstractExternalModule {
       && strpos(PAGE, "index.php") !== false
       && isset($_GET['action']) && $_GET['action'] === 'create'
       && $this->isUserAllowed() === true) {
-        // $this->emDebug("In Every Page Top Hook project id :" . $this->getProjectId() . " Page is " . PAGE);
-        $some = "<script> let dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
-        echo $some;
+        echo "<script> const isSunet = '" . !str_contains($this->getUser()->getUsername(), '@') . "'; </script>";
+        echo "<script> const dusterUrl = '" . $this->getUrl("pages/newProjectIntro.php", false, true) . "' ; </script>";
         $script = <<<EOD
                 <script>
                     $(document).ready(function() {
@@ -48,6 +47,10 @@ class Duster extends \ExternalModules\AbstractExternalModule {
                         div += "</div>";
 
                         $("#project_template_radio0").closest('td').append(div) ;
+                        if (!isSunet) {
+                           $("#project_template_duster").attr('disabled', true);
+                           $("#duster_option").append("<br><small>You must be logged into REDCap with your SUNet to use DUSTER.</small>");
+                        }
 
                         // show DUSTER radio button option if purpose is research
                         $("#purpose").change(function() {
@@ -114,18 +117,28 @@ class Duster extends \ExternalModules\AbstractExternalModule {
     return $token;
   }
 
-  /**
-   * returns the URL for the REDCap API
-   * @return string
-   */
-  public function getRedcapApiUrl() {
-      $is_local_dev = $this->getSystemSetting('local-dev');
-      if($is_local_dev === true) {
-          return APP_PATH_WEBROOT_FULL . "api/";
+    /**
+     * returns a REDCap URL
+     * @param $path
+     * @return string
+     */
+  public function getRedcapUrl($path = ""):string {
+      $server_type = $this->getSystemSetting('server-type');
+      $pathname = $path === "" ? $path : $path . "/";
+      if($server_type === "development") {
+          return 'https://127.0.0.1/' . $pathname;
       } else {
-          return 'https://127.0.0.1/api/';
+          return APP_PATH_WEBROOT_FULL . $pathname;
       }
   }
+
+    /**
+     * returns the servername that should be used
+     * @return string
+     */
+    public function getRedcapServerAlias():string {
+        return $this->getSystemSetting('server-type') === "development" ? '127.0.0.1' : SERVER_NAME;
+    }
 
   /**
    * sends a STARR-API GET request
