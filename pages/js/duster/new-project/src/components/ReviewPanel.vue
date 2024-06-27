@@ -164,13 +164,23 @@
     header="Update Project"
   >
     <div
-        class="text-center my-2"
     >
       Are you sure you want to update this project?
       <br>
-      Bear in mind that any non-DUSTER user-performed changes made to this project's current data dictionary may be lost or conflict when updating this project.
+      <strong>It is recommended you back up your project's data in case editing this project causes any issues.</strong>
       <br>
-      Non-DUSTER fields and forms will remain, but they may be rearranged within the data dictionary.
+      Bear in mind any non-DUSTER user-performed changes made to this project's current data dictionary may be lost or conflict when editing this project.
+      <ol>
+        <li>Non-DUSTER fields and forms will remain, but they may be rearranged within the data dictionary.</li>
+        <li>If you add a new DUSTER field and its field name matches a pre-existing non-DUSTER field, the non-DUSTER field will be replaced and its data will be overwritten when DUSTER fetches data.
+          <ol>Example Scenario
+            <li>You create a DUSTER project without selecting 'Race' under Demographics.</li>
+            <li>You then add a non-DUSTER field with 'race' as its REDCap field name to any of your project's instruments.</li>
+            <li>You subsequently edit your project via DUSTER and add 'Race' under the Demographics category.</li>
+            <li>Fetching data with DUSTER will save its results for 'Race' into the 'race' REDCap field, overwriting what was previously saved.</li>
+          </ol>
+        </li>
+      </ol>
     </div>
     <template #footer>
       <Button
