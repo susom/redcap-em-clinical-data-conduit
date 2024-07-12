@@ -36,6 +36,14 @@ export const AGGREGATE_OPTIONS: Array<TextValuePair> =[
     {text: "Closest to Event", value: "closest_event"}
 ]
 
+export type TEXT_AGGREGATE_OPTION = "first_agg" | "last_agg" | "closest_event" | "closest_time"
+export const TEXT_AGGREGATE_OPTIONS: Array<TextValuePair> =[
+    {text: "First", value: "first_agg"},
+    {text: "Last", value: "last_agg"},
+    {text: "Closest to Time", value: "closest_time"},
+    {text: "Closest to Event", value: "closest_event"}
+]
+
 export const INIT_BASIC_CONFIG: BasicConfig = {
     duster_field_name: undefined,
     redcap_field_name: undefined,

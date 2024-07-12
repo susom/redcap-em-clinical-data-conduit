@@ -164,7 +164,7 @@
       </Panel>
 
       <Accordion :multiple="true" :activeIndex="activeClinicalOptions" class="mt-2">
-      <AccordionTab header="Labs">
+      <AccordionTab header="DUSTER Labs">
         <ClinicalDataOptions
             category="labs"
             :options="labOptions"
@@ -177,6 +177,15 @@
             :search-text="searchText"
             :select-filter="selectFilter"
             v-model:selected-options="localClinicalData.labs"
+        />
+      </AccordionTab>
+      <AccordionTab header="Labs">
+        {{localClinicalData.ud_labs}}
+        <Labs
+            :selected-labs="localClinicalData.ud_labs"
+            :has-closest-time="hasClosestTime"
+            :has-closest-event="hasClosestEvent"
+            @update-labs="updateUdLabs"
         />
       </AccordionTab>
       <AccordionTab header="Vitals">
@@ -194,6 +203,11 @@
             v-model:selected-options="localClinicalData.vitals"
         />
       </AccordionTab>
+        <!-- Medications
+      <AccordionTab header="Medications">
+        <Medications />
+      </AccordionTab>
+        -->
       <AccordionTab header="Outcomes">
         <ClinicalDataOptions
             category="outcomes"
@@ -240,11 +254,14 @@ import type FieldConfig from "@/types/FieldConfig";
 import type TimingConfig from "@/types/TimingConfig";
 import type TextValuePair from "@/types/TextValuePair";
 import ClinicalDataOptions from "./ClinicalDataOptions.vue";
+import Labs from "@/components/Labs.vue";
+import Chips from "primevue/chips";
 import { useToast } from "primevue/usetoast";
-import Toast from 'primevue/toast'
+import Toast from 'primevue/toast';
 import {INIT_TIMING_CONFIG} from "@/types/TimingConfig";
 import {helpers, requiredIf, minLength} from "@vuelidate/validators";
 import {useVuelidate} from "@vuelidate/core";
+import Medications from "@/components/Medications.vue";
 
 const props = defineProps({
   showClinicalDataDialog: Boolean,
@@ -430,6 +447,7 @@ const hasClosestEvent = computed(() => {
   return true
 })
 
+// TODO refactor this?
 const showClosestEvent = computed(() => {
   let show = false
   if (hasClosestEvent.value) {
@@ -437,17 +455,23 @@ const showClosestEvent = computed(() => {
     if (localAggregateDefaults.value) {
       show = (localAggregateDefaults.value.findIndex(agg => agg.value === 'closest_event') > -1)
     }
-  if (!show) {
+    if (!show) {
       // show closest event if it's selected as a custom aggregate
       show = localClinicalData.value.labs.findIndex((cd: any) =>
           (cd.selected && cd.aggregate_type === 'custom' &&
               (JSON.stringify(cd.aggregates).indexOf("closest_event") > -1))) > -1
     }
-  if (!show) {
+    if (!show) {
       // show closest event if it's selected as a custom aggregate
       show = localClinicalData.value.vitals.findIndex((cd: any) =>
           (cd.selected && cd.aggregate_type === 'custom' &&
               (JSON.stringify(cd.aggregates).indexOf("closest_event") > -1))) > -1
+    }
+
+    // show closest event if it's selected as an aggregate for a user-defined lab
+    if (!show) {
+      show = localClinicalData.value.ud_labs.findIndex((cd: any) =>
+          cd.aggregation_options.findIndex((option: any) => option.value === 'closest_event') > -1) > -1
     }
   }
   return show
@@ -556,6 +580,7 @@ const hasClosestTime = computed(() => {
   return false
 })
 
+// TODO refactor this?
 const showClosestTime = computed(() => {
   // show closest time if it's selected as a default
   let show = false
@@ -574,6 +599,12 @@ const showClosestTime = computed(() => {
       show = localClinicalData.value.vitals.findIndex((cd: any) =>
           (cd.selected && cd.aggregate_type === 'custom' &&
               (JSON.stringify(cd.aggregates).indexOf("closest_time") > -1))) > -1
+    }
+
+    // show closest time if it's selected as an aggregate for a user-defined lab
+    if (!show) {
+      show = localClinicalData.value.ud_labs.findIndex((cd: any) =>
+          cd.aggregation_options.findIndex((option: any) => option.value === 'closest_time') > -1) > -1
     }
   }
   return show
@@ -633,6 +664,7 @@ const rules = computed(() =>({
     }
 })
 )
+
 const v$ = useVuelidate(rules, validationFields)
 watchEffect(() => {
   if (localClinicalData.value) {
@@ -650,6 +682,10 @@ watchEffect(() => {
   || (showClosestTime.value && !closestTime.value))*/
 })
 const toast = useToast();
+
+const updateUdLabs = (newValue: any) => {
+  localClinicalData.value.ud_labs = newValue;
+}
 
 const saveClinicalData = () => {
   v$.value.$touch() ;
@@ -691,7 +727,8 @@ const activeClinicalOptions = computed({
 })
 
 const expandAll = () => {
-  activeClinicalOptions.value = [0,1,2,3]
+  activeClinicalOptions.value = [0,1,2,3,4];
+  //activeClinicalOptions.value = [0,1,2,3,4,5];
 }
 /****/
 

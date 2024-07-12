@@ -183,7 +183,7 @@ setInterval(() => {
   }
 },60000);
 
-const dev = ref<boolean>(true); // TODO set to false
+const dev = ref<boolean>(false);
 const systemError = ref<boolean>(false);
 
 const showSummary = ref<boolean>(false);
@@ -480,13 +480,11 @@ const getDusterMetadata = (metadataUrl:string) => {
         outcomeOptions.value = response.data.outcomes;
         scoreOptions.value = response.data.scores;
         clinicalDateOptions.value = response.data.clinical_dates;
-
         // get lab results metadata
         axios.get(projectConfig.get_lab_results_url)
             .then(function (response) {
               labResults.value = response.data;
               irbCheckVisible.value = false;
-
 
               //  fetch dataset designs
               axios.get(projectConfig.get_dataset_designs_url)
@@ -510,7 +508,7 @@ const getDusterMetadata = (metadataUrl:string) => {
             });
       }).catch(function (error) {
         irbCheckMessage.value = "Unable to load DUSTER metadata.";
-        systemError.value = true;
+      systemError.value = true;
     });
   }
 };

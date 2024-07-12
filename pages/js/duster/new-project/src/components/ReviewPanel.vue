@@ -80,12 +80,37 @@
     >
       <template #header>
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-          <span class="text-0 text-900 font-bold">Labs</span>
+          <span class="text-0 text-900 font-bold">DUSTER Labs</span>
         </div>
       </template>
       <Column field="label" header="Label"></Column>
       <Column field="redcap_field_name" header="REDCap Field Name"></Column>
       <Column field="redcap_field_note" header="REDCap Field Note"></Column>
+    </DataTable>
+
+    <!-- user-defined labs -->
+    <DataTable
+        :value="cw.data.ud_labs"
+        class="mt-2"
+        tableStyle="min-width: 50rem"
+        v-if="cw.data.ud_labs.length > 0"
+    >
+      <template #header>
+        <div class="flex flex-wrap align-items-center justify-content-between gap-2">
+          <span class="text-0 text-900 font-bold">Labs</span>
+        </div>
+      </template>
+      <Column field="label" header="Label"></Column>
+      <Column field="redcap_field_name" header="REDCap Field Name"></Column>
+      <Column field="redcap_field_type" header="REDCap Field Type"></Column>
+      <Column
+          field="redcap_field_note"
+          header="REDCap Field Note"
+      >
+        <template #body="rowData">
+          <div v-html="rowData.data.redcap_field_note"></div>
+        </template>
+      </Column>
     </DataTable>
 
     <DataTable :value="cw.data.vitals" class="mt-2"
@@ -492,10 +517,68 @@ const getIntervalFieldName = (eventName: string) => {
 const getData = (data:any, index:number, aggDefaults?: TextValuePair[], event?:TimingConfig[], closestTime?:string) => {
   let dconfig:any = {}
   dconfig.labs = getConfigWithAggregates(data.labs, index, aggDefaults, event, closestTime)
+  dconfig.ud_labs = getUdLabsWithAggregates(data.ud_labs, index, event, closestTime)
   dconfig.vitals = getConfigWithAggregates(data.vitals, index, aggDefaults, event, closestTime)
   dconfig.outcomes = getConfigNoAggregates(data.outcomes, index)
   dconfig.scores = getScoresConfig(data.scores, index)
   return dconfig
+}
+
+const getUdLabsWithAggregates = (data:any[],
+                                 index:number,
+                                 event?:TimingConfig[],
+                                 closestTime?:string) => {
+  let configArray:FieldConfig[] = [];
+  let evt = (event && event[0]) ? event[0] : INIT_TIMING_CONFIG
+  for (let field of data) {
+    for (let agg of field.aggregation_options) {
+      //let aggName = agg['value'].replace('_agg','');
+      let aggName = agg.replace('_agg','');
+
+      // convert label for use with aggregate name
+      const fieldName = field.label.trim().toLowerCase()
+          .replace(/ +/g, '_') // replace spaces with underscore
+          .replace(/[^a-z_0-9]/g, '') // remove illegal characters
+          .replace(/[_+]/g, '_') // replace multiple _ with a single one
+          .replace(/_$/g, ''); // remove trailing _
+
+      // REDCap field note includes the reference unit and optional minimum/maximum thresholds
+      let fieldNote = field.reference_unit;
+      if (typeof field.min_threshold === 'number') {
+        fieldNote += '<br>Minimum Threshold: ' + field.min_threshold;
+      }
+      if (typeof field.max_threshold === 'number') {
+        fieldNote += '<br>Maximum Threshold: ' + field.max_threshold;
+      }
+
+      let config:any = {
+        //label: getAggregateLabel(field.label, agg.value, evt, closestTime),
+        label: getAggregateLabel(field.label, agg, evt, closestTime),
+        redcap_field_name: 'ud_' + fieldName + "_" + aggName + "_" + index,
+        value_type: field.value_type,
+        redcap_field_type: "text",
+        redcap_field_note: fieldNote,
+        //aggregate: agg.value,
+        aggregate: agg,
+        lab_results: field.lab_results,
+        min_threshold: field.min_threshold,
+        max_threshold: field.max_threshold
+      };
+      //if (agg.value == 'closest_event' && event) {
+      if (agg == 'closest_event' && event) {
+        config.aggregate_options = {}
+        config.aggregate_options.event = event[0].redcap_field_name
+      }
+      //if (agg.value == 'closest_time') {
+      if (agg == 'closest_time') {
+        config.aggregate_options = {}
+        config.aggregate_options.time = closestTime
+      }
+      configArray.push(config)
+
+    }
+  }
+  return configArray;
 }
 
 const getConfigWithAggregates = (data:FieldMetadata[],

@@ -83,6 +83,8 @@ try {
       }
       // add labs with its own section header
       $odm->addFields($collection_window["form_name"], null, null, "Labs", $collection_window["data"]["labs"]);
+      // add user-defined labs with its own section header
+      $odm->addFields($collection_window["form_name"], null, null, "User-Defined Labs", $collection_window["data"]["ud_labs"]);
       // add vitals with its own section header
       $odm->addFields($collection_window["form_name"], null, null, "Vitals", $collection_window["data"]["vitals"]);
       // add outcomes with its own section header
