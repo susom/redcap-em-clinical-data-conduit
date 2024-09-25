@@ -64,6 +64,18 @@
         header="Default Aggregates"
         toggleable
       >
+        <div>
+          {{props.initialWindow?.aggregate_defaults}}
+        </div>
+        <div>
+          {{props.aggregateDefaults}}
+        </div>
+        <div>
+          {{localAggregateDefaults}}
+        </div>
+        <div>
+          {{filteredAggregates}}
+        </div>
           <div>
             <p>
               Clinical variables that are added and require aggregation (i.e., any clinical variables under the category of "Labs" or "Vitals") will default to the settings here for convenience.
@@ -144,7 +156,7 @@
                       :options="datetimeEventOptions"
                       optionLabel="label"
                       placeholder="Choose an event"
-                      v-if="showClosestEvent"
+                      v-show="showClosestEvent"
                       :class="[{ 'p-invalid': v$.closestEvent.$error }]"
                       :disabled="initialContainsClosest"
                       />
@@ -164,7 +176,7 @@
       </Panel>
 
       <Accordion :multiple="true" :activeIndex="activeClinicalOptions" class="mt-2">
-      <AccordionTab header="DUSTER Labs">
+      <AccordionTab header="Labs">
         <ClinicalDataOptions
             category="labs"
             :options="labOptions"
@@ -179,10 +191,11 @@
             v-model:selected-options="localClinicalData.labs"
         />
       </AccordionTab>
-      <AccordionTab header="Labs">
-        {{localClinicalData.ud_labs}}
+      <AccordionTab header="User-Defined Labs">
+        {{(initialData as any).ud_labs}}
         <Labs
             :selected-labs="localClinicalData.ud_labs"
+            :initial-labs="(initialData as any).ud_labs"
             :has-closest-time="hasClosestTime"
             :has-closest-event="hasClosestEvent"
             @update-labs="updateUdLabs"
@@ -350,10 +363,15 @@ const localClinicalData = computed({
 
 const localAggregateDefaults = computed({
   get() {
+    console.log("366");
+    console.log(props.aggregateDefaults);
     return props.aggregateDefaults;
   },
   set(value:(Array<TextValuePair>|undefined)){
-    emit('update:aggregateDefaults', value)
+    console.log("371");
+    console.log(props.aggregateDefaults);
+    console.log(value);
+    emit('update:aggregateDefaults', value);
   }
 });
 
@@ -366,7 +384,7 @@ const initialAggregates = computed(() => {
 
 const initialData = computed(() => {
   return props.initialWindow?.data !== undefined
-    ? props.initialWindow?.data : {};
+    ? JSON.parse(JSON.stringify(props.initialWindow?.data)) : {};
 });
 
 // TODO test this works
@@ -396,14 +414,13 @@ const filteredAggregates = computed(() => {
 })
 
 /*** closest event ***/
-
 const closestEvent = computed({
   get() {
     return props.closestToEvent;
   },
   set(value) {
     // only used when reset?
-    emit('update:closestToEvent', value)
+    emit('update:closestToEvent', value);
   }
 })
 
@@ -449,6 +466,8 @@ const hasClosestEvent = computed(() => {
 
 // TODO refactor this?
 const showClosestEvent = computed(() => {
+  console.log("showClosestEvent start");
+  console.log(localAggregateDefaults.value);
   let show = false
   if (hasClosestEvent.value) {
     // show closest event if it's selected as a default
@@ -471,34 +490,59 @@ const showClosestEvent = computed(() => {
     // show closest event if it's selected as an aggregate for a user-defined lab
     if (!show) {
       show = localClinicalData.value.ud_labs.findIndex((cd: any) =>
-          cd.aggregation_options.findIndex((option: any) => option.value === 'closest_event') > -1) > -1
+          cd.aggregation_options.findIndex((option: any) => option === 'closest_event') > -1) > -1
     }
   }
-  return show
+  console.log("showClosestEvent end");
+  console.log(localAggregateDefaults.value);
+
+  return show;
 })
 
 watch(showClosestEvent, (show) => {
+  console.log("498");
+  console.log(localAggregateDefaults.value);
   if (!show) {
-    closestEvent.value = []
-    localClosestEvent.value = JSON.parse(JSON.stringify(INIT_TIMING_CONFIG))
-    removeAggregate('closest_event')
+    console.log("501");
+    console.log(localAggregateDefaults.value);
+    closestEvent.value = [];
+    console.log("504");
+    console.log(localAggregateDefaults.value);
+    console.log("506");
+    console.log(localAggregateDefaults.value);
+    localClosestEvent.value = JSON.parse(JSON.stringify(INIT_TIMING_CONFIG));
+    console.log("509");
+    console.log(localAggregateDefaults.value);
+    removeAggregate('closest_event');
+    console.log("512");
+    console.log(localAggregateDefaults.value);
   }
 })
 
 const removeAggregate=(aggregate: string) => {
+  console.log("removeAggregate start");
+  console.log(localAggregateDefaults.value);
   // remove default aggregate
   if (localAggregateDefaults.value) {
     // doesn't work if you try to do this all in one line
     const removed = localAggregateDefaults.value.filter(agg => agg.value !== aggregate)
     localAggregateDefaults.value = removed
+    console.log("removeAggregate removed");
+    console.log(localAggregateDefaults.value);
   }
   // remove custom aggregates from labs
   localClinicalData.value.labs = removeCustomAggregates(aggregate, localClinicalData.value.labs)
+  console.log("removeAggregate 518");
+  console.log(localAggregateDefaults.value);
   // remove custom aggregates from vitals
   localClinicalData.value.vitals = removeCustomAggregates(aggregate, localClinicalData.value.vitals)
+  console.log("removeAggregate 521");
+  console.log(localAggregateDefaults.value);
 }
 
 const removeCustomAggregates=(aggregate: string, clinicalOptions: any) => {
+  console.log("removeCustomAggregate 527");
+  console.log(localAggregateDefaults.value);
   const mapped = clinicalOptions.map((cd:any) => {
     if (cd.selected && cd.aggregate_type === 'custom' &&
         (JSON.stringify(cd.aggregates).indexOf(aggregate) > -1)) {
@@ -511,6 +555,8 @@ const removeCustomAggregates=(aggregate: string, clinicalOptions: any) => {
     }
     return cd
   })
+  console.log("removeAggregate 541");
+  console.log(localAggregateDefaults.value);
   return mapped
 }
 
@@ -526,7 +572,7 @@ const closestTime = computed({
     return props.closestToTime;
   },
   set(value) {
-    emit('update:closestToTime', value)
+    emit('update:closestToTime', value);
   }
 })
 
@@ -604,7 +650,7 @@ const showClosestTime = computed(() => {
     // show closest time if it's selected as an aggregate for a user-defined lab
     if (!show) {
       show = localClinicalData.value.ud_labs.findIndex((cd: any) =>
-          cd.aggregation_options.findIndex((option: any) => option.value === 'closest_time') > -1) > -1
+          cd.aggregation_options.findIndex((option: any) => option === 'closest_time') > -1) > -1
     }
   }
   return show
@@ -612,22 +658,30 @@ const showClosestTime = computed(() => {
 
 watch(showClosestTime,(show) => {
   if (!show) {
-    closestCalendarTime.value = new Date('2024T08:00')
-    closestTime.value = undefined
-    removeAggregate('closest_time')
+    closestCalendarTime.value = new Date('2024T08:00');
+    closestTime.value = undefined;
+    removeAggregate('closest_time');
   }
 })
 
 const defaultAggregatesRequired = computed(() => {
+  console.log("663");
+  console.log(localAggregateDefaults.value);
   let hasDefaults = (localClinicalData.value.labs) ?
       (localClinicalData.value.labs.findIndex((cd: any) =>
       (cd.selected && cd.aggregate_type == 'default')) > -1)
       : false
 
+  console.log("670");
+  console.log(localAggregateDefaults.value);
   if (!hasDefaults) {
     hasDefaults = (localClinicalData.value.vitals) ? (localClinicalData.value.vitals.findIndex((cd: any) =>
         (cd.selected && cd.aggregate_type === 'default')) > -1) : false
+    console.log("675");
+    console.log(localAggregateDefaults.value);
   }
+  console.log("678");
+  console.log(localAggregateDefaults.value);
   return hasDefaults
   }
 )
@@ -646,24 +700,22 @@ const validationFields = computed(() => {
 
 const rules = computed(() =>({
       aggregateDefaults: {
-    requiredIf: helpers.withMessage(
-        "At least one default aggregate must be selected.",
-        requiredIf(defaultAggregatesRequired.value)
-    ),
-    minLength: minLength(1)
-  },
-  closestEvent: {
-      requiredIf: helpers.withMessage(
-          "Closest event is required", requiredIf(showClosestEvent.value))
-    },
-  closestTime: {
-      requiredIf: helpers.withMessage("Closest time is required",
-        requiredIf(showClosestTime.value)),
-      timeFormat: helpers.withMessage("Incorrect time format",
-          timeFormat)
-    }
-})
-)
+        requiredIf: helpers.withMessage(
+            "At least one default aggregate must be selected.",
+            requiredIf(defaultAggregatesRequired.value)
+        ),
+        minLength: minLength(1)
+      },
+      closestEvent: {
+        requiredIf: helpers.withMessage(
+            "Closest event is required", requiredIf(showClosestEvent.value))
+      },
+      closestTime: {
+        requiredIf: helpers.withMessage("Closest time is required",
+            requiredIf(showClosestTime.value)),
+        timeFormat: helpers.withMessage("Incorrect time format", timeFormat)
+      }
+}))
 
 const v$ = useVuelidate(rules, validationFields)
 watchEffect(() => {

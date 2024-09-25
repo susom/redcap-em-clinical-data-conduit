@@ -90,11 +90,12 @@
 
     <!-- user-defined labs -->
     <DataTable
-        :value="cw.data.ud_labs"
+        :value="getUdFields(cw.data.ud_labs)"
         class="mt-2"
         tableStyle="min-width: 50rem"
         v-if="cw.data.ud_labs.length > 0"
     >
+      {{getUdFields(cw.data.ud_labs)}}
       <template #header>
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
           <span class="text-0 text-900 font-bold">Labs</span>
@@ -530,6 +531,62 @@ const getUdLabsWithAggregates = (data:any[],
                                  closestTime?:string) => {
   let configArray:FieldConfig[] = [];
   let evt = (event && event[0]) ? event[0] : INIT_TIMING_CONFIG
+
+  // TODO refactor code in other files dependent on this config
+  // -- DataTable for user-defined labs
+  for (let lab of data) {
+    let config:any = {
+      lab_results: lab.lab_results,
+      value_type: lab.value_type,
+      min_threshold: lab.min_threshold,
+      max_threshold: lab.max_threshold,
+      fields: []
+    };
+
+    for (let field of lab.aggregation_options) {
+      //let aggName = agg['value'].replace('_agg','');
+      let aggName = field.replace('_agg', '');
+
+      // convert label for use with aggregate name
+      const fieldName = lab.label.trim().toLowerCase()
+          .replace(/ +/g, '_') // replace spaces with underscore
+          .replace(/[^a-z_0-9]/g, '') // remove illegal characters
+          .replace(/[_+]/g, '_') // replace multiple _ with a single one
+          .replace(/_$/g, ''); // remove trailing _
+
+      // REDCap field note includes the reference unit and optional minimum/maximum thresholds
+      let fieldNote = lab.reference_unit ? lab.reference_unit : '';
+      if (typeof lab.min_threshold === 'number') {
+        fieldNote += '<br>Minimum Threshold: ' + lab.min_threshold;
+      }
+      if (typeof lab.max_threshold === 'number') {
+        fieldNote += '<br>Maximum Threshold: ' + lab.max_threshold;
+      }
+
+      let fieldObj: any = {
+        label: getAggregateLabel(lab.label, field, evt, closestTime),
+        redcap_field_name: 'ud_' + fieldName + "_" + aggName + "_" + index,
+        redcap_field_type: "text",
+        redcap_field_note: fieldNote,
+        redcap_options: "",
+        value_type: lab.value_type,
+        aggregate: field,
+      };
+      if (field == 'closest_event' && event) {
+        fieldObj.aggregate_options = {};
+        fieldObj.aggregate_options.event = event[0].redcap_field_name;
+      }
+      if (field == 'closest_time') {
+        fieldObj.aggregate_options = {};
+        fieldObj.aggregate_options.time = closestTime;
+      }
+
+      config.fields.push(fieldObj);
+    }
+    configArray.push(config);
+  }
+
+  /*
   for (let field of data) {
     for (let agg of field.aggregation_options) {
       //let aggName = agg['value'].replace('_agg','');
@@ -578,7 +635,46 @@ const getUdLabsWithAggregates = (data:any[],
 
     }
   }
+  */
+  console.log(configArray);
   return configArray;
+}
+
+// TODO refactor
+const getUdFields = (ud_labs:any[]) => {
+  /*
+  let udFields:any[] = [];
+  ud_labs.forEach((udLab) => {
+    console.log("udLab");
+    console.log(udLab);
+    let udLabFields = udLab.fields;
+    udFields.concat(udLab.fields);
+    console.log("udLabFields");
+    console.log(udLabFields);
+  });
+  console.log(udFields);
+
+  const testArr = ud_labs.map((udLab) => {
+    return udLab.fields;
+  });
+  console.log("testArr");
+  console.log(testArr);
+   */
+
+  const testArr = ud_labs.map(udLab => udLab.fields);
+  let finalArr:any[] = [];
+  for (let arr of testArr) {
+    finalArr = finalArr.concat(arr);
+  }
+  console.log("testArr");
+  console.log(testArr);
+  console.log("finalArr");
+  console.log(finalArr);
+  return finalArr;
+
+
+  // return ud_labs.flatMap(udLab => udLab.fields);
+  // return ud_labs.map(udLab => udLab.fields).flat();
 }
 
 const getConfigWithAggregates = (data:FieldMetadata[],

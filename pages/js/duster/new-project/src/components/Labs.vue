@@ -5,7 +5,7 @@
   import InputText from 'primevue/inputtext';
   import AutoComplete from 'primevue/autocomplete';
   import { AGGREGATE_OPTIONS, TEXT_AGGREGATE_OPTIONS} from "@/types/FieldConfig";
-  import { required, requiredIf, helpers } from "@vuelidate/validators";
+  import {required, requiredIf, helpers, maxValue} from "@vuelidate/validators";
   import { useVuelidate } from "@vuelidate/core";
   import type TextValuePair from "@/types/TextValuePair";
 
@@ -14,6 +14,16 @@
   const emit = defineEmits(['updateLabs']);
 
   const props = defineProps({
+    selectedLabs: {
+      type: Array,
+      required: true,
+      default: () => []
+    },
+    initialLabs: {
+      type: Array,
+      required: true,
+      default: () => []
+    },
     hasClosestTime: {
       type: Boolean,
       required: true
@@ -21,11 +31,6 @@
     hasClosestEvent: {
       type: Boolean,
       required: true
-    },
-    selectedLabs: {
-      type: Array,
-      required: true,
-      default: () => []
     }
   });
 
@@ -74,11 +79,6 @@
   const labToDelete = ref();
   const visibleConfirmDeleteLab = ref(false);
 
-  watch(valueType, () => {
-    aggSelections.value = [];
-    v$.value.aggSelections.$reset();
-  });
-
   const labForm = computed(() => {
     return {
       id: id.value,
@@ -98,7 +98,8 @@
       label: label.value,
       valueType: valueType.value,
       aggSelections: aggSelections.value,
-      minThreshold: minThreshold.value
+      minThreshold: minThreshold.value,
+      maxThreshold: maxThreshold.value
     }
   });
 
@@ -108,9 +109,12 @@
     },
     label: {
       required,
-      custom: helpers.withMessage('Label must be unique.', () => {
+      customUnique: helpers.withMessage('Label must be unique.', () => {
         const otherLabels = localSelectedLabs.value.filter((result:any) => result.id !== id.value);
         return !otherLabels.map((result:any) => result.label).includes(label.value);
+      }),
+      customLegal: helpers.withMessage('Label must be alphanumeric with spaces.', () => {
+        return /^[a-zA-Z0-9 ]+$/.test(label.value);
       })
     },
     valueType: {
@@ -120,9 +124,23 @@
       required: helpers.withMessage('You must select at least one option.', required)
     },
     minThreshold: {
-      custom: helpers.withMessage('Minimum must be less than or equal to maximum.', () => {
+      customMax: helpers.withMessage('Minimum must be less than or equal to maximum.', () => {
         if (minThreshold.value && maxThreshold.value) {
           return minThreshold.value <= maxThreshold.value;
+        }
+        return true;
+      }),
+      customValidNum: helpers.withMessage('Minimum must be less than 9999999.', () => {
+        if (minThreshold.value) {
+          return minThreshold.value < 9999999;
+        }
+        return true;
+      })
+    },
+    maxThreshold: {
+      custom: helpers.withMessage('Maximum must be less than 9999999.', () => {
+        if (maxThreshold.value) {
+          return maxThreshold.value < 9999999;
         }
         return true;
       })
@@ -131,6 +149,7 @@
 
   const v$ = useVuelidate(rules, validationState, { $scope: false });
 
+  // TODO update how this filters, not very robust/effective for end user
   const searchLabResults = (event:any) => {
     searchingLabResults.value = true;
     const query = event.query.trim();
@@ -145,7 +164,7 @@
   }
 
   const canEditOrDelete = (lab:any) => {
-    return props.selectedLabs.findIndex((obj:any) => obj.id === lab.id) === -1;
+    return props.initialLabs.findIndex((obj:any) => obj.id === lab.id) === -1;
   }
 
   const submitForm = () => {
@@ -176,6 +195,7 @@
       minThreshold.value = labObj.min_threshold;
       maxThreshold.value = labObj.max_threshold;
       visibleLabForm.value = true;
+      console.log(aggSelections.value);
     }
   }
 
@@ -313,7 +333,6 @@
       @click="visibleLabForm = true"
   >
   </Button>
-  {{localSelectedLabs}}
   <Dialog
     :visible="visibleLabForm"
     modal
@@ -399,7 +418,7 @@
                   :inputId="type"
                   :value="type"
                   :class="{ 'p-invalid': v$.valueType.$error }"
-                  @change="aggSelections = [], minThreshold = null, maxThreshold = null"
+                  @change="aggSelections = [], v$.aggSelections.$reset(), minThreshold = null, maxThreshold = null"
                   @blur="v$.valueType.$touch()"
               />
               <label
@@ -464,7 +483,6 @@
             >
               <Checkbox
                   v-model="aggSelections"
-                  :inputId="option.value"
                   :value="option.value"
                   @blur="v$.aggSelections.$touch()"
               />
@@ -515,8 +533,8 @@
             <InputNumber
                 id="max-threshold"
                 v-model="maxThreshold"
-                @blur="v$.minThreshold.$touch()"
-                :class="{ 'p-invalid': v$.minThreshold.$error }"
+                @blur="v$.minThreshold.$touch(), v$.maxThreshold.$touch()"
+                :class="{ 'p-invalid': v$.minThreshold.$error || v$.maxThreshold.$error }"
                 :useGrouping="false"
                 :minFractionDigits="0"
                 :maxFractionDigits="2"
@@ -528,6 +546,12 @@
               class="flex p-error mb-3"
           >
             {{ v$.minThreshold.$errors[0].$message }}
+          </small>
+          <small
+              v-if="v$.maxThreshold.$error"
+              class="flex p-error mb-3"
+          >
+            {{ v$.maxThreshold.$errors[0].$message }}
           </small>
         </div>
 

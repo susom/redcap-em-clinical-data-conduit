@@ -7,9 +7,9 @@ namespace Stanford\Duster;
  */
 
 $search_url = $module->getSystemSetting("starrapi-metadata-url") . '/labs/';
-$module->emLog($search_url);
+//$module->emLog($search_url);
 $results = $module->starrApiGetRequest($search_url, 'ddp');
-$module->emLog($results);
+//$module->emLog($results);
 // error handled by starrApiGetRequest
 if ($results === null) {
   http_response_code(500);

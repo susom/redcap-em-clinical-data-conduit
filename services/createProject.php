@@ -83,10 +83,15 @@ try {
       }
       // add labs with its own section header
       $odm->addFields($collection_window["form_name"], null, null, "Labs", $collection_window["data"]["labs"]);
+
       // add user-defined labs with its own section header
-      $odm->addFields($collection_window["form_name"], null, null, "User-Defined Labs", $collection_window["data"]["ud_labs"]);
+      $ud_labs = $collection_window['data']['ud_labs'];
+      $ud_labs_fields_arr = !empty($ud_labs) ? array_merge(...array_column($ud_labs, 'fields')) : [];
+      $odm->addFields($collection_window["form_name"], null, null, "User-Defined Labs", $ud_labs_fields_arr);
+
       // add vitals with its own section header
       $odm->addFields($collection_window["form_name"], null, null, "Vitals", $collection_window["data"]["vitals"]);
+
       // add outcomes with its own section header
       $odm->addFields($collection_window["form_name"], null, null, "Outcomes", $collection_window["data"]["outcomes"]);
 
