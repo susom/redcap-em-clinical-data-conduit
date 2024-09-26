@@ -482,11 +482,12 @@
               <Checkbox
                   v-model="aggSelections"
                   :value="option.value"
+                  :inputId="'aggOptions_index_' + index"
                   @blur="v$.aggSelections.$touch()"
               />
 
               <label
-                  :for="option.value"
+                  :for="'aggOptions_index_' + index"
                   class="ml-2"
               >
                 {{option.text}}
