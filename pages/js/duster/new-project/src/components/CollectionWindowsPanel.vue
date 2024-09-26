@@ -90,11 +90,11 @@
 
           <Button @click="showClinicalData('duster_labs', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded
                   :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
-            DUSTER Labs<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].labs.length }}</Badge>
+            Labs<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].labs.length }}</Badge>
           </Button>
           <Button @click="showClinicalData('labs', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded
                   :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
-            Labs<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].ud_labs.length }}</Badge>
+            User-Defined Labs<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].ud_labs.length }}</Badge>
           </Button>
           <Button @click="showClinicalData('vitals', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
               Vitals<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].vitals.length }}</Badge>

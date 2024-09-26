@@ -64,18 +64,6 @@
         header="Default Aggregates"
         toggleable
       >
-        <div>
-          {{props.initialWindow?.aggregate_defaults}}
-        </div>
-        <div>
-          {{props.aggregateDefaults}}
-        </div>
-        <div>
-          {{localAggregateDefaults}}
-        </div>
-        <div>
-          {{filteredAggregates}}
-        </div>
           <div>
             <p>
               Clinical variables that are added and require aggregation (i.e., any clinical variables under the category of "Labs" or "Vitals") will default to the settings here for convenience.
@@ -192,7 +180,6 @@
         />
       </AccordionTab>
       <AccordionTab header="User-Defined Labs">
-        {{(initialData as any).ud_labs}}
         <Labs
             :selected-labs="localClinicalData.ud_labs"
             :initial-labs="(initialData as any).ud_labs"
@@ -363,14 +350,9 @@ const localClinicalData = computed({
 
 const localAggregateDefaults = computed({
   get() {
-    console.log("366");
-    console.log(props.aggregateDefaults);
     return props.aggregateDefaults;
   },
   set(value:(Array<TextValuePair>|undefined)){
-    console.log("371");
-    console.log(props.aggregateDefaults);
-    console.log(value);
     emit('update:aggregateDefaults', value);
   }
 });
@@ -466,8 +448,6 @@ const hasClosestEvent = computed(() => {
 
 // TODO refactor this?
 const showClosestEvent = computed(() => {
-  console.log("showClosestEvent start");
-  console.log(localAggregateDefaults.value);
   let show = false
   if (hasClosestEvent.value) {
     // show closest event if it's selected as a default
@@ -493,71 +473,45 @@ const showClosestEvent = computed(() => {
           cd.aggregation_options.findIndex((option: any) => option === 'closest_event') > -1) > -1
     }
   }
-  console.log("showClosestEvent end");
-  console.log(localAggregateDefaults.value);
 
   return show;
 })
 
 watch(showClosestEvent, (show) => {
-  console.log("498");
-  console.log(localAggregateDefaults.value);
   if (!show) {
-    console.log("501");
-    console.log(localAggregateDefaults.value);
     closestEvent.value = [];
-    console.log("504");
-    console.log(localAggregateDefaults.value);
-    console.log("506");
-    console.log(localAggregateDefaults.value);
     localClosestEvent.value = JSON.parse(JSON.stringify(INIT_TIMING_CONFIG));
-    console.log("509");
-    console.log(localAggregateDefaults.value);
     removeAggregate('closest_event');
-    console.log("512");
-    console.log(localAggregateDefaults.value);
   }
 })
 
 const removeAggregate=(aggregate: string) => {
-  console.log("removeAggregate start");
-  console.log(localAggregateDefaults.value);
   // remove default aggregate
   if (localAggregateDefaults.value) {
     // doesn't work if you try to do this all in one line
-    const removed = localAggregateDefaults.value.filter(agg => agg.value !== aggregate)
-    localAggregateDefaults.value = removed
-    console.log("removeAggregate removed");
-    console.log(localAggregateDefaults.value);
+    const removed = localAggregateDefaults.value.filter(agg => agg.value !== aggregate);
+    localAggregateDefaults.value = removed;
   }
   // remove custom aggregates from labs
-  localClinicalData.value.labs = removeCustomAggregates(aggregate, localClinicalData.value.labs)
-  console.log("removeAggregate 518");
-  console.log(localAggregateDefaults.value);
+  localClinicalData.value.labs = removeCustomAggregates(aggregate, localClinicalData.value.labs);
   // remove custom aggregates from vitals
-  localClinicalData.value.vitals = removeCustomAggregates(aggregate, localClinicalData.value.vitals)
-  console.log("removeAggregate 521");
-  console.log(localAggregateDefaults.value);
+  localClinicalData.value.vitals = removeCustomAggregates(aggregate, localClinicalData.value.vitals);
 }
 
 const removeCustomAggregates=(aggregate: string, clinicalOptions: any) => {
-  console.log("removeCustomAggregate 527");
-  console.log(localAggregateDefaults.value);
   const mapped = clinicalOptions.map((cd:any) => {
     if (cd.selected && cd.aggregate_type === 'custom' &&
         (JSON.stringify(cd.aggregates).indexOf(aggregate) > -1)) {
-      const removed = cd.aggregates.filter((agg:any) => agg.value != aggregate)
-      cd.aggregates = removed
+      const removed = cd.aggregates.filter((agg:any) => agg.value != aggregate);
+      cd.aggregates = removed;
       // if there are no more custom aggregates after removing, then set the aggregate type to default
       if (removed.length === 0) {
-        cd.aggregate_type = 'default'
+        cd.aggregate_type = 'default';
       }
     }
-    return cd
+    return cd;
   })
-  console.log("removeAggregate 541");
-  console.log(localAggregateDefaults.value);
-  return mapped
+  return mapped;
 }
 
 /** closest event selector should only show datetime options **/
@@ -665,24 +619,16 @@ watch(showClosestTime,(show) => {
 })
 
 const defaultAggregatesRequired = computed(() => {
-  console.log("663");
-  console.log(localAggregateDefaults.value);
   let hasDefaults = (localClinicalData.value.labs) ?
       (localClinicalData.value.labs.findIndex((cd: any) =>
       (cd.selected && cd.aggregate_type == 'default')) > -1)
-      : false
+      : false;
 
-  console.log("670");
-  console.log(localAggregateDefaults.value);
   if (!hasDefaults) {
     hasDefaults = (localClinicalData.value.vitals) ? (localClinicalData.value.vitals.findIndex((cd: any) =>
-        (cd.selected && cd.aggregate_type === 'default')) > -1) : false
-    console.log("675");
-    console.log(localAggregateDefaults.value);
+        (cd.selected && cd.aggregate_type === 'default')) > -1) : false;
   }
-  console.log("678");
-  console.log(localAggregateDefaults.value);
-  return hasDefaults
+  return hasDefaults;
   }
 )
 

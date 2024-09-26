@@ -95,7 +95,6 @@
         tableStyle="min-width: 50rem"
         v-if="cw.data.ud_labs.length > 0"
     >
-      {{getUdFields(cw.data.ud_labs)}}
       <template #header>
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
           <span class="text-0 text-900 font-bold">Labs</span>
@@ -636,7 +635,7 @@ const getUdLabsWithAggregates = (data:any[],
     }
   }
   */
-  console.log(configArray);
+  //console.log(configArray);
   return configArray;
 }
 
@@ -666,12 +665,13 @@ const getUdFields = (ud_labs:any[]) => {
   for (let arr of testArr) {
     finalArr = finalArr.concat(arr);
   }
+  /*
   console.log("testArr");
   console.log(testArr);
   console.log("finalArr");
   console.log(finalArr);
+  */
   return finalArr;
-
 
   // return ud_labs.flatMap(udLab => udLab.fields);
   // return ud_labs.map(udLab => udLab.fields).flat();

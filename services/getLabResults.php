@@ -3,7 +3,7 @@ namespace Stanford\Duster;
 /** @var $module Duster */
 
 /**
- * TODO
+ * service page to retrieve STARR lab results metadata for new-project Vue app via STARR-API
  */
 
 $search_url = $module->getSystemSetting("starrapi-metadata-url") . '/labs/';

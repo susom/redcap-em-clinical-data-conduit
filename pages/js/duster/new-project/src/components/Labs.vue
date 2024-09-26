@@ -195,7 +195,6 @@
       minThreshold.value = labObj.min_threshold;
       maxThreshold.value = labObj.max_threshold;
       visibleLabForm.value = true;
-      console.log(aggSelections.value);
     }
   }
 
@@ -340,7 +339,6 @@
     :closable="false"
     :style="{width:'80rem'}"
   >
-    {{labForm}}
     <div class="formgrid grid">
       <div>
         <label
