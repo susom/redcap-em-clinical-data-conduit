@@ -164,6 +164,7 @@ import ReviewPanel from '@/components/ReviewPanel.vue';
 
 // for testing
 import resp from './dusterTestMetadata.json';
+import labResultsDev from './lab_results.json'; // TODO delete this line
 import {useToast} from "primevue/usetoast";
 import Toast from 'primevue/toast';
 import {useVuelidate} from "@vuelidate/core";
@@ -222,6 +223,12 @@ const vitalOptions = ref<FieldMetadata[]>([]);
 const outcomeOptions = ref<FieldMetadata[]>([]);
 const scoreOptions = ref<FieldMetadata[]>([]);
 const clinicalDateOptions = ref<FieldMetadata[]>([]);
+
+const labResults = ref();
+const labResultsMetadata = computed<any>(() => {
+  return labResults.value.results;
+});
+provide('labResults', labResultsMetadata);
 
 const metadataArr = computed<Array<FieldMetadata>>(() => {
   let arr:FieldMetadata[] = [];
@@ -461,6 +468,9 @@ const getDusterMetadata = (metadataUrl:string) => {
     outcomeOptions.value = resp.data.outcomes;
     scoreOptions.value = resp.data.scores;
     clinicalDateOptions.value = resp.data.clinical_dates;
+
+    // get lab results metadata
+
   } else {
     axios.get(metadataUrl)
       .then(function (response) {
@@ -470,26 +480,35 @@ const getDusterMetadata = (metadataUrl:string) => {
         outcomeOptions.value = response.data.outcomes;
         scoreOptions.value = response.data.scores;
         clinicalDateOptions.value = response.data.clinical_dates;
-        irbCheckVisible.value = false;
+        // get lab results metadata
+        axios.get(projectConfig.get_lab_results_url)
+            .then(function (response) {
+              labResults.value = response.data;
+              irbCheckVisible.value = false;
 
-        //  fetch dataset designs
-        axios.get(projectConfig.get_dataset_designs_url)
-          .then(function (response) {
-            const designs = response.data;
-            // prompt to restore auto-save
-            if (projectConfig.edit_mode === false && designs.hasOwnProperty('auto-save') === true) {
-              autoSaveDesign.value = JSON.parse(designs['auto-save']);
-              promptRestoreAutoSave.value = true;
-            } else if (projectConfig.edit_mode === true) {
-              loadEditMode();
-            }
-          })
-          .catch(function (error) {
+              //  fetch dataset designs
+              axios.get(projectConfig.get_dataset_designs_url)
+                  .then(function (response) {
+                    const designs = response.data;
+                    // prompt to restore auto-save
+                    if (projectConfig.edit_mode === false && designs.hasOwnProperty('auto-save') === true) {
+                      autoSaveDesign.value = JSON.parse(designs['auto-save']);
+                      promptRestoreAutoSave.value = true;
+                    } else if (projectConfig.edit_mode === true) {
+                      loadEditMode();
+                    }
+                  })
+                  .catch(function (error) {
 
-          });
+                  });
+            })
+            .catch(function (error) {
+              irbCheckMessage.value = "Unable to load DUSTER metadata.";
+              systemError.value = true;
+            });
       }).catch(function (error) {
-        irbCheckMessage.value = "Unable to load DUSTER metadata";
-        systemError.value = true;
+        irbCheckMessage.value = "Unable to load DUSTER metadata.";
+      systemError.value = true;
     });
   }
 };

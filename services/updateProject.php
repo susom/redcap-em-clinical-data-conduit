@@ -43,6 +43,10 @@ function getFieldParams($field, string $form_name = "", string $section_header =
     );
 }
 
+$get_field_params = function($field, string $form_name = "", string $section_header = ""):array {
+    return getFieldParams($field, $form_name, $section_header);
+};
+
 /**
  * avoiding false-positive Psalm TaintedSSRF on $_POST['data']
  * @psalm-taint-escape ssrf
@@ -196,9 +200,19 @@ try {
             $labs = $collection_window['data']['labs'];
             if (!empty($labs)) {
                 foreach ($labs as $key => $lab) {
-                    $labs_header = $key === 0 ? 'Labs': '';
+                    $labs_header = $key === 0 ? 'Labs' : '';
                     $cw[] = getFieldParams($lab, $form_name, $labs_header);
                 }
+            }
+
+            // User-Defined Labs
+            $ud_labs = $collection_window['data']['ud_labs'];
+            if (!empty($ud_labs)) {
+                $ud_labs_fields = array_merge(...array_column($ud_labs, 'fields'));
+                $num_fields = count($ud_labs_fields);
+                $ud_form_name_arr = array_fill(0, $num_fields, $form_name);
+                $ud_section_header_arr = array_merge(['User-Defined Labs'], array_fill(0, $num_fields - 1, ''));
+                $cw = array_merge($cw, array_map($get_field_params, $ud_labs_fields, $ud_form_name_arr, $ud_section_header_arr));
             }
 
             // Vitals
