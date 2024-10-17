@@ -87,17 +87,43 @@
         style="width: 40%"
       >
         <template #body="slotProps">
-
-          <Button @click="showClinicalData('duster_labs', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded
-                  :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
-            Labs<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].labs.length }}</Badge>
+          <Button
+              @click="showClinicalData('labs', slotProps.data)"
+              size="small"
+              class="ml-1 p-1 pr-2 pl-2"
+              rounded
+              :severity="(v$.$dirty
+                && !slotProps.data[slotProps.field].valid
+                && slotProps.data.data.errors?.findIndex((cd: any) => (cd.$property === 'aggregateDefaults')) > -1)
+                ? 'danger':'primary'"
+          >
+            Labs
+            <Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].labs.length }}</Badge>
           </Button>
-          <Button @click="showClinicalData('labs', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded
-                  :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
-            User-Defined Labs<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].ud_labs.length }}</Badge>
+          <Button
+              @click="showClinicalData('ud_labs', slotProps.data)"
+              size="small"
+              class="ml-1 p-1 pr-2 pl-2"
+              rounded
+              :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid
+                 && slotProps.data.data.errors?.findIndex((cd: any) => (cd.$property === 'udLabsMissingAggregates')) > -1)
+                 ? 'danger':'primary'"
+          >
+            User-Defined Labs
+            <Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].ud_labs.length }}</Badge>
           </Button>
-          <Button @click="showClinicalData('vitals', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
-              Vitals<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].vitals.length }}</Badge>
+          <Button
+              @click="showClinicalData('vitals', slotProps.data)"
+              size="small"
+              class="ml-1 p-1 pr-2 pl-2"
+              rounded
+              :severity="(v$.$dirty
+                && !slotProps.data[slotProps.field].valid
+                && slotProps.data.data.errors?.findIndex((cd: any) => (cd.$property === 'aggregateDefaults')) > -1)
+                ? 'danger':'primary'"
+          >
+            Vitals
+            <Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].vitals.length }}</Badge>
           </Button>
           <!-- TODO Medications
           <Button @click="showClinicalData('medications', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
@@ -336,10 +362,10 @@ const showClinicalData = (category:string, cw: CollectionWindow) => {
   clinicalDataCategory.value = category
   activeClinicalOptions.value.length = 0
   switch (category) {
-    case 'duster_labs' :
+    case 'labs' :
       activeClinicalOptions.value.push(0);
       break;
-    case 'labs':
+    case 'ud_labs':
       activeClinicalOptions.value.push(1);
       break;
     case 'vitals' :
@@ -351,10 +377,10 @@ const showClinicalData = (category:string, cw: CollectionWindow) => {
     case 'scores' :
       activeClinicalOptions.value.push(4);
     /* TODO Medications
-    case 'duster_labs' :
+    case 'labs' :
       activeClinicalOptions.value.push(0);
       break;
-    case 'labs':
+    case 'ud_labs':
       activeClinicalOptions.value.push(1);
       break;
     case 'vitals' :

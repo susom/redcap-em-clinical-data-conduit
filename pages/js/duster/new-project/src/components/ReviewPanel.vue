@@ -80,7 +80,7 @@
     >
       <template #header>
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-          <span class="text-0 text-900 font-bold">DUSTER Labs</span>
+          <span class="text-0 text-900 font-bold">Labs</span>
         </div>
       </template>
       <Column field="label" header="Label"></Column>
@@ -97,7 +97,7 @@
     >
       <template #header>
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-          <span class="text-0 text-900 font-bold">Labs</span>
+          <span class="text-0 text-900 font-bold">User-Defined Labs</span>
         </div>
       </template>
       <Column field="label" header="Label"></Column>
