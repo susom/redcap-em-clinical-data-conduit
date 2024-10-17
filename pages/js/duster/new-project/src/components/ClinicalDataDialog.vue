@@ -186,7 +186,7 @@
         />
       </AccordionTab>
       <AccordionTab header="User-Defined Labs">
-        <Labs
+        <UserDefinedLabs
             :selected-labs="localClinicalData.ud_labs"
             :initial-labs="(initialData as any).ud_labs"
             :has-closest-time="hasClosestTime"
@@ -261,7 +261,7 @@ import type FieldConfig from "@/types/FieldConfig";
 import type TimingConfig from "@/types/TimingConfig";
 import type TextValuePair from "@/types/TextValuePair";
 import ClinicalDataOptions from "./ClinicalDataOptions.vue";
-import Labs from "@/components/Labs.vue";
+import UserDefinedLabs from "@/components/UserDefinedLabs.vue";
 import Chips from "primevue/chips";
 import { useToast } from "primevue/usetoast";
 import Toast from 'primevue/toast';
