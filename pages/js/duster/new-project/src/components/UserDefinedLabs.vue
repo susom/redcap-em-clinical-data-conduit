@@ -381,12 +381,17 @@
             Label
           </label>
           <InputText
+              maxlength="26"
               id="label"
               v-model="label"
               autocomplete="off"
               :class="{ 'p-invalid': v$.label.$error }"
               @blur="v$.label.$touch()"
           />
+          <br/>
+          <small>
+            {{label?.length ? label.length : 0}}/26 characters
+          </small>
           <small
               v-if="v$.label.$error"
               class="flex p-error mb-3"
@@ -398,10 +403,15 @@
         <div class="mb-2">
           <label for="notes" class="font-bold block mb-2">Notes (optional)</label>
           <InputText
+              maxlength="80"
               id="notes"
               v-model="notes"
               autocomplete="off"
           />
+          <br/>
+          <small>
+            {{notes?.length ? notes.length : 0}}/80 characters
+          </small>
         </div>
 
         <p class="font-bold block mb-2">Value Type</p>
@@ -472,29 +482,28 @@
           </div>
           -->
 
-          <div
-            class="mb-4 formgroup-inline"
-          >
-            <div
-                class="mr-2"
-                v-for="(option, index) in aggOptions"
-                :key="index"
-            >
-              <Checkbox
-                  v-model="aggSelections"
-                  :value="option.value"
-                  :inputId="'aggOptions_index_' + index"
-                  @blur="v$.aggSelections.$touch()"
-              />
-
-              <label
-                  :for="'aggOptions_index_' + index"
-                  class="ml-2"
+          <div class="mb-4">
+            <div class="formgroup-inline">
+              <div
+                  class="mr-4"
+                  v-for="(option, index) in aggOptions"
+                  :key="index"
               >
-                {{option.text}}
-              </label>
-            </div>
+                <Checkbox
+                    class="mr-2"
+                    v-model="aggSelections"
+                    :value="option.value"
+                    :inputId="'aggOptions_index_' + index"
+                    @blur="v$.aggSelections.$touch()"
+                />
 
+                <label
+                    :for="'aggOptions_index_' + index"
+                >
+                  {{option.text}}
+                </label>
+              </div>
+            </div>
             <small
                 v-if="v$.aggSelections.$error"
                 class="flex p-error mb-3"
@@ -502,7 +511,7 @@
               {{ v$.aggSelections.$errors[0].$message }}
             </small>
           </div>
-          </div>
+        </div>
 
         <div
             class="mb-4"
