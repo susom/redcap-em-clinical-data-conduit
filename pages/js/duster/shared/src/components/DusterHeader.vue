@@ -2,7 +2,7 @@
   <nav>
     <div class="grid">
       <div class="col">
-        <a class="brand-logo" href="https://med.stanford.edu/">Stanford Medicine</a>
+        <a class="brand-logo" href="https://med.stanford.edu/" target="_blank">Stanford Medicine</a>
         <div style="display:inline;float:left" class="mt-2">
           <div class="font-bold text-left" style="font-size:1.25em;">DUSTER</div>
           <div class="text-sm font-italic">Research Technology, TDS</div>

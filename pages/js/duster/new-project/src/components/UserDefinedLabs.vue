@@ -55,7 +55,7 @@
   const editingLab = ref(false);
   const id = ref("");
   const label = ref();
-  const referenceUnit = ref("");
+  const notes = ref("");
   const selectedLabResults = ref([]);
   const valueType = ref();
   const aggSelections = ref<string[]>([]);
@@ -84,7 +84,7 @@
       id: id.value,
       lab_results: selectedLabResults.value,
       label: label.value,
-      reference_unit: referenceUnit.value,
+      notes: notes.value,
       value_type: valueType.value,
       aggregation_options: aggSelections.value,
       min_threshold: minThreshold.value,
@@ -188,7 +188,7 @@
       editingLab.value = true;
       id.value = labObj.id;
       label.value = labObj.label;
-      referenceUnit.value = labObj.reference_unit;
+      notes.value = labObj.notes;
       selectedLabResults.value = labObj.lab_results;
       valueType.value = labObj.value_type;
       aggSelections.value = labObj.aggregation_options;
@@ -217,7 +217,7 @@
     editingLab.value = false;
     id.value = "";
     label.value = "";
-    referenceUnit.value = "";
+    notes.value = "";
     selectedLabResults.value = [];
     valueType.value = null;
     aggSelections.value = [];
@@ -254,8 +254,8 @@
         sortable
     />
     <Column
-        field="reference_unit"
-        header="Reference Unit"
+        field="notes"
+        header="Notes"
         sortable
     />
     <Column
@@ -345,7 +345,7 @@
             for="lab-result-input"
             class="font-bold block"
         >
-          Add lab results
+          Lab Results
         </label>
         <small>
           Multiple may be added. Results will be in the format 'Lab Name [Base Name] (Number of unique patients in STARR) Years resulted'
@@ -396,10 +396,10 @@
         </div>
 
         <div class="mb-2">
-          <label for="unit" class="font-bold block mb-2">Unit of measurement (optional)</label>
+          <label for="notes" class="font-bold block mb-2">Notes (optional)</label>
           <InputText
-              id="unit"
-              v-model="referenceUnit"
+              id="notes"
+              v-model="notes"
               autocomplete="off"
           />
         </div>
@@ -473,9 +473,10 @@
           -->
 
           <div
-            class="formgroup-inline"
+            class="mb-4 formgroup-inline"
           >
             <div
+                class="mr-2"
                 v-for="(option, index) in aggOptions"
                 :key="index"
             >
@@ -493,16 +494,20 @@
                 {{option.text}}
               </label>
             </div>
+
+            <small
+                v-if="v$.aggSelections.$error"
+                class="flex p-error mb-3"
+            >
+              {{ v$.aggSelections.$errors[0].$message }}
+            </small>
           </div>
-          <small
-              v-if="v$.aggSelections.$error"
-              class="flex p-error mb-3"
-          >
-            {{ v$.aggSelections.$errors[0].$message }}
-          </small>
           </div>
 
-        <div v-if="valueType==='numeric'">
+        <div
+            class="mb-4"
+            v-if="valueType==='numeric'"
+        >
           <p class="font-bold block mb-2">Thresholds (optional)</p>
           <div class="flex align-items-center gap-3 mb-2">
             <label
