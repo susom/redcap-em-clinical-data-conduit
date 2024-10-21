@@ -555,7 +555,7 @@ const getUdLabsWithAggregates = (data:any[],
 
       // REDCap field note includes optional notes, lab names and base names, and optional minimum/maximum thresholds
       let fieldNote = lab.notes ? lab.notes + '<br>' : '';
-      fieldNote += 'Lab Results:<br>';
+      fieldNote += '<br>Lab Results:<br>';
       for (let labResult of lab.lab_results) {
         fieldNote += labResult.lab_name + ' [' + labResult.base_name+ ']<br>';
       }
