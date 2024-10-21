@@ -357,7 +357,7 @@
               v-model="selectedLabResults"
               :multiple="true"
               :suggestions="filteredLabResults"
-              :virtualScrollerOptions="{itemSize:38, showLoader:true, lazy:true }"
+              :virtualScrollerOptions="{ itemSize:38, showLoader:true, lazy:true }"
               :loading="searchingLabResults"
               @blur="v$.selectedLabResults.$touch"
               @complete="searchLabResults($event)"
@@ -407,19 +407,19 @@
               id="notes"
               v-model="notes"
               autocomplete="off"
+              class="w-7"
           />
           <br/>
           <small>
             {{notes?.length ? notes.length : 0}}/80 characters
           </small>
         </div>
-
-        <p class="font-bold block mb-2">Value Type</p>
-        <div class="formgroup-inline">
-          <div
-              v-for="type in valueTypes"
-              :key="type"
-          >
+          <p class="font-bold block mb-2">Value Type</p>
+          <div class="formgroup-inline">
+            <div
+                v-for="type in valueTypes"
+                :key="type"
+            >
             <div class="field-radiobutton">
               <RadioButton
                   v-model="valueType"
@@ -512,7 +512,6 @@
             </small>
           </div>
         </div>
-
         <div
             class="mb-4"
             v-if="valueType==='numeric'"
@@ -567,7 +566,6 @@
             {{ v$.maxThreshold.$errors[0].$message }}
           </small>
         </div>
-
       </div>
     </div>
     <template #footer>
