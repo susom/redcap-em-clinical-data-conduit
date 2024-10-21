@@ -159,6 +159,12 @@
                           class="flex p-error ml-2">
                           {{ v$.aggregateDefaults.$errors[0].$message }}
                       </small>
+                      <small
+                          v-if="v$.udLabsMissingAggregates.$error"
+                          id="udLabsAggOption-help"
+                          class="flex p-error ml-2">
+                          {{ v$.udLabsMissingAggregates.$errors[0].$message }}
+                      </small>
               </div>
           </div>
       </Panel>
@@ -180,11 +186,12 @@
         />
       </AccordionTab>
       <AccordionTab header="User-Defined Labs">
-        <Labs
+        <UserDefinedLabs
             :selected-labs="localClinicalData.ud_labs"
             :initial-labs="(initialData as any).ud_labs"
             :has-closest-time="hasClosestTime"
             :has-closest-event="hasClosestEvent"
+            :class="{ 'p-invalid': v$.udLabsMissingAggregates.$error }"
             @update-labs="updateUdLabs"
         />
       </AccordionTab>
@@ -254,7 +261,7 @@ import type FieldConfig from "@/types/FieldConfig";
 import type TimingConfig from "@/types/TimingConfig";
 import type TextValuePair from "@/types/TextValuePair";
 import ClinicalDataOptions from "./ClinicalDataOptions.vue";
-import Labs from "@/components/Labs.vue";
+import UserDefinedLabs from "@/components/UserDefinedLabs.vue";
 import Chips from "primevue/chips";
 import { useToast } from "primevue/usetoast";
 import Toast from 'primevue/toast';
@@ -355,6 +362,14 @@ const localAggregateDefaults = computed({
   set(value:(Array<TextValuePair>|undefined)){
     emit('update:aggregateDefaults', value);
   }
+});
+
+const udLabsMissingAggregates = computed(() => {
+  if (localClinicalData.value.ud_labs) {
+    return localClinicalData.value.ud_labs.findIndex((cd: any) =>
+        (cd.aggregation_options.length === 0)) > -1;
+  }
+  return false;
 });
 
 const initialAggregates = computed(() => {
@@ -494,6 +509,8 @@ const removeAggregate=(aggregate: string) => {
   }
   // remove custom aggregates from labs
   localClinicalData.value.labs = removeCustomAggregates(aggregate, localClinicalData.value.labs);
+  // remove custom aggregates from ud_labs
+  localClinicalData.value.ud_labs = removeCustomAggregatesUdLabs(aggregate, localClinicalData.value.ud_labs);
   // remove custom aggregates from vitals
   localClinicalData.value.vitals = removeCustomAggregates(aggregate, localClinicalData.value.vitals);
 }
@@ -508,6 +525,17 @@ const removeCustomAggregates=(aggregate: string, clinicalOptions: any) => {
       if (removed.length === 0) {
         cd.aggregate_type = 'default';
       }
+    }
+    return cd;
+  })
+  return mapped;
+}
+
+const removeCustomAggregatesUdLabs = (aggregate: string, clinicalDataOptions: any) => {
+  const mapped = clinicalDataOptions.map((cd: any) => {
+    if (cd.aggregation_options.findIndex((option: any) => option === aggregate) > -1) {
+      const removed = cd.aggregation_options.filter((option: any) => option !== aggregate);
+      cd.aggregation_options = removed;
     }
     return cd;
   })
@@ -637,6 +665,7 @@ const timeFormat = helpers.regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/)
 const validationFields = computed(() => {
   return {
     aggregateDefaults: localAggregateDefaults.value,
+    udLabsMissingAggregates: udLabsMissingAggregates.value,
     closestEvent: (localClosestEvent.value.duster_field_name)
         ? localClosestEvent.value.duster_field_name :
         localClosestEvent.value.redcap_field_name,
@@ -652,6 +681,11 @@ const rules = computed(() =>({
         ),
         minLength: minLength(1)
       },
+      udLabsMissingAggregates: {
+        custom: helpers.withMessage(
+            "User-defined labs must each have at least one aggregate.",
+            () => { return !udLabsMissingAggregates.value; })
+      },
       closestEvent: {
         requiredIf: helpers.withMessage(
             "Closest event is required", requiredIf(showClosestEvent.value))
@@ -664,6 +698,7 @@ const rules = computed(() =>({
 }))
 
 const v$ = useVuelidate(rules, validationFields)
+
 watchEffect(() => {
   if (localClinicalData.value) {
     localClinicalData.value['valid'] = !v$.value.$error

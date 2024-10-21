@@ -80,7 +80,7 @@
     >
       <template #header>
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-          <span class="text-0 text-900 font-bold">DUSTER Labs</span>
+          <span class="text-0 text-900 font-bold">Labs</span>
         </div>
       </template>
       <Column field="label" header="Label"></Column>
@@ -97,7 +97,7 @@
     >
       <template #header>
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
-          <span class="text-0 text-900 font-bold">Labs</span>
+          <span class="text-0 text-900 font-bold">User-Defined Labs</span>
         </div>
       </template>
       <Column field="label" header="Label"></Column>
@@ -553,8 +553,12 @@ const getUdLabsWithAggregates = (data:any[],
           .replace(/[_+]/g, '_') // replace multiple _ with a single one
           .replace(/_$/g, ''); // remove trailing _
 
-      // REDCap field note includes the reference unit and optional minimum/maximum thresholds
-      let fieldNote = lab.reference_unit ? lab.reference_unit : '';
+      // REDCap field note includes optional notes, lab names and base names, and optional minimum/maximum thresholds
+      let fieldNote = lab.notes ? lab.notes + '<br>' : '';
+      fieldNote += '<br>Lab Results:<br>';
+      for (let labResult of lab.lab_results) {
+        fieldNote += labResult.lab_name + ' [' + labResult.base_name+ ']<br>';
+      }
       if (typeof lab.min_threshold === 'number') {
         fieldNote += '<br>Minimum Threshold: ' + lab.min_threshold;
       }
@@ -598,8 +602,8 @@ const getUdLabsWithAggregates = (data:any[],
           .replace(/[_+]/g, '_') // replace multiple _ with a single one
           .replace(/_$/g, ''); // remove trailing _
 
-      // REDCap field note includes the reference unit and optional minimum/maximum thresholds
-      let fieldNote = field.reference_unit;
+      // REDCap field note includes the optional notes and optional minimum/maximum thresholds
+      let fieldNote = field.notes;
       if (typeof field.min_threshold === 'number') {
         fieldNote += '<br>Minimum Threshold: ' + field.min_threshold;
       }
