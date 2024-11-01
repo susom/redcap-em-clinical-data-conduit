@@ -1,4 +1,19 @@
 <template>
+ props.initialData
+  <br>
+  {{props.initialData}}
+  <br>
+  props.selectedOptions
+  <br>
+{{ props.selectedOptions }}
+  <br>
+  initialSelected
+  <br>
+  {{initialSelected}}
+  <br>
+  selected
+  <br>
+  {{selected}}
 
   <div class="grid">
     <div
@@ -33,7 +48,8 @@
             :for="field.duster_field_name"
             class="ml-2"
           >
-            {{ field.label }}
+            <!-- {{ field.label }} -->
+            {{ field }}
           </label>
           <MetadataInfoDialog :initial-field-name-prop="field.duster_field_name"/>
         </div>
@@ -248,6 +264,10 @@ const props = defineProps({
 const emit = defineEmits(['update:selectedOptions'])
 
 const initialSelected = computed(() => {
+  console.log(props.category);
+  console.log(props.initialData);
+  console.log((props.initialData !== undefined && Array.isArray(props.initialData[props.category]))
+      ? props.initialData[props.category] : []);
   return (props.initialData !== undefined && Array.isArray(props.initialData[props.category]))
     ? props.initialData[props.category] : [];
 });
