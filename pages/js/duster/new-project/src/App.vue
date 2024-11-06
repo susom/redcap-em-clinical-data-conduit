@@ -469,8 +469,6 @@ const getDusterMetadata = (metadataUrl:string) => {
     scoreOptions.value = resp.data.scores;
     clinicalDateOptions.value = resp.data.clinical_dates;
 
-    // get lab results metadata
-
   } else {
     axios.get(metadataUrl)
       .then(function (response) {
@@ -520,13 +518,6 @@ const loadEditMode = () => {
   projectConfig.initial_design.collectionWindows.forEach((cw: any) => {
     cw.data.ud_labs = cw.data.ud_labs ? cw.data.ud_labs : [];
   });
-/*
-  for (let i = 0; i < projectConfig.initial_design.collectionWindows.length; i++) {
-    if (!projectConfig.initial_design.collectionWindows[i].data.ud_labs) {
-      projectConfig.initial_design.collectionWindows[i].data.ud_labs = [];
-    }
-  }
- */
 
   initialDesign.value = projectConfig.initial_design;
 

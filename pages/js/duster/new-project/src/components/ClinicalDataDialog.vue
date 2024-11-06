@@ -60,11 +60,6 @@
       </div>
       <hr/>
       <!-- default aggregates-->
-      {{ initialData}}}
-
-      <br>
-      <br>
-      {{localClinicalData}}
       <Panel
         header="Default Aggregates"
         toggleable
