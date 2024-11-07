@@ -469,8 +469,6 @@ const getDusterMetadata = (metadataUrl:string) => {
     scoreOptions.value = resp.data.scores;
     clinicalDateOptions.value = resp.data.clinical_dates;
 
-    // get lab results metadata
-
   } else {
     axios.get(metadataUrl)
       .then(function (response) {
@@ -514,6 +512,13 @@ const getDusterMetadata = (metadataUrl:string) => {
 };
 
 const loadEditMode = () => {
+
+  // add an empty array for missing user-defined labs to each data collection window
+  // retroactive support for user-defined labs feature for older projects
+  projectConfig.initial_design.collectionWindows.forEach((cw: any) => {
+    cw.data.ud_labs = cw.data.ud_labs ? cw.data.ud_labs : [];
+  });
+
   initialDesign.value = projectConfig.initial_design;
 
   // transform and load researcher-provided data
