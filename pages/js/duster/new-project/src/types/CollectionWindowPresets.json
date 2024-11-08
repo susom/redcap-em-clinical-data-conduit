@@ -43,6 +43,7 @@
       "event": [],
       "data": {
         "labs": [],
+        "ud_labs": [],
         "vitals": [],
         "outcomes": [],
         "scores": []
@@ -92,6 +93,7 @@
       "event": [],
       "data": {
         "labs": [],
+        "ud_labs": [],
         "vitals": [],
         "outcomes": [],
         "scores": []
@@ -141,6 +143,7 @@
       "event": [],
       "data": {
         "labs": [],
+        "ud_labs": [],
         "vitals": [],
         "outcomes": [],
         "scores": []
@@ -189,6 +192,7 @@
       "event": [],
       "data": {
         "labs": [],
+        "ud_labs": [],
         "vitals": [],
         "outcomes": [],
         "scores": []
@@ -238,6 +242,7 @@
       "event": [],
       "data": {
         "labs": [],
+        "ud_labs": [],
         "vitals": [],
         "outcomes": [],
         "scores": []
@@ -287,6 +292,7 @@
       "event": [],
       "data": {
         "labs": [],
+        "ud_labs": [],
         "vitals": [],
         "outcomes": [],
         "scores": []
@@ -336,6 +342,7 @@
       "event": [],
       "data": {
         "labs": [],
+        "ud_labs": [],
         "vitals": [],
         "outcomes": [],
         "scores": []

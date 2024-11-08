@@ -1,5 +1,4 @@
 <template>
-
   <div class="grid">
     <div
       v-for="(col, index) in filtered"

@@ -87,14 +87,49 @@
         style="width: 40%"
       >
         <template #body="slotProps">
-
-          <Button @click="showClinicalData('labs', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded
-          :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
-              Labs<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].labs.length }}</Badge>
+          <Button
+              @click="showClinicalData('labs', slotProps.data)"
+              size="small"
+              class="ml-1 p-1 pr-2 pl-2"
+              rounded
+              :severity="(v$.$dirty
+                && !slotProps.data[slotProps.field].valid
+                && slotProps.data.data.errors?.findIndex((cd: any) => (cd.$property === 'aggregateDefaults')) > -1)
+                ? 'danger':'primary'"
+          >
+            Labs
+            <Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].labs.length }}</Badge>
           </Button>
-          <Button @click="showClinicalData('vitals', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
-              Vitals<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].vitals.length }}</Badge>
+          <Button
+              @click="showClinicalData('ud_labs', slotProps.data)"
+              size="small"
+              class="ml-1 p-1 pr-2 pl-2"
+              rounded
+              :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid
+                 && slotProps.data.data.errors?.findIndex((cd: any) => (cd.$property === 'udLabsMissingAggregates')) > -1)
+                 ? 'danger':'primary'"
+          >
+            User-Defined Labs
+            <Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].ud_labs.length }}</Badge>
           </Button>
+          <Button
+              @click="showClinicalData('vitals', slotProps.data)"
+              size="small"
+              class="ml-1 p-1 pr-2 pl-2"
+              rounded
+              :severity="(v$.$dirty
+                && !slotProps.data[slotProps.field].valid
+                && slotProps.data.data.errors?.findIndex((cd: any) => (cd.$property === 'aggregateDefaults')) > -1)
+                ? 'danger':'primary'"
+          >
+            Vitals
+            <Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].vitals.length }}</Badge>
+          </Button>
+          <!-- TODO Medications
+          <Button @click="showClinicalData('medications', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded :severity="(v$.$dirty && !slotProps.data[slotProps.field].valid) ? 'danger':'primary'">
+            Medications<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].vitals.length }}</Badge>
+          </Button>
+          -->
           <Button @click="showClinicalData('outcomes', slotProps.data)" size="small" class="ml-1 p-1 pr-2 pl-2" rounded>
               Outcomes<Badge class="p-badge-no-gutter">{{ slotProps.data[slotProps.field].outcomes.length }}</Badge>
           </Button>
@@ -228,7 +263,6 @@ import type TimingConfig from "@/types/TimingConfig";
 import {helpers, required, sameAs} from "@vuelidate/validators";
 import {useVuelidate} from "@vuelidate/core";
 
-
 const props = defineProps({
   labOptions: {
     type: Array as PropType<Array<FieldMetadata>>,
@@ -331,14 +365,36 @@ const showClinicalData = (category:string, cw: CollectionWindow) => {
     case 'labs' :
       activeClinicalOptions.value.push(0);
       break;
-    case 'vitals' :
+    case 'ud_labs':
       activeClinicalOptions.value.push(1);
       break;
-    case 'outcomes' :
+    case 'vitals' :
       activeClinicalOptions.value.push(2);
       break;
-    case 'scores' :
+    case 'outcomes' :
       activeClinicalOptions.value.push(3);
+      break;
+    case 'scores' :
+      activeClinicalOptions.value.push(4);
+    /* TODO Medications
+    case 'labs' :
+      activeClinicalOptions.value.push(0);
+      break;
+    case 'ud_labs':
+      activeClinicalOptions.value.push(1);
+      break;
+    case 'vitals' :
+      activeClinicalOptions.value.push(2);
+      break;
+    case 'medications' :
+      activeClinicalOptions.value.push(3);
+      break;
+    case 'outcomes' :
+      activeClinicalOptions.value.push(4);
+      break;
+    case 'scores' :
+      activeClinicalOptions.value.push(5);
+     */
   }
   showClinicalDataDialog.value = true
 }
@@ -469,7 +525,7 @@ const deleteCw = (id:string) => {
 const duplicateCw = (id:string) => {
   if (localCollectionWindows.value) {
     const index = getRowIndex(id, localCollectionWindows.value)
-    const duplicate = JSON.parse(JSON.stringify(localCollectionWindows.value[index]))
+    const duplicate = JSON.parse(JSON.stringify(localCollectionWindows.value[index]));
     duplicate.id = "cw" + new Date().getTime()
     localCollectionWindows.value.push(duplicate)
   }
@@ -483,7 +539,7 @@ const getRowIndex = (id:string, haystack:any[]) => {
 
 const getInitialWindow = (id:any) => {
   let window = props.initialWindows.find(window => {
-    return window.id === id
+    return window.id === id;
   });
   return window;
 }

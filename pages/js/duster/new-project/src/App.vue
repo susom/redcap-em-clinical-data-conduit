@@ -5,7 +5,7 @@
         <nav>
           <div class="grid">
             <div class="col">
-              <a class="brand-logo" href="https://med.stanford.edu/">Stanford Medicine</a>
+              <a class="brand-logo" href="https://med.stanford.edu/" target="_blank">Stanford Medicine</a>
               <div style="display:inline;float:left" class="mt-2">
                 <div class="font-bold text-left" style="font-size:1.25em;">DUSTER</div>
                 <div class="text-sm font-italic">Research Technology, TDS</div>
@@ -164,6 +164,7 @@ import ReviewPanel from '@/components/ReviewPanel.vue';
 
 // for testing
 import resp from './dusterTestMetadata.json';
+import labResultsDev from './lab_results.json'; // TODO delete this line
 import {useToast} from "primevue/usetoast";
 import Toast from 'primevue/toast';
 import {useVuelidate} from "@vuelidate/core";
@@ -222,6 +223,12 @@ const vitalOptions = ref<FieldMetadata[]>([]);
 const outcomeOptions = ref<FieldMetadata[]>([]);
 const scoreOptions = ref<FieldMetadata[]>([]);
 const clinicalDateOptions = ref<FieldMetadata[]>([]);
+
+const labResults = ref();
+const labResultsMetadata = computed<any>(() => {
+  return labResults.value.results;
+});
+provide('labResults', labResultsMetadata);
 
 const metadataArr = computed<Array<FieldMetadata>>(() => {
   let arr:FieldMetadata[] = [];
@@ -461,6 +468,7 @@ const getDusterMetadata = (metadataUrl:string) => {
     outcomeOptions.value = resp.data.outcomes;
     scoreOptions.value = resp.data.scores;
     clinicalDateOptions.value = resp.data.clinical_dates;
+
   } else {
     axios.get(metadataUrl)
       .then(function (response) {
@@ -470,31 +478,47 @@ const getDusterMetadata = (metadataUrl:string) => {
         outcomeOptions.value = response.data.outcomes;
         scoreOptions.value = response.data.scores;
         clinicalDateOptions.value = response.data.clinical_dates;
-        irbCheckVisible.value = false;
+        // get lab results metadata
+        axios.get(projectConfig.get_lab_results_url)
+            .then(function (response) {
+              labResults.value = response.data;
+              irbCheckVisible.value = false;
 
-        //  fetch dataset designs
-        axios.get(projectConfig.get_dataset_designs_url)
-          .then(function (response) {
-            const designs = response.data;
-            // prompt to restore auto-save
-            if (projectConfig.edit_mode === false && designs.hasOwnProperty('auto-save') === true) {
-              autoSaveDesign.value = JSON.parse(designs['auto-save']);
-              promptRestoreAutoSave.value = true;
-            } else if (projectConfig.edit_mode === true) {
-              loadEditMode();
-            }
-          })
-          .catch(function (error) {
+              //  fetch dataset designs
+              axios.get(projectConfig.get_dataset_designs_url)
+                  .then(function (response) {
+                    const designs = response.data;
+                    // prompt to restore auto-save
+                    if (projectConfig.edit_mode === false && designs.hasOwnProperty('auto-save') === true) {
+                      autoSaveDesign.value = JSON.parse(designs['auto-save']);
+                      promptRestoreAutoSave.value = true;
+                    } else if (projectConfig.edit_mode === true) {
+                      loadEditMode();
+                    }
+                  })
+                  .catch(function (error) {
 
-          });
+                  });
+            })
+            .catch(function (error) {
+              irbCheckMessage.value = "Unable to load DUSTER metadata.";
+              systemError.value = true;
+            });
       }).catch(function (error) {
-        irbCheckMessage.value = "Unable to load DUSTER metadata";
-        systemError.value = true;
+        irbCheckMessage.value = "Unable to load DUSTER metadata.";
+      systemError.value = true;
     });
   }
 };
 
 const loadEditMode = () => {
+
+  // add an empty array for missing user-defined labs to each data collection window
+  // retroactive support for user-defined labs feature for older projects
+  projectConfig.initial_design.collectionWindows.forEach((cw: any) => {
+    cw.data.ud_labs = cw.data.ud_labs ? cw.data.ud_labs : [];
+  });
+
   initialDesign.value = projectConfig.initial_design;
 
   // transform and load researcher-provided data
@@ -515,8 +539,8 @@ const loadEditMode = () => {
   }
 
   // load data collection windows
-  initialDesign.collectionWindows = projectConfig.initial_design.collectionWindows;
-  collectionWindows.value = initialDesign.value.collectionWindows;
+  initialDesign.collectionWindows = JSON.parse(JSON.stringify(projectConfig.initial_design.collectionWindows));
+  collectionWindows.value = JSON.parse(JSON.stringify(initialDesign.value.collectionWindows));
 };
 
 const checkForRpDateChanges = () => {
