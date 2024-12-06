@@ -230,6 +230,12 @@ const labResultsMetadata = computed<any>(() => {
 });
 provide('labResults', labResultsMetadata);
 
+const medicationsCache = ref();
+const medicationsMetadata = computed<any>(() => {
+  return medicationsCache.value;
+});
+provide('medicationsMetadata', medicationsMetadata);
+
 const metadataArr = computed<Array<FieldMetadata>>(() => {
   let arr:FieldMetadata[] = [];
   return arr.concat(demographicsOptions.value)
@@ -469,8 +475,6 @@ const getDusterMetadata = (metadataUrl:string) => {
     scoreOptions.value = resp.data.scores;
     clinicalDateOptions.value = resp.data.clinical_dates;
 
-    // get lab results metadata
-
   } else {
     axios.get(metadataUrl)
       .then(function (response) {
@@ -480,10 +484,12 @@ const getDusterMetadata = (metadataUrl:string) => {
         outcomeOptions.value = response.data.outcomes;
         scoreOptions.value = response.data.scores;
         clinicalDateOptions.value = response.data.clinical_dates;
-        // get lab results metadata
-        axios.get(projectConfig.get_lab_results_url)
+
+        // get STARR cache
+        axios.get(projectConfig.get_cache_url)
             .then(function (response) {
-              labResults.value = response.data;
+              labResults.value = response.data.labs;
+              medicationsCache.value = response.data.medications;
               irbCheckVisible.value = false;
 
               //  fetch dataset designs
