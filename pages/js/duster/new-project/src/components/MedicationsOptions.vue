@@ -148,10 +148,13 @@
 <template>
   <div class="mb-2">
     <p>
-      Each medication added here creates a boolean clinical variable that answers this question - "In this data collection window, was this medication ordered for the patient (yes/no)?"
+      Each medication defined and added here creates a boolean clinical variable that answers this question - "In this data collection window, was this medication ordered for the patient (yes/no)?"
     </p>
     <p>
-      Note that multiple medications may be added to each clinical variable.
+      Please note that this only attempts to capture if a medication order was placed during the data collection window, not the actual administration of the medication.
+    </p>
+    <p>
+      Each medication may be defined by multiple therapeutic and pharmacologic class. At least one therapeutic or pharmacologic class is required to define a medication.
     </p>
   </div>
   <DataTable
