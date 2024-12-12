@@ -162,6 +162,7 @@ import DemographicsPanel from '@/components/DemographicsPanel.vue';
 import CollectionWindowsPanel from '@/components/CollectionWindowsPanel.vue';
 import ReviewPanel from '@/components/ReviewPanel.vue';
 
+
 // for testing
 import resp from './dusterTestMetadata.json';
 import labResultsDev from './lab_results.json'; // TODO delete this line
@@ -226,7 +227,8 @@ const clinicalDateOptions = ref<FieldMetadata[]>([]);
 
 const labResults = ref();
 const labResultsMetadata = computed<any>(() => {
-  return labResults.value.results;
+  // return labResults.value.results;
+  return labResults.value;
 });
 provide('labResults', labResultsMetadata);
 
