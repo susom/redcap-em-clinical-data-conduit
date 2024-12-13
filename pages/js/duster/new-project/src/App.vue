@@ -524,9 +524,10 @@ const getDusterMetadata = (metadataUrl:string) => {
 const loadEditMode = () => {
 
   // add an empty array for missing user-defined labs to each data collection window
-  // retroactive support for user-defined labs feature for older projects
+  // retroactive support for user-defined labs and medications features for older projects
   projectConfig.initial_design.collectionWindows.forEach((cw: any) => {
     cw.data.ud_labs = cw.data.ud_labs ? cw.data.ud_labs : [];
+    cw.data.medications = cw.data.medications ? cw.data.medications : [];
   });
 
   initialDesign.value = projectConfig.initial_design;
